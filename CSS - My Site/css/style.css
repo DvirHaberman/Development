@@ -1,0 +1,41 @@
+body {
+    background-color:    #beebe9;
+    margin: 0;
+
+}
+
+h1{
+    margin-top: 0;
+}
+/* ------------------------ */
+.top-container {
+    background-color: cornflowerblue;
+    width: 200px;
+    height: 200px;
+    border: solid 10px;
+    padding: 20px;
+}
+
+/* ------------------------ */
+
+.middle-container {
+    background-color: red;
+    margin: 0 0 0 260px;
+    width: 200px;
+    height: 200px;
+    border: solid 10px;
+    padding: 20px;
+
+}
+
+/* ------------------------ */
+
+.bottom-container {
+    background-color: blue;
+    margin: 0 0 0 520px;
+    width: 200px;
+    height: 200px;
+    border: solid 10px;
+    padding: 20px;
+
+}
