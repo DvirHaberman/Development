@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Function Definition</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="../fontawesome\css\all.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body>
+    <section id="navigation-bar">
+      <div class="container-fluid">
+        <!-- Nav Bar -->
+        <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
+          <a class="navbar-brand" href="#"
+            ><img
+              class="octopus-img"
+              src="../images/Octopus-Green.png"
+              alt=""
+            />
+            <h6 class="user-name">OmriG</h6>
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-toggle="collapse"
+            data-target="#navbarTogglerDemo2"
+            aria-controls="navbarTogglerDemo2"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="">Define</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="">Run</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href=""> Results</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section id="fixed-menus">
+      <div class="row">
+        <div class="fixed-buttons-div card bg-secondary shadow-lg">
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/magic-wand.png"
+            alt="Card image cap"
+          />
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/save.png"
+            alt="Card image cap"
+          />
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/folder-13.png"
+            alt="Card image cap"
+          />
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/edit.png"
+            alt="Card image cap"
+          />
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/repeat.png"
+            alt="Card image cap"
+          />
+          <img
+            class="card-img-top img-responsive"
+            src="../icons/play-button-1.png"
+            alt="Card image cap"
+          />
+        </div>
+        <div
+          class="fixed-fields-div card shadow-lg bg-primary text-light rounded"
+        >
+          <label for="select_function">Search Function</label>
+          <select
+            class="form-control"
+            name="select_function"
+            id="select_function"
+          >
+            <option value="">a</option>
+            <option value="">b</option>
+            <option value="">C</option>
+          </select>
+          <label for="select_user">User</label>
+          <div>
+            <select
+              class="form-control user-select"
+              name="select_user"
+              id="select_user"
+            >
+              <option value="">a</option>
+              <option value="">b</option>
+              <option value="">C</option>
+            </select>
+            <i class="fas fa-user-astronaut fas-7x"></i>
+          </div>
+          <label for="select_version">User</label>
+          <div>
+            <select
+              class="form-control version-select"
+              name="select_version"
+              id="select_version"
+            >
+              <option value="">a</option>
+              <option value="">b</option>
+              <option value="">C</option>
+            </select>
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-star"></i>
+          </div>
+          <label>Changed Date</label>
+          <input class="form-control" type="text" value="02/02/2020 15:20"></input>
+          <label>Checksum</label>
+          <input class="form-control" type="text" value="66e6s66q8s8ss"></input>
+          <label for="">Version Comments</label>
+          <textarea class="form-control" name="" id="" cols="30" rows="5"></textarea>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

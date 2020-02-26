@@ -1,0 +1,71 @@
+.octopus-img {
+  width: 8%;
+}
+
+.nav-item {
+  text-align: center;
+  margin: 0 10px 0;
+}
+
+.user-name {
+  /* background-color: gray; */
+  /* border-radius: 100%; */
+  display: inline-block;
+  padding: 1%;
+}
+
+#fixed-menus {
+  margin-top: 100px;
+}
+
+#fixed-menus select {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+#fixed-menus select:hover {
+    box-shadow: 
+       inset 0 -3rem 3rem rgba(0,0,0,0.1), 
+             0 0  0 2px rgb(255,255,255),
+             0.3rem 0.3rem 1rem rgba(0,0,0,0.3);
+}
+
+
+.fixed-buttons-div {
+  margin: 0 0 0 100px;
+  padding: 5px 10px;
+  position: fixed;
+  height: 600px;
+  width: 80px;
+}
+
+.card-img-top {
+  margin: 20px 0px;
+  max-width: 100%;
+  display: block;
+}
+
+.fixed-fields-div {
+  margin: 0 0 0 210px;
+  padding: 20px 20px;
+  position: fixed;
+  height: 600px;
+  width: 300px;
+}
+
+.user-select {
+    display: inline-block;
+    width: 70%;
+    margin-right: 20px;
+}
+
+.version-select {
+    display: inline-block;
+    width: 50%;
+    margin-right: 20px;
+}
+
+.fas {
+    font-size: 2rem;
+    margin-right: 10px;
+}
