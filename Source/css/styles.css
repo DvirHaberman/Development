@@ -21,6 +21,7 @@ body {
 #fixed-menus {
   /* margin-top: 10px; */
   margin-left: 1%;
+  /* margin-top: 5%; */
   position: fixed;
 }
 
@@ -29,7 +30,8 @@ body {
     /* margin-bottom: 10px; */
 }
 
-#fixed-menus select:hover {
+/* #fixed-menus  */
+select:hover {
     box-shadow: 
        inset 0 -3rem 3rem rgba(0,0,0,0.1), 
              0 0  0 2px rgb(255,255,255),
@@ -97,7 +99,7 @@ body {
 /* section main-from*/
 
 #main-from {
-    margin-top: 10px;
+    margin-top: 7%;
     margin-left: 500px;
 }
 
@@ -107,6 +109,8 @@ body {
 
 .main-form-card-body {
     background-color: #e8f9e9;
+    border-top: solid dimgray 1.5px;
+    
 }
 
 .main-form-card {
@@ -115,11 +119,107 @@ body {
 
 .input-groups-data {
     border-left: dotted lightgreen 2px;
-    overflow-y: scroll;
     padding-right: 20px;
     padding-left: 5px;
+    
+}
+
+#GroupsList {
+    position: relative;
+    height: 300px;
+    width: 150px;
+    overflow-y: scroll;
 }
 
 .input-groups-data label {
     margin-left: 7px;
+    
+}
+/* 
+.input-form {
+    margin-left: 0px;
+}
+ */
+
+ .input-function-data{
+     padding-left: 0px;
+ }
+
+ .main-form-card table{
+     text-align: center;
+     margin-top: 2%;
+ }
+ .table-select{
+     background-color: #e8f9e9;
+     position: relative;
+     width: 50%;
+     margin: auto;
+ }
+
+ /* .table-option {
+    background-color: black;
+ } */
+#window-title {
+    font-family: cursive;
+    font-size: 2rem;
+    color: #ff4c68;
+}
+
+.oper_line {
+    display: block;
+}
+
+#Tree {
+    margin-left: 500px;
+}
+
+.tree {
+    margin: 0 auto;
+    border: solid 2px;
+    height: 100px;
+    width: 180px;
+    border-radius: 5%;
+    background-color: #e9ffff;
+}
+
+.tree:hover {
+    border: dashed 5px;
+    height: 100px;
+    width: 300px;
+}
+
+.tree-text {
+    max-width: 60%;
+    max-height: 40%;
+    margin-left: 10%;
+}
+
+.tree-text:hover {
+    max-width: none;
+    max-height: none;
+}
+
+.tree-text:focus {
+    max-width: none;
+    max-height: none;
+}
+
+.trash-icon-tree {
+    margin-top: 3%;
+    font-size: 1.75rem;
+    visibility: collapse;
+}
+
+.add-icon-tree {
+    margin-top: 2%;
+    margin-left: 10%;
+    visibility: collapse;
+}
+
+.tree:hover .add-icon-tree {
+    visibility: visible;
+}
+
+.tree:hover .trash-icon-tree {
+    visibility: visible;
 }

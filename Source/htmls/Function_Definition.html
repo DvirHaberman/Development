@@ -29,8 +29,9 @@
     <link rel="stylesheet" href="../css/styles.css" />
   </head>
   <body>
-    <section id="navigation-bar">
-      <div class="container-fluid">
+
+    <section id="navigation-bar" >
+      <div class="container-fluid fixed-top">
         <!-- Nav Bar -->
         <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
           <a class="navbar-brand" href="#"
@@ -41,6 +42,7 @@
             />
             <h6 class="user-name">OmriG</h6>
           </a>
+            <a class="navbar-brand" id="window-title" href="">Function Definition Window</a>
           <button
             class="navbar-toggler"
             type="button"
@@ -54,6 +56,7 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
             <ul class="navbar-nav ml-auto">
+                
               <li class="nav-item active">
                 <a class="nav-link" href="">Define</a>
               </li>
@@ -67,7 +70,7 @@
           </div>
         </nav>
       </div>
-      <h1 class="function-definition-header">Function Definition Window</h1>
+      <!-- <h1 class="function-definition-header">Function Definition Window</h1> -->
     </section>
 
     <section id="fixed-menus">
@@ -159,8 +162,9 @@
     <section id = "main-from">
 
         <div class="card bg-light mb-3 main-form-card">
-            <div class="card-body main-form-card-body row">
+            <div class="row card-body main-form-card-body">
               <div class="input-function-data col-10">
+
                   <div class="row">
                       <div class="function-input-row col-6">
                         <label>Function Name</label>
@@ -175,21 +179,63 @@
                         <input class="form-control" type="text"></input>
                       </div>
                   </div>
-                  <div class="function-input-row">
-                    <label>Function Callback</label>
-                    <div class="row">
-                      
-                      <input class="form-control col-8" type="text" style="display: inline-block;"></input>
-                      <i class="fas fa-ellipsis-h inline-icon"></i>
-                    </div>
 
+                  <div class="row">
+                      <div class="function-input-row col-8">
+                        <label>Function Callback</label>
+                        <input class="form-control" type="text"></input>
+                      </div>
 
-                </div>
+                      <div class="function-input-row col-1">
+                        <i class="fas fa-ellipsis-h inline-icon" ></i>
+                      </div>
+
+                      <div class="function-input-row col-1">
+                        <i class="fas fa-ellipsis-h inline-icon"></i>
+                      </div>
+
+                  </div>
+
+                  <div class="row">
+                        <div class="function-input-row col-10">
+                            <label>Function Location</label>
+                            <input class="form-control" type="text"></input>
+                        </div>
+                  </div>
+
+                  <div class="row">
+                        <div class="function-input-row col-10">
+                            <label>Description</label>
+                            <input class="form-control" type="text"></input>
+                        </div>
+                  </div>
+
+            </div>
                   
-              </div>
+
               <div class="input-groups-data col-2">
                     <label for="GroupsList">Groups</label>
                   <ul id="GroupsList">
+                    <li>group1</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
+                    <li>group1</li>
+                      <li>group2</li>
+                      <li>group3</li>
+                      <li>group4</li>
+                      <li>group1</li>
+                      <li>group2</li>
+                      <li>group3</li>
+                      <li>group4</li>
+                      <li>group1</li>
+                      <li>group2</li>
+                      <li>group3</li>
+                      <li>group4</li>
+                      <li>group1</li>
+                      <li>group2</li>
+                      <li>group3</li>
+                      <li>group4</li>
                       <li>group1</li>
                       <li>group2</li>
                       <li>group3</li>
@@ -197,11 +243,98 @@
                   </ul>
               </div>
             </div>
-          </div>
+        </div>
 
+
+        <div class="card bg-light mb-3 main-form-card">
+            <div class="row card-body main-form-card-body">
+                <label>Inputs:</label>
+                <i class="fas fa-plus-circle ml-auto"></i>
+
+                <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Kind</th>
+                        <th scope="col">Val</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Remove</th>
+
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">1</th>
+                        <td>Sys Params</td>
+                        <td> --- </td>
+                        <td>Table</td>
+                        <td><i class="far fa-trash-alt"></i></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">2</th>
+                        <td>text</td>
+                        <td>66</td>
+                        <td>double</td>
+                        <td><i class="far fa-trash-alt"></i></td>
+
+                      </tr>
+                      <tr>
+                        <th scope="row">3</th>
+                        <td>text</td>
+                        <td>RV</td>
+                        <td>string</td>
+                        <td><i class="far fa-trash-alt"></i></td>
+                      </tr>
+                      <tr>
+                        <th scope="row">4</th>
+                        <td>Octopus Param</td>
+                        <td><select name="" id="" class="form-control table-select">
+                            <option selected class="table-option">BM-Params</option>
+                            <option class="table-option">SP-Params</option>
+                            </select>
+                        </td>
+                        <td>DataFrame</td>
+                        <td><i class="far fa-trash-alt"></i></td>
+                      </tr>
+                      
+                    </tbody>
+                  </table>
+
+
+            </div>
+
+        </div>
+
+        <div class="card bg-light mb-3 main-form-card">
+            <div class="row card-body main-form-card-body">
+                <div>
+                    <h5 class="mb-2">Function Oper Line:</h5>
+                        <h5 class="oper_line">your_function(param1, param2, ...., paramN)</h5>                
+                    </div>
+            </div>
+        </div>
+            
     </section>
 
-
+    <section id = "Tree">
+        <div class="card bg-light mb-3 main-form-card">
+            <div class="row card-body main-form-card-body">
+                <h4>Tree</h4>
+                <div class="mx-auto">
+                
+                <div class="tree">
+                    <h5 class="ml-3">#N223</h5>
+                    <div class="row">
+                        <textarea class = "tree-text" value="This Node..."></textarea>
+                        <i class="fas fa-plus-circle add-icon-tree"></i>
+                        <i class="far fa-trash-alt trash-icon-tree"></i>
+                    </div>
+                    
+                </div>
+            </div>
+            </div>  
+        </div>
+    </section>
 
   </body>
 </html>
