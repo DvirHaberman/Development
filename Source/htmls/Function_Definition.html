@@ -67,6 +67,7 @@
           </div>
         </nav>
       </div>
+      <h1 class="function-definition-header">Function Definition Window</h1>
     </section>
 
     <section id="fixed-menus">
@@ -117,7 +118,7 @@
             <option value="">C</option>
           </select>
           <label for="select_user">User</label>
-          <div>
+          <div class="row row-fix-form">
             <select
               class="form-control user-select"
               name="select_user"
@@ -127,10 +128,12 @@
               <option value="">b</option>
               <option value="">C</option>
             </select>
-            <i class="fas fa-user-astronaut fas-7x"></i>
+
+            <i class="fas fa-user-astronaut fas-7x inline-icon"></i>
+
           </div>
-          <label for="select_version">User</label>
-          <div>
+          <label for="select_version">Version</label>
+          <div class = "row row-fix-form">
             <select
               class="form-control version-select"
               name="select_version"
@@ -140,17 +143,66 @@
               <option value="">b</option>
               <option value="">C</option>
             </select>
-            <i class="fas fa-check-circle"></i>
-            <i class="fas fa-star"></i>
+            <i class="fas fa-check-circle inline-icon"></i>
+            <i class="fas fa-star inline-icon"></i>
           </div>
           <label>Changed Date</label>
-          <input class="form-control" type="text" value="02/02/2020 15:20"></input>
+          <input class="form-control" type="text" value="02/02/2020 15:20" disabled ></input>
           <label>Checksum</label>
-          <input class="form-control" type="text" value="66e6s66q8s8ss"></input>
+          <input class="form-control" type="text" value="66e6s66q8s8ss" disabled></input>
           <label for="">Version Comments</label>
-          <textarea class="form-control" name="" id="" cols="30" rows="5"></textarea>
+          <textarea class="form-control" name="" id="" cols="30" rows="7"></textarea>
         </div>
       </div>
     </section>
+
+    <section id = "main-from">
+
+        <div class="card bg-light mb-3 main-form-card">
+            <div class="card-body main-form-card-body row">
+              <div class="input-function-data col-10">
+                  <div class="row">
+                      <div class="function-input-row col-6">
+                        <label>Function Name</label>
+                        <input class="form-control" type="text"></input>
+                      </div>
+                      <div class="function-input-row col-4">
+                        <label>Tags</label>
+                        <input class="form-control" type="text"></input>
+                      </div>
+                      <div class="function-input-row col-2">
+                        <label>Feature</label>
+                        <input class="form-control" type="text"></input>
+                      </div>
+                  </div>
+                  <div class="function-input-row">
+                    <label>Function Callback</label>
+                    <div class="row">
+                      
+                      <input class="form-control col-8" type="text" style="display: inline-block;"></input>
+                      <i class="fas fa-ellipsis-h inline-icon"></i>
+                    </div>
+
+
+                </div>
+                  
+              </div>
+              <div class="input-groups-data col-2">
+                    <label for="GroupsList">Groups</label>
+                  <ul id="GroupsList">
+                      <li>group1</li>
+                      <li>group2</li>
+                      <li>group3</li>
+                      <li>group4</li>
+                  </ul>
+              </div>
+            </div>
+          </div>
+
+    </section>
+
+
+
   </body>
 </html>
+

@@ -1,3 +1,7 @@
+body {
+    background-color: #fcf8e8;
+}
+
 .octopus-img {
   width: 8%;
 }
@@ -15,12 +19,14 @@
 }
 
 #fixed-menus {
-  margin-top: 100px;
+  /* margin-top: 10px; */
+  margin-left: 1%;
+  position: fixed;
 }
 
 #fixed-menus select {
     margin-top: 0px;
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */
 }
 
 #fixed-menus select:hover {
@@ -30,26 +36,34 @@
              0.3rem 0.3rem 1rem rgba(0,0,0,0.3);
 }
 
+.function-definition-header {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 4rem;
+    font-weight: bold;
+    font-family: cursive;
+}
+
 
 .fixed-buttons-div {
-  margin: 0 0 0 100px;
-  padding: 5px 10px;
-  position: fixed;
-  height: 600px;
-  width: 80px;
+  margin: 0 0 0 2%;
+  padding: 0.41% 0.625%;
+  position: relative;
+  height: 60%;
+  width: 9%;
 }
 
 .card-img-top {
-  margin: 20px 0px;
+  margin: 25px 0px;
   max-width: 100%;
   display: block;
 }
 
 .fixed-fields-div {
-  margin: 0 0 0 210px;
+  margin: 0 0 0 6%;
   padding: 20px 20px;
-  position: fixed;
-  height: 600px;
+  position: relative;
+  height: 60%;
   width: 300px;
 }
 
@@ -68,4 +82,44 @@
 .fas {
     font-size: 2rem;
     margin-right: 10px;
+}
+
+.inline-icon {
+    padding-top: 2px;
+    display: inline-block;
+}
+
+.row-fix-form{
+    text-align: center;
+    margin: 0 0 0 0px;
+}
+
+/* section main-from*/
+
+#main-from {
+    margin-top: 10px;
+    margin-left: 500px;
+}
+
+.form-control {
+    margin-bottom: 12px;
+}
+
+.main-form-card-body {
+    background-color: #e8f9e9;
+}
+
+.main-form-card {
+    max-width: 90%;
+}
+
+.input-groups-data {
+    border-left: dotted lightgreen 2px;
+    overflow-y: scroll;
+    padding-right: 20px;
+    padding-left: 5px;
+}
+
+.input-groups-data label {
+    margin-left: 7px;
 }
