@@ -46,6 +46,6 @@ function play_game() {
 
     document.querySelector(".heading").textContent = heading_text;
 
-    document.querySelector("#flag_1").setAttribute("class", right_flag_class);
-    document.querySelector("#flag_2").setAttribute("class", left_flag_class);
+    document.querySelector("#flag_1").setAttribute("class", left_flag_class);
+    document.querySelector("#flag_2").setAttribute("class", right_flag_class);
 }
