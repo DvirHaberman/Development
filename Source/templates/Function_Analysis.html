@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Functions Analysis</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="../fontawesome\css\all.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body>
+    <section id="navigation-bar">
+      <div class="container-fluid fixed-top">
+        <!-- Nav Bar -->
+        <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
+          <a class="navbar-brand" href="#"
+            ><img
+              class="octopus-img"
+              src="../images/Octopus-Green.png"
+              alt=""
+            />
+            <h6 class="user-name">TheDude</h6>
+          </a>
+          <a class="navbar-brand" id="window-title" href=""
+            >Functions Analysis Window</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-toggle="collapse"
+            data-target="#navbarTogglerDemo2"
+            aria-controls="navbarTogglerDemo2"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="Function_Definition"
+                  >Define</a
+                >
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="Function_Analysis"
+                  >Run</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href=""> Results</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <!-- <h1 class="function-definition-header">Function Definition Window</h1> -->
+    </section>
+
+    <section id="functions-and-groups-menus">
+      <div class="row">
+        <div class=" card bg-secondary shadow-lg">
+          <div class="row">
+            <div class="functions-and-groups-select-div">
+              <label for="groups_select">Select Group</label>
+              <select name="groups_select" id="" class="form-control">
+                <option value="">group1</option>
+                <option value="">group2</option>
+                <option value="">group3</option>
+              </select>
+              <a role="button" href="#" class="fix-buttons-ancor">
+                <i class="fas fa-plus-circle ml-auto"></i>
+              </a>
+              <label for="groups_select">Select Function</label>
+              <select name="functions_select" id="" class="form-control">
+                <option value="">function1</option>
+                <option value="">function2</option>
+                <option value="">function3</option>
+              </select>
+              <a role="button" href="#" class="fix-buttons-ancor">
+                <i class="fas fa-plus-circle ml-auto"></i>
+              </a>
+            </div>
+            <div class="functions-and-groups-selected-div">
+              <label for="selected_table">Selected Functions</label>
+              <table class="table table-hover">
+                <tr>
+                  <th>#</th>
+                  <th>Function Name</th>
+                  <th>Owner</th>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>Function1</td>
+                  <td>dude1</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Function2</td>
+                  <td>dude2</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Function3</td>
+                  <td>dude3</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

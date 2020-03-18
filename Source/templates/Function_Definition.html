@@ -25,8 +25,8 @@
       integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
       crossorigin="anonymous"
     ></script>
-    <link rel="stylesheet" href="../fontawesome\css\all.css" />
-    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+    <link rel="stylesheet" href="../static/css/styles.css" />
   </head>
   <body>
 
@@ -37,7 +37,7 @@
           <a class="navbar-brand" href="#"
             ><img
               class="octopus-img"
-              src="../images/Octopus-Green.png"
+              src="{{url_for('static',filename='images/Octopus-Green.png')}}"
               alt=""
             />
             <h6 class="user-name">TheDude</h6>
@@ -58,10 +58,10 @@
             <ul class="navbar-nav ml-auto">
                 
               <li class="nav-item active">
-                <a class="nav-link" href="">Define</a>
+                <a class="nav-link" href="Function_Definition">Define</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="">Run</a>
+                <a class="nav-link" href="Function_Analysis">Run</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href=""> Results</a>
@@ -76,36 +76,36 @@
     <section id="fixed-menus">
       <div class="row">
         <div class="fixed-buttons-div card bg-secondary shadow-lg">
-          <img
+          <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img
             class="card-img-top img-responsive"
-            src="../icons/magic-wand.png"
+            src="{{url_for('static',filename='icons/magic-wand.png')}}"
             alt="Card image cap"
-          />
-          <img
+          /></a>
+          <a role="button" href="#" class="fix-buttons-ancor"><img
             class="card-img-top img-responsive"
-            src="../icons/save.png"
+            src="{{url_for('static',filename='icons/save.png')}}"
             alt="Card image cap"
-          />
-          <img
+          /></a>
+          <a role="button" href="#" class="fix-buttons-ancor"><img
             class="card-img-top img-responsive"
-            src="../icons/folder-13.png"
+            src="{{url_for('static',filename='icons/folder-13.png')}}"
             alt="Card image cap"
-          />
-          <img
+          /></a>
+          <a role="button" href="#" class="fix-buttons-ancor"><img
             class="card-img-top img-responsive"
-            src="../icons/edit.png"
+            src="{{url_for('static',filename='icons/edit.png')}}"
             alt="Card image cap"
-          />
-          <img
+          /></a>
+          <a role="button" href="#" class="fix-buttons-ancor"><img
             class="card-img-top img-responsive"
-            src="../icons/repeat.png"
+            src="{{url_for('static',filename='icons/repeat.png')}}"
             alt="Card image cap"
-          />
-          <img
+          /></a>
+          <a role="button" href="#" class="fix-buttons-ancor"><img
             class="card-img-top img-responsive"
-            src="../icons/play-button-1.png"
+            src="{{url_for('static',filename='icons/play-button-1.png')}}"
             alt="Card image cap"
-          />
+          /></a>
         </div>
         <div
           class="fixed-fields-div card shadow-lg bg-primary text-light rounded"
@@ -113,7 +113,7 @@
           <label for="select_function">Search Function</label>
           <select
             class="form-control"
-            name="select_function"
+            name="function_select"
             id="select_function"
           >
             <option value="">a</option>
@@ -124,7 +124,7 @@
           <div class="row row-fix-form">
             <select
               class="form-control user-select"
-              name="select_user"
+              name="owner"
               id="select_user"
             >
               <option value="">a</option>
@@ -139,7 +139,7 @@
           <div class = "row row-fix-form">
             <select
               class="form-control version-select"
-              name="select_version"
+              name="version"
               id="select_version"
             >
               <option value="">a</option>
@@ -150,11 +150,11 @@
             <i class="fas fa-star inline-icon"></i>
           </div>
           <label>Changed Date</label>
-          <input class="form-control" type="text" value="02/02/2020 15:20" disabled ></input>
-          <label>Checksum</label>
-          <input class="form-control" type="text" value="66e6s66q8s8ss" disabled></input>
+          <input class="form-control" name="changed_date" type="text" value="02/02/2020 15:20" disabled ></input>
+          <label>Function Checksum</label>
+          <input class="form-control" name='function_checksum' type="text" value="66e6s66q8s8ss" disabled></input>
           <label for="">Version Comments</label>
-          <textarea class="form-control" name="" id="" cols="30" rows="7"></textarea>
+          <textarea class="form-control" name="version_comments" id="" cols="30" rows="7"></textarea>
         </div>
       </div>
     </section>
@@ -166,32 +166,32 @@
               <div class="input-function-data col-10">
 
                   <div class="row">
-                      <div class="function-input-row col-6">
+                      <div class="function-input-row col-5">
                         <label>Function Name</label>
-                        <input class="form-control" type="text"></input>
+                        <input class="form-control" type="text" name="name"></input>
                       </div>
-                      <div class="function-input-row col-4">
+                      <div class="function-input-row col-2">
+                        <label>Kind</label>
+                        <input class="form-control" type="text" name="kind"></input>
+                      </div>
+                      <div class="function-input-row col-3">
                         <label>Tags</label>
-                        <input class="form-control" type="text"></input>
+                        <input class="form-control" type="text" name="tags"></input>
                       </div>
                       <div class="function-input-row col-2">
                         <label>Feature</label>
-                        <input class="form-control" type="text"></input>
+                        <input class="form-control" type="text" name="features"></input>
                       </div>
                   </div>
 
                   <div class="row">
                       <div class="function-input-row col-8">
                         <label>Function Callback</label>
-                        <input class="form-control" type="text"></input>
+                        <input class="form-control" type="text" name="callback"></input>
                       </div>
 
                       <div class="function-input-row col-1">
                         <i class="fas fa-ellipsis-h inline-icon" ></i>
-                      </div>
-
-                      <div class="function-input-row col-1">
-                        <i class="fas fa-ellipsis-h inline-icon"></i>
                       </div>
 
                   </div>
@@ -199,14 +199,14 @@
                   <div class="row">
                         <div class="function-input-row col-10">
                             <label>Function Location</label>
-                            <input class="form-control" type="text"></input>
+                            <input class="form-control" type="text" name="location"></input>
                         </div>
                   </div>
 
                   <div class="row">
                         <div class="function-input-row col-10">
                             <label>Description</label>
-                            <input class="form-control" type="text"></input>
+                            <input class="form-control" type="text" name="description"></input>
                         </div>
                   </div>
 
@@ -221,25 +221,25 @@
                     <li>group3</li>
                     <li>group4</li>
                     <li>group1</li>
-                      <li>group2</li>
-                      <li>group3</li>
-                      <li>group4</li>
-                      <li>group1</li>
-                      <li>group2</li>
-                      <li>group3</li>
-                      <li>group4</li>
-                      <li>group1</li>
-                      <li>group2</li>
-                      <li>group3</li>
-                      <li>group4</li>
-                      <li>group1</li>
-                      <li>group2</li>
-                      <li>group3</li>
-                      <li>group4</li>
-                      <li>group1</li>
-                      <li>group2</li>
-                      <li>group3</li>
-                      <li>group4</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
+                    <li>group1</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
+                    <li>group1</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
+                    <li>group1</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
+                    <li>group1</li>
+                    <li>group2</li>
+                    <li>group3</li>
+                    <li>group4</li>
                   </ul>
               </div>
             </div>
@@ -336,6 +336,8 @@
         </div>
     </section>
 
+    <script src="../static//js/jquery_3_4_1_min.js"></script>
+    <script src="../static//js/Functions_Definitions.js"></script>
   </body>
 </html>
 

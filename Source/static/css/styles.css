@@ -55,6 +55,49 @@ select:hover {
   width: 9%;
 }
 
+#functions-and-groups-menus {
+    margin: 5% 0 0 1.2%;
+    padding: 0.41% 0.625%;
+    /* position: relative; */
+    /* height: 60%;
+    width: 9%; */
+}
+
+.functions-and-groups-select-div{
+    padding: 2% 2%;
+    margin: 2%;
+    /* max-width: 20%; */
+}
+
+.functions-and-groups-select-div .form-control{
+    margin: 1% 0 2% 0;
+    /* max-width: 20%; */
+}
+
+.functions-and-groups-select-div .fas {
+    color: black;
+    display: block;
+}
+
+.functions-and-groups-select-div a {
+    margin-top: 5%;
+    margin-bottom: 20%;
+    text-align: right;
+    display: block;
+    /* max-width: 20%; */
+}
+
+.functions-and-groups-select-div .fas:hover {
+    color: blue;
+}
+
+.functions-and-groups-selected-div{
+    margin-left: auto;
+}
+/* #fixed-menus .fix-buttons-ancor:hover {
+    background-color: gainsboro;
+} */
+
 .card-img-top {
   margin: 25px 0px;
   max-width: 100%;
@@ -145,10 +188,15 @@ select:hover {
      padding-left: 0px;
  }
 
- .main-form-card table{
-     text-align: center;
-     margin-top: 2%;
- }
+ /* .main-form-card table{
+    text-align: center;
+    margin-top: 2%;
+} */
+
+table{
+    text-align: center;
+    margin-top: 2%;
+}
  .table-select{
      background-color: #e8f9e9;
      position: relative;
