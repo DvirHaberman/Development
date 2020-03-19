@@ -1,3 +1,10 @@
+##################################################################################################
+### This model defines the ORM model classes inheriting from flask_sqlalchemy db.Model         ###
+### The classes contains one-to-one, one-to-man and many-to-many relationships                 ###
+### It is advised to have a firm knowledge of these relationships before commitind any changes ###
+##################################################################################################
+
+
 import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, redirect, request, jsonify, render_template
@@ -7,25 +14,60 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
+#########################################
+########### TEAM MODEL CLASS ############
+#########################################
 
 class Team(db.Model):
+    __tablename__ = "Team"
     id = db.Column(db.Integer, primary_key=True)
     users = db.relationship('User', backref='Team', lazy=True, uselist=True)
-    team_name = db.Column(db.Text)
+    name = db.Column(db.Text)
 
-    def __init__(self, team_name=None, users=[])
-        self.team_name = team_name
+    def __init__(self, name=None, users=[]):
+        self.name = name
         self.users = users
 
-    def jsonify_all():
+    def self_jsonify(self):
         return jsonify(
             name = self.name,
-            functions = jsonify([user.self_jsonify() for user in self.users]).json
+            users = jsonify([user.self_jsonify() for user in self.users]).json
         ).json
 
-class role(db.Model):
+    @staticmethod
+    def jsonify_all():
+        table = Team.query.all()
+        return jsonify([row.self_jsonify() for row in table])
+
+#########################################
+########### ROLE MODEL CLASS ############
+#########################################
+
+class Role(db.Model):
+    __tablename__ = 'Role'
+    id = db.Column(db.Integer, primary_key=True)
+    users = db.relationship('User', backref='Role', lazy=True, uselist=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, name=None, users=[]):
+        self.name = name
+        self.users = users
+
+    def self_jsonify(self):
+        return jsonify(
+            name = self.name,
+            users = jsonify([user.self_jsonify() for user in self.users]).json
+        ).json
+
+    @staticmethod
+    def jsonify_all():
+        table = Role.query.all()
+        return jsonify([row.self_jsonify() for row in table])
 
 
+#########################################
+########### USER MODEL CLASS ############
+#########################################
 
 class User(db.Model):
     __tablename__ = "Users"
@@ -35,25 +77,43 @@ class User(db.Model):
     last_name = db.Column(db.Text)
     password_sha = db.Column(db.Text)
     role = db.Column(db.Integer, db.ForeignKey('Role.id'))
-    team = db.relationship('Team', backref='User', lazy=True)
+    team = db.Column(db.Integer, db.ForeignKey('Team.id'))
     functions = db.relationship('OctopusFunction', backref='User', lazy=True)
     max_priority = db.Column(db.Integer)
     state = db.Column(db.Integer)
-    projects = db.relationship('Project', secondary='UsersProjects', backref='User', lazy=True)
-    def __init__(self, name=None, functions=[]):
-        self.name = name
-        self.functions = functions
+    project =  db.Column(db.Integer, db.ForeignKey('Project.id'))
 
-UsersProjects = db.Table('UsersProjects', 
-                          db.Column('user_id', db.Integer, db.ForeignKey('Users.id'), primary_key=True),
-                          db.Column('project_id', db.Integer, db.ForeignKey('Project.id'), primary_key=True)
-                        )
+    def __init__(self, name=None, first_name=None, last_name=None, password_sha=None, state=None,
+                       role=None, team=None, functions=[], max_priority=None, project=None):
+        self.name = name
+        self.first_name = first_name
+        self.last_name = last_name
+        self.password_sha = password_sha
+        self.state = state
+        self.role = role
+        self.team = team
+        self.functions = functions
+        self.max_priority = max_priority
+        self.project = project
+
+    
+# UsersProjects = db.Table('UsersProjects', 
+#                           db.Column('user_id', db.Integer, db.ForeignKey('Users.id'), primary_key=True),
+#                           db.Column('project_id', db.Integer, db.ForeignKey('Project.id'), primary_key=True)
+#                         )
 
     def self_jsonify(self):
         return jsonify(
             name = self.name,
-            functions = jsonify([func.self_jsonify() for func in self.functions]).json
-            team = 
+            first_name = self.first_name,
+            last_name = self.last_name,
+            password_sha = self.password_sha,
+            state = self.state,
+            role = self.Role.query.get(self.role).name,
+            team = self.Team.query.get(self.team).name,
+            functions = jsonify([func.self_jsonify() for func in self.functions]).json,
+            max_priority = self.max_priority,
+            project = Project.query.get(self.project).name
         ).json
 
     @staticmethod
@@ -72,24 +132,36 @@ UsersProjects = db.Table('UsersProjects',
             str1 = str1 + func.printme()
         return str1
 
+
+##########################################
+######### PROJECT MODEL CLASS ############
+##########################################
+
+
 class Project(db.Model):
     __tablename__ = 'Project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    functions = db.relationship('OctopusFunction', backref='Project', lazy=True, uselist=True)
     version = db.Column(db.Text)
+    users = db.relationship('User', backref='Project', lazy=True)
 
-    def __init__(self, name=None, functions=None, version=None):
+    def __init__(self, name=None, version=None, users=[]):
         self.name = name
-        self.functions = functions
         self.version = version
+        self.users = users
 
     def self_jsonify(self):
         return jsonify(
             name = self.name,
-            functions = self.functions,
-            version = self.version
+            version = self.version,
+            users = jsonify([user.self_jsonify() for user in self.users]).json
             ).json
+
+
+#####################################################
+########### OCTOPUSFUNCTIONS MODEL CLASS ############
+#####################################################
+
 
 class OctopusFunction(db.Model):
     __tablename__ = "OctopusFunctions"
@@ -100,11 +172,11 @@ class OctopusFunction(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
     status = db.Column(db.Integer)
     tree = db.relationship(
-        'Tree_Structre', backref='OctopusFunction', lazy=True, uselist=False)
+        'TreeStructre', backref='OctopusFunction', lazy=True, uselist=False)
     kind = db.Column(db.Integer)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
     version = db.Column(db.Integer)
     version_comments = db.Column(db.Text)
     function_checksum = db.Column(db.Text)
@@ -113,7 +185,7 @@ class OctopusFunction(db.Model):
     is_locked = db.Column(db.Integer)
 
     def __init__(self, name=None, callback=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, project=None, version_comments=None,
+                 kind=None, tags=None, description=None, version_comments=None, #project=None,
                  function_checksum=None, version=None, handler_checksum=None, changed_date=datetime.utcnow(), is_locked=0):
         self.name = name
         self.callback = callback
@@ -124,7 +196,7 @@ class OctopusFunction(db.Model):
         self.kind = kind
         self.tags = tags
         self.description = description
-        self.project = project
+        # self.project = project
         self.version = version
         self.version_comments = version_comments
         self.function_checksum = function_checksum
@@ -143,7 +215,7 @@ class OctopusFunction(db.Model):
             kind=self.kind,
             tags=self.tags,
             description=self.description,
-            project=self.project,
+            # project=self.project,
             version=self.version,
             version_comments=self.version_comments,
             function_checksum=self.function_checksum,
@@ -158,10 +230,6 @@ class OctopusFunction(db.Model):
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
-    @staticmethod
-    def return_all():
-        return OctopusFunction.jsonify_all()
-
     def __repr__(self):
         print(f'my name is {self.name} and my owner is {self.owner}')
 
@@ -169,7 +237,11 @@ class OctopusFunction(db.Model):
         return f'my name is {self.name} and my owner is {self.owner}'
 
 
-class Tree_Nodes(db.Model):
+###############################################
+########### TREENODES MODEL CLASS ############
+###############################################
+
+class TreeNodes(db.Model):
     # __tablename__ = "Trees"
     id = db.Column(db.Integer, primary_key=True)
     function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
@@ -178,7 +250,12 @@ class Tree_Nodes(db.Model):
     alias = db.Column(db.Text)
 
 
-class Tree_Structre(db.Model):
+
+##################################################
+########### TREESTRUCTURE MODEL CLASS ############
+##################################################
+
+class TreeStructre(db.Model):
     # __tablename__ = "Trees"
     id = db.Column(db.Integer, primary_key=True)
     function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
@@ -186,92 +263,4 @@ class Tree_Structre(db.Model):
     children = db.Column(db.Text)
     node = db.Column(db.Integer)
 
-
-class OctopusUtils:
-
-    @staticmethod
-    def get_all_functions():
-        functions = OctopusFunction.query.all()
-        # owner_id = functions[0].owner
-        # owner = User.query.get(owner_id).name
-        return jsonify(names=[func.name for func in functions])#, owners=owner)
-
-
-class Jsonifer:
-
-    @staticmethod
-    def jsonify_list(list_to_jsonify):
-        return jsonify(list_to_jsonify)
-
-
-# class Owner(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.Text)
-
-
-class DataCollector():
-
-    def __init__(self, source_file):
-        self.file_handler = pd.ExcelFile(source_file)
-    
-    def CollectAll(self):
-        self.get_functions()
-        # self.get_projects()
-        self.get_users()
-        # self.get_trees()
-    
-    def get_functions(self):
-        df = pd.read_excel(self.file_handler, 'Functions')
-        try:
-            for index, row in df.iterrows():
-                func = OctopusFunction(
-                    name=row.func_name,
-                    callback=row.callback,
-                    location=row.location,
-                    owner=row.owner,
-                    status=row.status,
-                    # tree=row.tree,
-                    kind=row.kind,
-                    tags=row.tags,
-                    description=row.description,
-                    # project=row.project,
-                    version=row.version,
-                    version_comments=row.version_comments,
-                    function_checksum=row.function_checksum,
-                    handler_checksum=row.handler_checksum,
-                    is_locked=row.is_locked
-                )
-                db.session.add(func)
-            db.session.commit()
-        except():
-            print('problem in DataCollector - something went wrong with creating the functions table')
-
-        
-    def get_projects(self):
-        df = pd.read_excel(self.file_handler, 'Projects')
-        try:
-            for index, row in df.iterrows():
-                project = Project(
-                    name = row.name,
-                    functions = row.functions,
-                    version = row.version
-                )
-                db.session.add(project)
-            db.session.commit()
-        except():
-            print('problem in DataCollector - something went wrong with creating the projects table')
-
-    
-    def get_users(self):
-        df = pd.read_excel(self.file_handler, 'Users')
-        try:
-            for index, row in df.iterrows():
-                user = User(
-                    name = row.user_name,
-                    # functions = row.functions,
-                )
-                db.session.add(user)
-            db.session.commit()
-        except():
-            print('problem in DataCollector - something went wrong with creating the users table')
         

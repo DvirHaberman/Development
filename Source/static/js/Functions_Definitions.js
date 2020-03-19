@@ -87,7 +87,7 @@ form_controls.function_select.addEventListener("change", function() {
 var functions = [];
 
 $.ajax({
-  url: "/api/OctopusFunction/return_all",
+  url: "/api/OctopusFunction/jsonify_all",
   success: function(result) {
     functions = result;
     form_handler.fill_form(0, [""]);
