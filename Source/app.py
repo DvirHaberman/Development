@@ -10,9 +10,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 @app.route('/create_all')
-def create_db(): 
+def create_db():
     db.create_all()
-    collector = DataCollector("C:\\Git_Rep\\Data\\DataToCollect.xlsx")
+    collector = DataCollector(r"C:\Users\ILAN\github\Development\Data\DataToCollect.xlsx")
     collector.CollectAll()
     # userfound = User.query.all()
     return 'done'

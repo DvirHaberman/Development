@@ -38,10 +38,12 @@ class DataCollector():
 
     def CollectAll(self):
         self.get_functions()
+        self.get_function_params()
         self.get_projects()
         self.get_users()
         self.get_teams()
         self.get_roles()
+
         # self.get_trees()
 
     def get_functions(self):
@@ -70,6 +72,23 @@ class DataCollector():
         except():
             print(
                 'problem in DataCollector - something went wrong with creating the functions table')
+
+    def get_function_params(self):
+        df = pd.read_excel(self.file_handler, 'function_parameters')
+        try:
+            for index, row in df.iterrows():
+                param = FunctionParameters(
+                    function_id=row.function_id,
+                    kind=row.kind,
+                    value=row.value,
+                    type=row.type
+                )
+                db.session.add(param)
+            db.session.commit()
+        except():
+            print(
+                'problem in DataCollector - something went wrong with creating the function param table')
+
 
     def get_projects(self):
         df = pd.read_excel(self.file_handler, 'Projects')
@@ -106,7 +125,7 @@ class DataCollector():
             print(
                 'problem in DataCollector - something went wrong with creating the users table')
 
-    
+
     def get_teams(self):
         df = pd.read_excel(self.file_handler, 'Teams')
         try:

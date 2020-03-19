@@ -11,11 +11,33 @@ var form_controls = {
   callback: $("input[name='callback']")[0],
   location: $("input[name='location']")[0],
   description: $("input[name='description']")[0],
-  changed_date: $("input[name='changed_date']")[0]
+  changed_date: $("input[name='changed_date']")[0],
+  function_parameters: $("table[name='function_parameters']")[0]
 };
 
+function fill_row(row_obj, values, header){
+  var num_of_values = values.length;
+  for(k=0;k<num_of_values;k++){
+    newCell = row_obj.insertCell(0);
+    let newText = document.createTextNode('');
+    if(k===num_of_values-1){
+      newText.data = i+1;
+    }
+    else{
+      newText.data = value[i][param_keys[4-k]];
+    }
+    newCell.appendChild(newText);
+  }
+}
+
 function clear_object(obj) {
-  if (obj.type === "select-one") {
+  if (obj.tagName === 'TABLE'){
+    var num_of_rows = obj.rows.length;
+    for (i = 0; i < num_of_rows-1; i++) {
+      obj.deleteRow(1);
+    }
+  }
+  else if (obj.type === "select-one") {
     var num_of_options = obj.options.length;
     for (i = 0; i < num_of_options; i++) {
       obj.remove(0);
@@ -26,7 +48,15 @@ function clear_object(obj) {
 }
 
 function fill_object(obj, value) {
-  if (obj.type === "select-one") {
+  if (obj.tagName === 'TABLE'){
+    var num_of_rows = value.length;
+    var param_keys = Object.keys(value[0]);
+    for (i = 0; i < num_of_rows; i++) {
+      newRow = obj.insertRow(-1);
+
+    }
+  }
+  else if (obj.type === "select-one") {
     // var num_of_options = value.options.length;
     // for (i = 0; i < num_of_functions; i++) {
     var option = document.createElement("option");
