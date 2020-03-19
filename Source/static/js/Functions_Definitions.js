@@ -77,7 +77,7 @@ form_handler = new form_controls_handler();
 // form_handler.clear_form();
 
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
-  form_handler.clear_form(["function_select"]);
+  form_handler.clear_form(["function_select", "owner" , "version" , "function_checksum", "version_comments", "changed_date" ]);
 });
 
 form_controls.function_select.addEventListener("change", function() {

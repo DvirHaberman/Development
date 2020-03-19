@@ -1,0 +1,4 @@
+flask
+pandas
+flask_sqlalchemy
+flask_session
