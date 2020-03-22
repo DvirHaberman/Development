@@ -1,4 +1,7 @@
 // getting all form controls into one object
+var current_user = 'ami';
+var current_version = 1;
+
 var form_controls = {
   function_select: $("select[name='function_select']")[0],
   owner: $("select[name='owner']")[0],
@@ -14,6 +17,8 @@ var form_controls = {
   changed_date: $("input[name='changed_date']")[0],
   function_parameters: $("table[name='function_parameters']")[0]
 };
+
+
 
 function fill_row(row_obj, values, header){
   var num_of_values = values.length;
@@ -68,6 +73,19 @@ function fill_object(obj, value) {
   }
 }
 
+function get_data_from_control(obj){
+  if (obj.tagName === 'TABLE'){
+// fill later
+    return null;
+  }
+  else if (obj.type === "select-one") {
+//nothing to do here
+    return null;
+  } else {
+    return obj.value;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 // Declaring the form handler class.                                      //
 // this class is holding all the form object controls and is in charge of //
@@ -82,6 +100,7 @@ function form_controls_handler() {
       }
     });
   };
+
   this.fill_form = function(index, exclude) {
     this.clear_form(exclude);
 
@@ -101,13 +120,40 @@ function form_controls_handler() {
         }
       }
     });
-  };
+  },
+  this.get_form_data = function() {
+    var function_data = {
+      owner: current_user,
+      version: current_version,
+      version_comments: $("textarea[name='version_comments']")[0].value,
+      name: $("input[name='name']")[0].value,
+      kind: $("input[name='kind']")[0].value,
+      tags: $("input[name='tags']")[0].value,
+      callback: $("input[name='callback']")[0].value,
+      location: $("input[name='location']")[0].value,
+      description: $("input[name='description']")[0].value,
+      // changed_date: $("input[name='changed_date']")[0],
+      // function_parameters: $("table[name='function_parameters']")[0]
+    };
+    return function_data;
+  }
 }
 form_handler = new form_controls_handler();
 // form_handler.clear_form();
 
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
   form_handler.clear_form(["function_select", "owner" , "version" , "function_checksum", "version_comments", "changed_date" ]);
+});
+
+$("a[name='save_function_button']")[0].addEventListener("click", function() {
+  data = form_handler.get_form_data();
+  $.ajax({
+    url: "/api/OctopusFunction/save_function",
+    data: JSON.stringify(data),
+    success: function(result) {
+      var dd = result;
+    }
+  });
 });
 
 form_controls.function_select.addEventListener("change", function() {

@@ -265,6 +265,29 @@ class OctopusFunction(db.Model):
 
         ).json
 
+    @staticmethod
+    def save_function(data):
+        data = json.loads(data)
+        func = OctopusFunction(
+                name=data.name,
+                callback=data.callback,
+                location=data.location,
+                owner=data.owner,
+                status=data.status,
+                # tree=row.tree,
+                kind=data.kind,
+                tags=data.tags,
+                description=data.description,
+                # project=row.project,
+                version=data.version,
+                version_comments=data.version_comments,
+                function_checksum=22,
+                handler_checksum=33,
+                # is_locked=row.is_locked
+            )
+        db.session.add(func)
+        db.session.commit()
+        return func.self_jsonify()
 
     @staticmethod
     def jsonify_all():

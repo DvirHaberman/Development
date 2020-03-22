@@ -45,10 +45,17 @@ def api_methods_with_args(class_name,class_method,args):
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])
 def api_methods_no_args(class_name,class_method):
     # return OctopusUtils.get_all_functions()
+    try:
+        data = request.get_json()
+    except:
+        data = None
     module = importlib.import_module('python.model')
     req_class = getattr(module,class_name)
     class_method = getattr(req_class, class_method)
-    return class_method()
+    if data:
+        return class_method(data)
+    else:
+        return class_method()
 
 
 @app.route('/api', methods = ['GET','POST'])
