@@ -45,7 +45,7 @@ class DataCollector():
         self.get_roles()
         self.get_tree_names()
         self.get_trees_structures()
-
+        self.get_groups()
         # self.get_trees()
 
     def get_functions(self):
@@ -186,3 +186,27 @@ class DataCollector():
         except():
             print(
                 'problem in DataCollector - something went wrong with creating the TreeStructure table')
+
+    def get_groups(self):
+        df = pd.read_excel(self.file_handler, 'Groups')
+        try:
+            for index, row in df.iterrows():
+                group = FunctionsGroup(
+                    name = row.group_name
+                )
+                db.session.add(group)
+            db.session.commit()
+            group1 = FunctionsGroup.query.get(1)
+            group2 = FunctionsGroup.query.get(2)
+            func1 = OctopusFunction.query.get(1)
+            func2 = OctopusFunction.query.get(2)
+            func3 = OctopusFunction.query.get(3)
+            func4 = OctopusFunction.query.get(4)
+            group1.functions.append(func1)
+            group1.functions.append(func2)
+            group2.functions.append(func3)
+            group2.functions.append(func4)
+            db.session.commit()
+        except():
+            print(
+                'problem in DataCollector - something went wrong with creating the Trees table')
