@@ -43,6 +43,8 @@ class DataCollector():
         self.get_users()
         self.get_teams()
         self.get_roles()
+        self.get_tree_names()
+        self.get_trees_structures()
 
         # self.get_trees()
 
@@ -152,3 +154,35 @@ class DataCollector():
         except():
             print(
                 'problem in DataCollector - something went wrong with creating the role table')
+    
+    def get_tree_names(self):
+        df = pd.read_excel(self.file_handler, 'Trees')
+        try:
+            for index, row in df.iterrows():
+                tree = Trees(
+                    name = row.name,
+                    function = row.function
+                    # nodes = row.nodes
+                )
+                db.session.add(tree)
+            db.session.commit()
+        except():
+            print(
+                'problem in DataCollector - something went wrong with creating the Trees table')
+    
+    def get_trees_structures(self):
+        df = pd.read_excel(self.file_handler, 'TreeStructre')
+        try:
+            for index, row in df.iterrows():
+                structure = TreeStructre(
+                    tree_id = row.tree_id,
+                    node_id = row.node_id,
+                    node_name = row.node_name,
+                    node_data = row.node_data,
+                    parent = row.parent
+                )
+                db.session.add(structure)
+            db.session.commit()
+        except():
+            print(
+                'problem in DataCollector - something went wrong with creating the TreeStructure table')
