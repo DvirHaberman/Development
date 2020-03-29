@@ -1,7 +1,7 @@
 ##################################################################################################
 ### This model defines the ORM model classes inheriting from flask_sqlalchemy db.Model         ###
 ### The classes contains one-to-one, one-to-man and many-to-many relationships                 ###
-### It is advised to have a firm knowledge of these relationships before commitind any changes ###
+### It is advised to have a firm knowledge of these relationships before committing any changes ###
 ##################################################################################################
 
 
@@ -13,6 +13,14 @@ from datetime import datetime
 
 
 db = SQLAlchemy()
+
+
+
+FunctionsAndGroups = db.Table('FunctionsAndGroups',
+                                db.Column('function_id', db.Integer, db.ForeignKey('OctopusFunctions.id')),
+                                db.Column('group_id', db.Integer, db.ForeignKey('FunctionsGroup.id'))
+                                )
+
 
 #########################################
 ########### TEAM MODEL CLASS ############
@@ -97,10 +105,6 @@ class User(db.Model):
         self.project = project
 
 
-# UsersProjects = db.Table('UsersProjects',
-#                           db.Column('user_id', db.Integer, db.ForeignKey('Users.id'), primary_key=True),
-#                           db.Column('project_id', db.Integer, db.ForeignKey('Project.id'), primary_key=True)
-#                         )
 
     def self_jsonify(self):
         return jsonify(
@@ -209,7 +213,7 @@ class OctopusFunction(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
     status = db.Column(db.Integer)
     tree = db.relationship(
-        'TreeStructre', backref='OctopusFunction', lazy=True, uselist=False)
+        'Trees', backref='OctopusFunction', lazy=True, uselist=False)
     kind = db.Column(db.Integer)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
@@ -248,17 +252,27 @@ class OctopusFunction(db.Model):
             owner = User.query.get(self.owner).name
         except:
             owner = self.owner
+        try:
+            tree = self.tree.self_jsonify()
+        except:
+            tree = None
+        
+        try:
+            groups = jsonify([group.name for group in self.groups]).json
+        except:
+            groups = None
+
         return jsonify(
             name=self.name,
             callback=self.callback,
             location=self.location,
             owner=owner,
             status=self.status,
-            tree=self.tree,
+            tree=tree,
             kind=self.kind,
             tags=self.tags,
             description=self.description,
-            # project=self.project,
+            groups=groups,
             version=self.version,
             version_comments=self.version_comments,
             function_checksum=self.function_checksum,
@@ -307,17 +321,34 @@ class OctopusFunction(db.Model):
 
 
 ###############################################
-########### TREENODES MODEL CLASS ############
+########### TREES MODEL CLASS ############
 ###############################################
 
-class TreeNodes(db.Model):
-    # __tablename__ = "Trees"
+class Trees(db.Model):
+    __tablename__ = "Trees"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
     function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
-    node = db.Column(db.Integer)
-    description = db.Column(db.Text)
-    alias = db.Column(db.Text)
+    nodes = db.relationship(
+        'TreeStructre', backref='Trees', lazy=True, uselist=True)
+    
+    
+    def __init__(self, name=None, function=None, nodes=[]):
+        self.name = name
+        self.function = function
+        self.nodes=nodes
 
+    def self_jsonify(self):
+        return jsonify(
+            name = self.name,
+            function = self.function,
+            nodes = jsonify([node.self_jsonify() for node in self.nodes]).json
+        ).json
+
+    @staticmethod
+    def jsonify_all():
+        table = Trees.query.all()
+        return jsonify([row.self_jsonify() for row in table])
 
 
 ##################################################
@@ -325,9 +356,60 @@ class TreeNodes(db.Model):
 ##################################################
 
 class TreeStructre(db.Model):
-    # __tablename__ = "Trees"
+    __tablename__ = "TreeStructre"
     id = db.Column(db.Integer, primary_key=True)
-    function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
+    tree_id = db.Column(db.Integer, db.ForeignKey('Trees.id'))
+    node_id = db.Column(db.Integer)
+    node_name = db.Column(db.Text)
+    node_data = db.Column(db.Text)
     parent = db.Column(db.Integer)
-    children = db.Column(db.Text)
-    node = db.Column(db.Integer)
+
+    def __init__(self, tree_id=None, node_id=None, node_name=None, node_data=None, parent=None):
+        self.tree_id = tree_id
+        self.node_id = node_id
+        self.node_name = node_name
+        self.node_data = node_data
+        self.parent = parent
+
+    def self_jsonify(self):
+        return jsonify(
+            tree_id = self.tree_id,
+            node_id = self.node_id,
+            node_name = self.node_name,
+            node_data = self.node_data,
+            parent = self.parent
+        ).json
+
+    @staticmethod
+    def jsonify_all():
+        table = TreeStructre.query.all()
+        return jsonify([row.self_jsonify() for row in table])
+
+
+##################################################
+########### FUNCTIONSGROUP MODEL CLASS ############
+##################################################
+
+class FunctionsGroup(db.Model):
+    __tablename__ = 'FunctionsGroup'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
+        backref=db.backref('groups', lazy='dynamic'))
+
+    def __init__(self, name=None, functions=[]):
+        self.name = name
+        self. functions = functions
+
+    def self_jsonify(self):
+        return jsonify(
+            id = self.id,
+            name = self.name,
+            functions = jsonify([func.name for func in self.functions]).json
+        ).json
+
+    @staticmethod
+    def jsonify_all():
+        table = FunctionsGroup.query.all()
+        return jsonify([row.self_jsonify() for row in table])
+
