@@ -1,5 +1,5 @@
 // getting all form controls into one object
-var current_user = 'ami';
+var current_user = 'ami'; // check ilan
 var current_version = 1;
 
 var form_controls = {
