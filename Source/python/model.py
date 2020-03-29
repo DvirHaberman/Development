@@ -244,11 +244,15 @@ class OctopusFunction(db.Model):
         self.function_parameters = function_parameters
 
     def self_jsonify(self):
+        try:
+            owner = User.query.get(self.owner).name
+        except:
+            owner = self.owner
         return jsonify(
             name=self.name,
             callback=self.callback,
             location=self.location,
-            owner=User.query.get(self.owner).name,
+            owner=owner,
             status=self.status,
             tree=self.tree,
             kind=self.kind,
@@ -267,20 +271,19 @@ class OctopusFunction(db.Model):
 
     @staticmethod
     def save_function(data):
-        data = json.loads(data)
         func = OctopusFunction(
-                name=data.name,
-                callback=data.callback,
-                location=data.location,
-                owner=data.owner,
-                status=data.status,
+                name=data['name'],
+                callback=data['callback'],
+                location=data['location'],
+                owner=User.query.filter_by(name=data['owner'])[0].name,
+                # status=data.status,
                 # tree=row.tree,
-                kind=data.kind,
-                tags=data.tags,
-                description=data.description,
+                kind=data['kind'],
+                tags=data['tags'],
+                description=data['description'],
                 # project=row.project,
-                version=data.version,
-                version_comments=data.version_comments,
+                version=data['version'],
+                version_comments=data['version_comments'],
                 function_checksum=22,
                 handler_checksum=33,
                 # is_locked=row.is_locked

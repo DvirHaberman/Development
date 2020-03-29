@@ -12,7 +12,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 @app.route('/create_all')
 def create_db():
     db.create_all()
-    collector = DataCollector(r"C:\Users\ILAN\github\Development\Data\DataToCollect.xlsx")
+    collector = DataCollector(r"C:\Git_Rep\Development\Data\DataToCollect.xlsx")
     collector.CollectAll()
     # userfound = User.query.all()
     return 'done'
@@ -49,6 +49,7 @@ def api_methods_no_args(class_name,class_method):
         data = request.get_json()
     except:
         data = None
+    print(data)
     module = importlib.import_module('python.model')
     req_class = getattr(module,class_name)
     class_method = getattr(req_class, class_method)
