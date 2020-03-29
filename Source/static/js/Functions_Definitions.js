@@ -136,6 +136,15 @@ function form_controls_handler() {
       // function_parameters: $("table[name='function_parameters']")[0]
     };
     return function_data;
+  },
+  this.get_all_functions = function() {
+    $.ajax({
+      url: "/api/OctopusFunction/jsonify_all",
+      success: function(result) {
+        functions = result;
+        form_handler.fill_form(0, [""]);
+      }
+    });
   }
 }
 form_handler = new form_controls_handler();
@@ -148,12 +157,16 @@ $("a[name='new_function_button']")[0].addEventListener("click", function() {
 $("a[name='save_function_button']")[0].addEventListener("click", function() {
   data = form_handler.get_form_data();
   $.ajax({
+    type: "POST",
     url: "/api/OctopusFunction/save_function",
+    dataType: "json",
     data: JSON.stringify(data),
+    contentType: 'application/json',
     success: function(result) {
       var dd = result;
     }
   });
+  form_handler.get_all_functions();
 });
 
 form_controls.function_select.addEventListener("change", function() {
@@ -162,10 +175,4 @@ form_controls.function_select.addEventListener("change", function() {
 
 var functions = [];
 
-$.ajax({
-  url: "/api/OctopusFunction/jsonify_all",
-  success: function(result) {
-    functions = result;
-    form_handler.fill_form(0, [""]);
-  }
-});
+form_handler.get_all_functions();
