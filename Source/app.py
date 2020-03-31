@@ -6,6 +6,7 @@ import importlib
 app = Flask(__name__)
 db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -21,6 +22,19 @@ def create_db():
 @app.route('/')
 def index():
     return render_template('Function_Definition.html')
+
+@app.route('/api/run_queue_test')
+def run_queue_test():
+    global tasks_queue
+    task1 = AnalyseTask(mission_id=5 ,function_id=1,
+                 run_id='1212',
+                 priority=1, user_id=1)
+    db.session.add(task1)
+    db.session.commit()
+    task1.push()
+    task, func, time, task_id = tasks_queue.get_nowait()
+
+    return 'done'
 
 
 @app.route('/Function_Definition')
@@ -49,7 +63,7 @@ def api_methods_no_args(class_name,class_method):
         data = request.get_json()
     except:
         data = None
-    print(data)
+    # print(data)
     module = importlib.import_module('python.model')
     req_class = getattr(module,class_name)
     class_method = getattr(req_class, class_method)

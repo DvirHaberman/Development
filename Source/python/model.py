@@ -6,20 +6,26 @@
 
 
 import pandas as pd
+import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, redirect, request, jsonify, render_template
 import json
 from datetime import datetime
+from time import time, sleep
+from threading import Thread
+from queue import Queue
 
 
 db = SQLAlchemy()
 
-
+tasks_queue = Queue()
 
 FunctionsAndGroups = db.Table('FunctionsAndGroups',
-                                db.Column('function_id', db.Integer, db.ForeignKey('OctopusFunctions.id')),
-                                db.Column('group_id', db.Integer, db.ForeignKey('FunctionsGroup.id'))
-                                )
+                              db.Column('function_id', db.Integer,
+                                        db.ForeignKey('OctopusFunctions.id')),
+                              db.Column('group_id', db.Integer,
+                                        db.ForeignKey('FunctionsGroup.id'))
+                              )
 
 
 #########################################
@@ -38,8 +44,8 @@ class Team(db.Model):
 
     def self_jsonify(self):
         return jsonify(
-            name = self.name,
-            users = jsonify([user.self_jsonify() for user in self.users]).json
+            name=self.name,
+            users=jsonify([user.self_jsonify() for user in self.users]).json
         ).json
 
     @staticmethod
@@ -50,6 +56,7 @@ class Team(db.Model):
 #########################################
 ########### ROLE MODEL CLASS ############
 #########################################
+
 
 class Role(db.Model):
     __tablename__ = 'Role'
@@ -63,8 +70,8 @@ class Role(db.Model):
 
     def self_jsonify(self):
         return jsonify(
-            name = self.name,
-            users = jsonify([user.self_jsonify() for user in self.users]).json
+            name=self.name,
+            users=jsonify([user.self_jsonify() for user in self.users]).json
         ).json
 
     @staticmethod
@@ -89,10 +96,10 @@ class User(db.Model):
     functions = db.relationship('OctopusFunction', backref='User', lazy=True)
     max_priority = db.Column(db.Integer)
     state = db.Column(db.Integer)
-    project =  db.Column(db.Integer, db.ForeignKey('Project.id'))
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
 
     def __init__(self, name=None, first_name=None, last_name=None, password_sha=None, state=None,
-                       role=None, team=None, functions=[], max_priority=None, project=None):
+                 role=None, team=None, functions=[], max_priority=None, project=None):
         self.name = name
         self.first_name = first_name
         self.last_name = last_name
@@ -103,21 +110,19 @@ class User(db.Model):
         self.functions = functions
         self.max_priority = max_priority
         self.project = project
-
-
-
     def self_jsonify(self):
         return jsonify(
-            name = self.name,
-            first_name = self.first_name,
-            last_name = self.last_name,
-            password_sha = self.password_sha,
-            state = self.state,
-            role = self.Role.query.get(self.role).name,
-            team = self.Team.query.get(self.team).name,
-            functions = jsonify([func.self_jsonify() for func in self.functions]).json,
-            max_priority = self.max_priority,
-            project = Project.query.get(self.project).name
+            name=self.name,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            password_sha=self.password_sha,
+            state=self.state,
+            role=self.Role.query.get(self.role).name,
+            team=self.Team.query.get(self.team).name,
+            functions=jsonify([func.self_jsonify()
+                               for func in self.functions]).json,
+            max_priority=self.max_priority,
+            project=Project.query.get(self.project).name
         ).json
 
     @staticmethod
@@ -156,11 +161,10 @@ class Project(db.Model):
 
     def self_jsonify(self):
         return jsonify(
-            name = self.name,
-            version = self.version,
-            users = jsonify([user.self_jsonify() for user in self.users]).json
-            ).json
-
+            name=self.name,
+            version=self.version,
+            users=jsonify([user.self_jsonify() for user in self.users]).json
+        ).json
 
 
 #####################################################
@@ -176,27 +180,23 @@ class FunctionParameters(db.Model):
     value = db.Column(db.Text)
     type = db.Column(db.Text)
 
-
     def __init__(self, function_id=None, kind=None, value=None, type=None):
         self.function_id = function_id
         self.kind = kind
         self.value = value
         self.type = type
-
-
     def self_jsonify(self):
         return jsonify(
-            function_id = self.function_id,
-            kind = self.kind,
-            value = self.value,
-            type = self.type
-            ).json
+            function_id=self.function_id,
+            kind=self.kind,
+            value=self.value,
+            type=self.type
+        ).json
 
     @staticmethod
     def jsonify_all():
         table = FunctionParameters.query.all()
         return jsonify([row.self_jsonify() for row in table])
-
 
 
 #####################################################
@@ -224,10 +224,11 @@ class OctopusFunction(db.Model):
     handler_checksum = db.Column(db.Text)
     changed_date = db.Column(db.DateTime)
     is_locked = db.Column(db.Integer)
-    function_parameters  = db.relationship('FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
+    function_parameters = db.relationship(
+        'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
 
     def __init__(self, name=None, callback=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, version_comments=None, #project=None,
+                 kind=None, tags=None, description=None, version_comments=None,  # project=None,
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
         self.name = name
         self.callback = callback
@@ -256,7 +257,7 @@ class OctopusFunction(db.Model):
             tree = self.tree.self_jsonify()
         except:
             tree = None
-        
+
         try:
             groups = jsonify([group.name for group in self.groups]).json
         except:
@@ -279,29 +280,30 @@ class OctopusFunction(db.Model):
             handler_checksum=self.handler_checksum,
             changed_date=self.changed_date,
             is_locked=self.is_locked,
-            function_parameters =  jsonify([param.self_jsonify() for param in self.function_parameters]).json
+            function_parameters=jsonify(
+                [param.self_jsonify() for param in self.function_parameters]).json
 
         ).json
 
     @staticmethod
     def save_function(data):
         func = OctopusFunction(
-                name=data['name'],
-                callback=data['callback'],
-                location=data['location'],
-                owner=User.query.filter_by(name=data['owner'])[0].name,
-                # status=data.status,
-                # tree=row.tree,
-                kind=data['kind'],
-                tags=data['tags'],
-                description=data['description'],
-                # project=row.project,
-                version=data['version'],
-                version_comments=data['version_comments'],
-                function_checksum=22,
-                handler_checksum=33,
-                # is_locked=row.is_locked
-            )
+            name=data['name'],
+            callback=data['callback'],
+            location=data['location'],
+            owner=User.query.filter_by(name=data['owner'])[0].name,
+            # status=data.status,
+            # tree=row.tree,
+            kind=data['kind'],
+            tags=data['tags'],
+            description=data['description'],
+            # project=row.project,
+            version=data['version'],
+            version_comments=data['version_comments'],
+            function_checksum=22,
+            handler_checksum=33,
+            # is_locked=row.is_locked
+        )
         db.session.add(func)
         db.session.commit()
         return func.self_jsonify()
@@ -311,18 +313,20 @@ class OctopusFunction(db.Model):
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    def run_dummy(self, db_conn, run_id):
+        return {status:(self.id % 5), text:'man that was a long run...', result_arr  None}
+
     def __repr__(self):
         print(f'my name is {self.name} and my owner is {self.owner}')
 
     def printme(self):
         return f'my name is {self.name} and my owner is {self.owner}'
 
+    # def push(self, DB_Connection, run_id):
+        ###############################################
+        ########### TREES MODEL CLASS ############
+        ###############################################
 
-
-
-###############################################
-########### TREES MODEL CLASS ############
-###############################################
 
 class Trees(db.Model):
     __tablename__ = "Trees"
@@ -331,18 +335,17 @@ class Trees(db.Model):
     function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
     nodes = db.relationship(
         'TreeStructre', backref='Trees', lazy=True, uselist=True)
-    
-    
+
     def __init__(self, name=None, function=None, nodes=[]):
         self.name = name
         self.function = function
-        self.nodes=nodes
+        self.nodes = nodes
 
     def self_jsonify(self):
         return jsonify(
-            name = self.name,
-            function = self.function,
-            nodes = jsonify([node.self_jsonify() for node in self.nodes]).json
+            name=self.name,
+            function=self.function,
+            nodes=jsonify([node.self_jsonify() for node in self.nodes]).json
         ).json
 
     @staticmethod
@@ -373,11 +376,11 @@ class TreeStructre(db.Model):
 
     def self_jsonify(self):
         return jsonify(
-            tree_id = self.tree_id,
-            node_id = self.node_id,
-            node_name = self.node_name,
-            node_data = self.node_data,
-            parent = self.parent
+            tree_id=self.tree_id,
+            node_id=self.node_id,
+            node_name=self.node_name,
+            node_data=self.node_data,
+            parent=self.parent
         ).json
 
     @staticmethod
@@ -395,7 +398,7 @@ class FunctionsGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
-        backref=db.backref('groups', lazy='dynamic'))
+                                backref=db.backref('groups', lazy='dynamic'))
 
     def __init__(self, name=None, functions=[]):
         self.name = name
@@ -403,9 +406,9 @@ class FunctionsGroup(db.Model):
 
     def self_jsonify(self):
         return jsonify(
-            id = self.id,
-            name = self.name,
-            functions = jsonify([func.name for func in self.functions]).json
+            id=self.id,
+            name=self.name,
+            functions=jsonify([func.name for func in self.functions]).json
         ).json
 
     @staticmethod
@@ -413,3 +416,55 @@ class FunctionsGroup(db.Model):
         table = FunctionsGroup.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+##################################################
+########### TASK MODEL CLASS ####################
+##################################################
+
+
+class AnalyseTask(db.Model):
+    __tablename__ = "AnalyseTask"
+    id = db.Column(db.Integer, primary_key=True)
+    mission_id = db.Column(db.Integer)
+    mission_type = db.Column(db.Integer)
+    function_id = db.Column(db.Integer)
+    run_id = db.Column(db.Integer)
+    scenario_id = db.Column(db.Integer)
+    ovr_file_location = db.Column(db.Text)
+    db_conn_string = db.Column(db.Text)
+    priority = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
+    status = db.Column(db.Integer)
+
+    def __init__(self, mission_id=None, mission_type='function', function_id=None,
+                 run_id=None, scenario_id=None, ovr_file_location=None, db_conn_string=None,
+                 priority=None, user_id=None, status=0):
+        
+        self.mission_id = mission_id
+        self.mission_type = mission_type
+        self.function_id = function_id
+        self.run_id = run_id
+        self.scenario_id = scenario_id
+        self.ovr_file_location = ovr_file_location
+        self.db_conn_string = db_conn_string
+        self.priority = priority
+        self.user_id = user_id
+        self.status = status
+        
+        #status
+        #0 - created
+        #1 - failure pushing to tasks queue
+        #2 - in tasks_queue
+        #3 - faiiure running task
+        #4 - task done. waiting to be written to db
+        #5 - failure writing to db
+        #6 - results in db
+
+    def push(self):
+
+        global tasks_queue
+        tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
+    
+
+class OverView(db.Model):
+
+    def __init__(self, mission_id, task_id, status, time_elapsed):

@@ -1,4 +1,95 @@
 from python.model import *
+
+
+class Worker:
+
+    def __init__(self, worker_type='analyser'):
+        self.worker_type = worker_type
+        if worker_type == 'analyser':
+            self.thread = Thread(target=Worker.analyser_worker)
+            self.thread.start()
+    
+    @staticmethod
+    def analyser_worker():
+        global tasks_queue
+        global done_queue
+        while True:
+            if not tasks_queue.empty():
+                task, func, time, task_id = tasks_queue.get_nowait()
+                # do something - sleep for 0.5 seconds
+                sleep(0.5)
+                results = func.run_dummy(task.db_conn_string, task.run_id)
+                done_queue.put_nowait()
+                tasks_queue.task_done()
+
+    def db_writer_worker():
+        pass
+
+    def queue_writer_worker():
+        global tasks_queue
+        while True:
+            new_tasks = Task.query.filter_by(status=0)
+            if new_tasks():
+                [task.push() for task in new_tasks]
+                task, func, time, task_id = tasks_queue.get_nowait()
+                # do something - sleep for 0.5 seconds
+                sleep(0.5)
+                results = func.run_dummy(task.db_conn_string, task.run_id)
+                done_queue.put_nowait()
+                tasks_queue.task_done()
+
+
+
+################################################
+########### DBCONNECTOR CLASS ###############
+################################################
+
+class DbConnector:
+
+    def __init__(self, db_type, schema, user, password, hostname):
+        self.db_type = db_type
+        self.schema = schema
+        self.user = user
+        self.password = password
+        self.hostname = hostname
+        self.connection = None
+        if db_type == 'ORACLE':
+            self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+        else:
+            self.conn_string = None
+        
+    def connect(self):
+        self.connection = create_engine(self.conn_string)
+
+
+################################################
+########### MISSIONHANDLER CLASS ###############
+################################################
+class MissionHandler():
+
+    def __init__(self, db_connection=None, run_id=None, mission_id=None):
+        self.db_connection=db_connection
+        self.run_id = run_id
+        self.mission_id = mission_id
+        self.functions_array = []
+
+
+    def add_function(self, function_id):
+        self.functions_array.append(function_id)
+
+    def remove_function(self, index):
+        self.functions_array.pop(index)
+
+    def push_array(self):
+        [self.push(function_id) for function_id in self.functions_array]
+    
+    def push(self, function_id):
+        global functions_queue
+        func = OctopusFunction.query.get(function_id)
+
+
+
+
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -60,7 +151,7 @@ class DataCollector():
                     status=row.status,
                     # tree=row.tree,
                     kind=row.kind,
-                    tags=row.tags,
+                    # tags=row.tags,
                     description=row.description,
                     # project=row.project,
                     version=row.version,

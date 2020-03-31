@@ -163,10 +163,11 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: function(result) {
-      var dd = result;
+      alert("Function '"  + data.name + "' was successfuly saved!")
+      form_handler.get_all_functions();
     }
   });
-  form_handler.get_all_functions();
+  
 });
 
 form_controls.function_select.addEventListener("change", function() {
