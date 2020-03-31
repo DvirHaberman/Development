@@ -5,17 +5,22 @@ import importlib
 # app = create_app()
 app = Flask(__name__)
 db.init_app(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 @app.route('/create_all')
-def create_db():
+def create_tables():
     db.create_all()
+    return 'done'
+
+
+@app.route('/collect_all')
+def collect_data():
     collector = DataCollector(r"C:\Git_Rep\Development\Data\DataToCollect.xlsx")
     collector.CollectAll()
-    # userfound = User.query.all()
     return 'done'
 
 

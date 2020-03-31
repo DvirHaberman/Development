@@ -128,16 +128,17 @@ class DataCollector():
         self.file_handler = pd.ExcelFile(source_file)
 
     def CollectAll(self):
-        self.get_functions()
-        self.get_function_params()
         self.get_projects()
-        self.get_users()
         self.get_teams()
         self.get_roles()
+        self.get_users()
+        self.get_functions()
+        self.get_function_params()
         self.get_tree_names()
         self.get_trees_structures()
         self.get_groups()
         # self.get_trees()
+        # db.session.commit()
 
     def get_functions(self):
         df = pd.read_excel(self.file_handler, 'Functions')
@@ -252,7 +253,7 @@ class DataCollector():
             for index, row in df.iterrows():
                 tree = Trees(
                     name = row.name,
-                    function = row.function
+                    function = row.function,
                     # nodes = row.nodes
                 )
                 db.session.add(tree)

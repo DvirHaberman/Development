@@ -1,9 +1,16 @@
 from model import *
 import importlib
 import json
-# module = importlib.import_module('my_mod')
-# req_class = getattr(module,'my_class')
-# req_class.print_nums(1,2)
+import sys
+
+print (not r'C:\Git_Rep\Development\functions' in sys.path)
+sys.path.append(r'C:\Git_Rep\Development\functions')
+module = importlib.import_module('calc')
+req_func = getattr(module,'plus_func')
+print(req_func(1,2))
+print (not r'C:\Git_Rep\Development\functions' in sys.path)
+print(sys.path)
 
 # OctopusUtils.get_all_functions()
-print(json.loads(a=5,b=7))
+# d = {a:5,b:7}
+# print(json.loads(d))

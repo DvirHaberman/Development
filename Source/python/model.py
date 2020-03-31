@@ -15,7 +15,6 @@ from time import time, sleep
 from threading import Thread
 from queue import Queue
 
-
 db = SQLAlchemy()
 
 tasks_queue = Queue()
@@ -214,7 +213,7 @@ class OctopusFunction(db.Model):
     status = db.Column(db.Integer)
     tree = db.relationship(
         'Trees', backref='OctopusFunction', lazy=True, uselist=False)
-    kind = db.Column(db.Integer)
+    kind = db.Column(db.Text)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
     # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
@@ -229,7 +228,7 @@ class OctopusFunction(db.Model):
 
     def __init__(self, name=None, callback=None, location=None, owner=None, status=None, tree=None,
                  kind=None, tags=None, description=None, version_comments=None,  # project=None,
-                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
+                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=None, is_locked=0):
         self.name = name
         self.callback = callback
         self.location = location
@@ -314,7 +313,7 @@ class OctopusFunction(db.Model):
         return jsonify([row.self_jsonify() for row in table])
 
     def run_dummy(self, db_conn, run_id):
-        return {status:(self.id % 5), text:'man that was a long run...', result_arr  None}
+        return {status:(self.id % 5), text:'man that was a long run...', result_arr : None}
 
     def __repr__(self):
         print(f'my name is {self.name} and my owner is {self.owner}')
@@ -465,6 +464,6 @@ class AnalyseTask(db.Model):
         tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
     
 
-class OverView(db.Model):
+# class OverView(db.Model):
 
-    def __init__(self, mission_id, task_id, status, time_elapsed):
+#     def __init__(self, mission_id, task_id, status, time_elapsed):
