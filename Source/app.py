@@ -1,6 +1,6 @@
 # from python.model import *
 from python.helperModel import *
-import importlib
+import os
 
 # app = create_app()
 app = Flask(__name__)
@@ -10,6 +10,10 @@ db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(basedir + r'/../Functions')
+sys.path.append(basedir + r'/../Infras/Fetches')
+sys.path.append(basedir + r'/../Infras/Utils')
 
 @app.route('/create_all')
 def create_tables():
@@ -19,7 +23,7 @@ def create_tables():
 
 @app.route('/collect_all')
 def collect_data():
-    collector = DataCollector(r"C:\Git_Rep\Development\Data\DataToCollect.xlsx")
+    collector = DataCollector(basedir + r"\..\Data\DataToCollect.xlsx")
     collector.CollectAll()
     return 'done'
 
