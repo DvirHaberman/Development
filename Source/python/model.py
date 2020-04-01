@@ -56,6 +56,9 @@ class OctopusUtils:
     def get_test_params():
         return 'Test_Params'
 
+    @staticmethod
+    def get_db_conn(db_name):
+        return 'db_conn for'+ db_name
 
 #########################################
 ########### TEAM MODEL CLASS ############
@@ -234,20 +237,24 @@ class FunctionParameters(db.Model):
         if self.kind == 'Test_Params':
             return OctopusUtils.get_test_params()
 
-        if self.kind == 'int':
-            if not type(self.value) == type(1):
-                return int(self.value)
-            return self.value
+        if self.kind == 'value':
+            if self.type == 'int':
+                if not type(self.value) == type(1):
+                    if type(self.value) == type('str'):
+                        return int(self.value.split('.')[0])
+                    else:
+                        return int(self.value)
+                return self.value
 
-        if self.kind == 'string':
-            if not type(self.value) == type('str'):
-                return str(self.value)
-            return self.value
-        
-        if self.kind == 'float':
-            if not type(self.value) == type(1.7):
-                return float(self.value)
-            return self.value
+            if self.type == 'string':
+                if not type(self.value) == type('str'):
+                    return str(self.value)
+                return self.value
+            
+            if self.type == 'float':
+                if not type(self.value) == type(1.7):
+                    return float(self.value)
+                return self.value
         
         return self.value
 #####################################################
@@ -403,14 +410,7 @@ class OctopusFunction(db.Model):
                 }
             #else - check for function
             else:
-                if module.hasattr(self.callback):
-                    req_method = getattr(module, self.class_name)
-                else:
-                    return {
-                    'result_status':1, 
-                    'result_text':'Error! The specified module does not contain the given class', 
-                    'result_arr' : None
-                }
+                req_method = getattr(module, self.callback)
         except:
             return {
                 'result_status':1, 
@@ -427,7 +427,10 @@ class OctopusFunction(db.Model):
             }
 
         try:
-            result_dict = req_method(db_conn, run_id, *parameters_tuple)
+            if len(parameters_tuple) > 0:
+                result_dict = req_method(db_conn, run_id, *parameters_tuple)
+            else:
+                result_dict = req_method(db_conn, run_id)
             return result_dict
         except Exception as error:
             return {

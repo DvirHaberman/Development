@@ -27,15 +27,32 @@ def collect_data():
     collector.CollectAll()
     return 'done'
 
-@app.route('/run_functions')
-def run_functions():
+@app.route('/run_functions_test')
+def run_functions_test():
     functions = OctopusFunction.query.all()
     result_arr = []
     for func in functions:
         data = func.run('conn','run_id')
         print(data)
         result_arr.append(data)
-    return jsonify(json.loads(result_arr))
+    return jsonify(result_arr)
+
+@app.route('/run_functions')#, methods=['POST'])
+def run_functions():
+    # json_data = request.get_json()
+    json_data = {'functions':[1,3,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
+    runs = json_data['runs']
+    conn = OctopusUtils.get_db_conn(json_data['db_name'])
+    result_arr = []
+    for run in runs:
+        for func in functions:
+            data = func.run(conn,run)
+            print(data)
+            result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
+    return jsonify(result_arr)
+
+
 @app.route('/')
 def index():
     return render_template('Function_Definition.html')
