@@ -15,7 +15,10 @@ from time import time, sleep
 from threading import Thread
 from queue import Queue
 import importlib
+from pathlib import Path
 import sys
+import os
+
 
 db = SQLAlchemy()
 
@@ -27,6 +30,31 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
                               db.Column('group_id', db.Integer,
                                         db.ForeignKey('FunctionsGroup.id'))
                               )
+
+
+
+###########################################
+########### OCTOPUSUTILS CLASS ############
+###########################################
+
+
+class OctopusUtils:
+
+    @staticmethod
+    def get_all_functions():
+        functions = OctopusFunction.query.all()
+        # owner_id = functions[0].owner
+        # owner = User.query.get(owner_id).name
+        # , owners=owner)
+        return jsonify(names=[func.name for func in functions])
+
+    @staticmethod
+    def get_sys_params():
+        return 'Sys_Params'
+    
+    @staticmethod
+    def get_test_params():
+        return 'Test_Params'
 
 
 #########################################
@@ -199,7 +227,29 @@ class FunctionParameters(db.Model):
         table = FunctionParameters.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    def get_value(self):
+        if self.kind == 'Sys_Params':
+            return OctopusUtils.get_sys_params()
+        
+        if self.kind == 'Test_Params':
+            return OctopusUtils.get_test_params()
 
+        if self.kind == 'int':
+            if not type(self.value) == type(1):
+                return int(self.value)
+            return self.value
+
+        if self.kind == 'string':
+            if not type(self.value) == type('str'):
+                return str(self.value)
+            return self.value
+        
+        if self.kind == 'float':
+            if not type(self.value) == type(1.7):
+                return float(self.value)
+            return self.value
+        
+        return self.value
 #####################################################
 ########### OCTOPUSFUNCTIONS MODEL CLASS ############
 #####################################################
@@ -210,6 +260,7 @@ class OctopusFunction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     callback = db.Column(db.Text)
+    file_name = db.Column(db.Text)
     location = db.Column(db.Text)
     owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
     status = db.Column(db.Integer)
@@ -218,7 +269,8 @@ class OctopusFunction(db.Model):
     kind = db.Column(db.Text)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
-    # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    is_class_method = db.Column(db.Integer)
+    class_name = db.Column(db.Text)
     version = db.Column(db.Integer)
     version_comments = db.Column(db.Text)
     function_checksum = db.Column(db.Text)
@@ -228,11 +280,12 @@ class OctopusFunction(db.Model):
     function_parameters = db.relationship(
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
 
-    def __init__(self, name=None, callback=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, version_comments=None,  # project=None,
+    def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
+                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=None, class_name=None,
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=None, is_locked=0):
         self.name = name
         self.callback = callback
+        self.file_name = file_name
         self.location = location
         self.owner = owner
         self.status = status
@@ -240,7 +293,8 @@ class OctopusFunction(db.Model):
         self.kind = kind
         self.tags = tags
         self.description = description
-        # self.project = project
+        self.is_class_method = is_class_method
+        self.class_name = class_name
         self.version = version
         self.version_comments = version_comments
         self.function_checksum = function_checksum
@@ -267,6 +321,7 @@ class OctopusFunction(db.Model):
         return jsonify(
             name=self.name,
             callback=self.callback,
+            file_name = self.file_name,
             location=self.location,
             owner=owner,
             status=self.status,
@@ -274,6 +329,8 @@ class OctopusFunction(db.Model):
             kind=self.kind,
             tags=self.tags,
             description=self.description,
+            is_class_method = self.is_class_method,
+            class_name = self.class_name,
             groups=groups,
             version=self.version,
             version_comments=self.version_comments,
@@ -314,8 +371,70 @@ class OctopusFunction(db.Model):
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
-    def run_dummy(self, db_conn, run_id):
-        return {status:(self.id % 5), text:'man that was a long run...', result_arr : None}
+    def run(self, db_conn, run_id):
+        #check if path is in os.path
+        try:
+            if not self.location in sys.path:
+                return {   
+                    'result_status':1, 
+                    'result_text':'Error! Function file is not included in Octopus Path', 
+                    'result_arr' : None
+                }
+            #check if file is in path
+            if not Path(self.location).exists():
+                return {
+                    'result_status':1, 
+                    'result_text':'Error! Function module is not in the specified location', 
+                    'result_arr' : None
+                }
+            #import module
+            module = importlib.import_module(self.file_name.split('.')[0])
+            #if class - check for method
+
+            if self.is_class_method:
+                try:
+                    req_class = getattr(module, self.class_name)
+                    req_method = getattr(req_class, self.callback)
+                except:
+                    return {
+                    'result_status':1, 
+                    'result_text':'Error! The specified module does not contain the given class or method', 
+                    'result_arr' : None
+                }
+            #else - check for function
+            else:
+                if module.hasattr(self.callback):
+                    req_method = getattr(module, self.class_name)
+                else:
+                    return {
+                    'result_status':1, 
+                    'result_text':'Error! The specified module does not contain the given class', 
+                    'result_arr' : None
+                }
+        except:
+            return {
+                'result_status':1, 
+                'result_text':'Error! Unexpected error while extracting the method', 
+                'result_arr' : None
+            }
+        try:
+            parameters_tuple = self.get_parameters_tuple()
+        except:
+            return {
+                'result_status':1, 
+                'result_text':"Error! Unexpected error while extracting method's parameters", 
+                'result_arr' : None
+            }
+
+        try:
+            result_dict = req_method(db_conn, run_id, *parameters_tuple)
+            return result_dict
+        except Exception as error:
+            return {
+                'result_status':1, 
+                'result_text':'Error! Unexpected error while activating the method \n error is:'+ error.args[0], 
+                'result_arr' : None
+            }
 
     def __repr__(self):
         print(f'my name is {self.name} and my owner is {self.owner}')
@@ -323,10 +442,13 @@ class OctopusFunction(db.Model):
     def printme(self):
         return f'my name is {self.name} and my owner is {self.owner}'
 
-    # def push(self, DB_Connection, run_id):
-        ###############################################
-        ########### TREES MODEL CLASS ############
-        ###############################################
+    def get_parameters_tuple(self):
+        params_tuple = [param.get_value() for param in self.function_parameters]
+        return params_tuple
+
+###############################################
+########### TREES MODEL CLASS ############
+###############################################
 
 
 class Trees(db.Model):

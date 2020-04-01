@@ -1,5 +1,5 @@
 from python.model import *
-
+import math
 
 class Worker:
 
@@ -90,22 +90,6 @@ class MissionHandler():
 
 
 
-###########################################
-########### OCTOPUSUTILS CLASS ############
-###########################################
-
-
-class OctopusUtils:
-
-    @staticmethod
-    def get_all_functions():
-        functions = OctopusFunction.query.all()
-        # owner_id = functions[0].owner
-        # owner = User.query.get(owner_id).name
-        # , owners=owner)
-        return jsonify(names=[func.name for func in functions])
-
-
 ########################################
 ########### JSONIFIER CLASS ############
 ########################################
@@ -144,9 +128,13 @@ class DataCollector():
         df = pd.read_excel(self.file_handler, 'Functions')
         try:
             for index, row in df.iterrows():
+                if not type(row.class_name) == type('str'):
+                    if math.isnan(row.class_name):
+                        row.class_name=None
                 func = OctopusFunction(
                     name=row.func_name,
                     callback=row.callback,
+                    file_name = row.file_name,
                     location=row.location,
                     owner=row.owner,
                     status=row.status,
@@ -154,7 +142,8 @@ class DataCollector():
                     kind=row.kind,
                     # tags=row.tags,
                     description=row.description,
-                    # project=row.project,
+                    is_class_method=row.is_class_method,
+                    class_name = row.class_name,
                     version=row.version,
                     version_comments=row.version_comments,
                     function_checksum=row.function_checksum,

@@ -1,5 +1,9 @@
-def plus_func(a,b):
-    return a + b
+class Calc:
 
-def muilti_func(a,b):
-    return a * b
+    @staticmethod
+    def plus_func(conn, run_id, a,b):
+        return {'result_status':(a+b)%5, 'results_arr':None, 'result_text':'just success'}
+
+    @staticmethod
+    def muilti_func(conn, run_id, a, b):
+        return {'result_status':(a*b)%5, 'results_arr':None, 'result_text':'just success'}

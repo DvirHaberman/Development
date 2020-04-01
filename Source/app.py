@@ -5,15 +5,15 @@ import os
 # app = create_app()
 app = Flask(__name__)
 db.init_app(app)
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(basedir + r'/../Functions')
-sys.path.append(basedir + r'/../Infras/Fetches')
-sys.path.append(basedir + r'/../Infras/Utils')
+sys.path.append('C' + basedir[1:-7] + '\\Functions')
+sys.path.append('C' + basedir[1:-7] + '\\Infras\\Fetches')
+sys.path.append('C' + basedir[1:-7] + '\\Infras\\Utils')
 
 @app.route('/create_all')
 def create_tables():
@@ -27,7 +27,15 @@ def collect_data():
     collector.CollectAll()
     return 'done'
 
-
+@app.route('/run_functions')
+def run_functions():
+    functions = OctopusFunction.query.all()
+    result_arr = []
+    for func in functions:
+        data = func.run('conn','run_id')
+        print(data)
+        result_arr.append(data)
+    return jsonify(json.loads(result_arr))
 @app.route('/')
 def index():
     return render_template('Function_Definition.html')
