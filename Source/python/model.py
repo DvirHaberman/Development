@@ -326,6 +326,7 @@ class OctopusFunction(db.Model):
             groups = None
 
         return jsonify(
+            id=self.id,
             name=self.name,
             callback=self.callback,
             file_name = self.file_name,

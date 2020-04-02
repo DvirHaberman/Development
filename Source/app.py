@@ -37,12 +37,17 @@ def run_functions_test():
         result_arr.append(data)
     return jsonify(result_arr)
 
-@app.route('/run_functions')#, methods=['POST'])
+@app.route('/api/run_functions', methods=['POST'])
 def run_functions():
-    # json_data = request.get_json()
-    json_data = {'functions':[1,3,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    json_data = request.get_json()
+    # json_data = {'functions':[1,3,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    if not type(json_data['functions']) == type(list()):
+        json_data['functions'] = [json_data['functions']]
     functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
+    names = [func.name for func in functions]
     runs = json_data['runs']
+    if not type(runs) == type(list()):
+        runs = [runs]
     conn = OctopusUtils.get_db_conn(json_data['db_name'])
     result_arr = []
     for run in runs:
@@ -50,12 +55,17 @@ def run_functions():
             data = func.run(conn,run)
             print(data)
             result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
-    return jsonify(result_arr)
+    
+    return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
 
 
 @app.route('/')
 def index():
     return render_template('Function_Definition.html')
+
+@app.route('/run_simple')
+def run_simple():
+    return render_template('run_simple.html')
 
 @app.route('/api/run_queue_test')
 def run_queue_test():

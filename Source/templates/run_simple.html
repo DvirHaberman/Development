@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../static/css/simple_run.css">
+</head>
+<body>
+    <div>
+        <label for="functions_select">select a function</label>
+        <select name="functions" id="functions_select"></select>
+        <br>
+        <br>
+    </div>
+    <div>
+        <label for="run_ids_select">select a run id</label>
+        <select name="run_ids" id="run_ids_select">
+            <option value="">12121</option>
+            <option value="">31313</option>
+            <option value="">33333</option>
+            <option value="">44444</option>
+        </select>
+        <input type="button" value="GO" id="run_ids_select_button">
+        <br>
+        <br>
+        <br>
+    </div>
+    
+    <div>
+        <label for="run_ids_text">type run ids with (,) seperator</label>
+        <input type="text" id="run_ids_text">
+        <input type="button" value="GO" id="run_ids_text_button">
+    </div>
+    <br>
+    <hr>
+    <br>
+
+    <table id="res_table">
+
+    </table>
+    <script src="../static//js/jquery_3_4_1_min.js"></script>
+    <script src="../static/js/run_simple.js"></script>
+</body>
+</html>
