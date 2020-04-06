@@ -93,6 +93,27 @@ def run_queue_test():
 
     return 'done'
 
+@app.route('/db_conn_wizard')
+def db_conn_wizard():
+    return render_template('db_conn_wizard.html')
+
+@app.route('/api/get_conn_data')
+def get_conn_data():
+    connections = DbConnections.query.all()
+    return jsonify([conn.self_jsonify() for conn in connections])
+
+@app.route('/api/save_connection', methods = ['POST'])
+def save_connection():
+    data = request.get_json()
+    conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
+                hostname=data['hostname'], port=data['port'], schema=data['schema'], name=data['name'])
+    conn.save()
+    if conn.status == 'valid':
+        connections = DbConnections.query.all()
+        conn_data = [conn.self_jsonify() for conn in connections]
+        return jsonify(status = 1, message='connection successfuly saved!', connections=conn_data)
+    else:
+        return jsonify(status=0, message='Failed saving the connection!')
 
 @app.route('/Function_Definition')
 def Function_Definition():

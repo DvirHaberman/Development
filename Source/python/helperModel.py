@@ -82,6 +82,8 @@ class DbConnector:
         if self.conn_string:
             try:
                 self.connection = create_engine(self.conn_string)
+                conn = self.connection.connect()
+                conn.close()
             except Exception as error:
                 self.message = 'Someting went wrong while trying to connect. error message is:' + error.args[0]
         # setting the connection status
@@ -92,7 +94,7 @@ class DbConnector:
 
     def save(self):
         # checking id connectiong is valid - cannot save invalid connection
-        if self.status == 'invalid'
+        if self.status == 'invalid':
             self.message = 'Cannot save invalid connection'
             return
 
@@ -102,7 +104,7 @@ class DbConnector:
             return
         # saving connection data to DB
         try:
-            conn = DbConnection(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
+            conn = DbConnections(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
             db.session.add(conn)
             db.session.commit()
         except Exception as error:

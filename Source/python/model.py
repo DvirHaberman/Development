@@ -562,17 +562,36 @@ class FunctionsGroup(db.Model):
 class DbConnections(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
+    db_type = db.Column(db.Text)
+    user = db.Column(db.Text)
+    password = db.Column(db.Text)
+    hostname = db.Column(db.Text)
+    port = db.Column(db.Text)
+    schema = db.Column(db.Text)
+    conn_string = db.Column(db.Text)
+    
 
-
-    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string)
+    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string):
         self.db_type = db_type
         self.schema = schema
         self.user = user
         self.password = password
         self.hostname = hostname
         self.port = port
+        self.name = name
         self.conn_string = conn_string
 
+    def self_jsonify(self):
+        return jsonify(
+            db_type = self.db_type,
+            schema = self.schema,
+            user = self.user,
+            password = self.password,
+            hostname = self.hostname,
+            port = self.port,
+            name = self.name,
+            conn_string = self.conn_string
+        ).json
 ##################################################
 ########### TASK MODEL CLASS ####################
 ##################################################

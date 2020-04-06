@@ -14,21 +14,55 @@
         <option value="SQLITE">SQLITE</option>
     </select>
     <br>
-    <label for="db_user">User</label>
-    <input type="text" id='db_user'>
+    <label for="name">Name</label>
+    <input type="text" id='name'>
     <br>
-    <label for="db_password">Password</label>
-    <input type="text" id='db_password'>
+    <label for="user">User</label>
+    <input type="text" id='user'>
     <br>
-    <label for="db_host">Hostname</label>
-    <input type="text" id="db_host">
+    <label for="password">Password</label>
+    <input type="text" id='password'>
     <br>
-    <label for="db_port">Port</label>
-    <input type="text" id="db_port">
+    <label for="hostname">Hostname</label>
+    <input type="text" id="hostname">
     <br>
-    <label for="db_schema">Schema</label>
-    <input type="text" id="db_schema">
+    <label for="port">Port</label>
+    <input type="text" id="port">
     <br>
-    <input type="button" value="GO">
+    <label for="schema">Schema</label>
+    <input type="text" id="schema">
+    <br>
+    <input type="button" value="Save" id='save_button'>
+    
+    <br>
+    <hr>
+    <br>
+
+    <select name="current_connections" id="current_connections"></select>
+    <br>
+    <label for="disp_name">Type: </label>
+    <text id="disp_name"></text>
+    <br>
+    <label for="disp_db_type">Type: </label>
+    <text id="disp_db_type"></text>
+    <br>
+    <label for="disp_user">User: </label>
+    <text id='disp_user'></text>
+    <br>
+    <label for="disp_password">Password: </label>
+    <text id='disp_password'></text>
+    <br>
+    <label for="disp_host">Hostname: </label>
+    <text id="disp_hostname"></text>
+    <br>
+    <label for="disp_port">Port: </label>
+    <text id="disp_port"></text>
+    <br>
+    <label for="disp_schema">Schema: </label>
+    <text id="disp_schema"></text>
+    <br>
+    
+    <script src="../static//js/jquery_3_4_1_min.js"></script>
+    <script src="../static/js/db_conn_wizard.js"></script>
 </body>
 </html>
