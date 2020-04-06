@@ -5,15 +5,24 @@ import os
 # app = create_app()
 app = Flask(__name__)
 db.init_app(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append('C' + basedir[1:-7] + '\\Functions')
-sys.path.append('C' + basedir[1:-7] + '\\Infras\\Fetches')
-sys.path.append('C' + basedir[1:-7] + '\\Infras\\Utils')
+
+if sys.platform.startswith('win'):
+    sys.path.append('C' + basedir[1:-7] + '\\Functions')
+    sys.path.append('C' + basedir[1:-7] + '\\Infras\\Fetches')
+    sys.path.append('C' + basedir[1:-7] + '\\Infras\\Utils')
+    sys.path.append(basedir[:-7] + '\\Functions')
+    sys.path.append(basedir[:-7] + '\\Infras\\Fetches')
+    sys.path.append(basedir[:-7] + '\\Infras\\Utils')
+else:
+    sys.path.append(basedir[:-7] + r'/Functions')
+    sys.path.append(basedir[:-7] + r'/Infras/Fetches')
+    sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
 @app.route('/create_all')
 def create_tables():
@@ -23,7 +32,10 @@ def create_tables():
 
 @app.route('/collect_all')
 def collect_data():
-    collector = DataCollector(basedir + r"\..\Data\DataToCollect.xlsx")
+    if sys.platform.startswith('win'):
+        collector = DataCollector(basedir + r"\..\Data\DataToCollect.xlsx")
+    else:
+        collector = DataCollector(basedir + r"/../Data/DataToCollect.xlsx")
     collector.CollectAll()
     return 'done'
 
@@ -40,7 +52,7 @@ def run_functions_test():
 @app.route('/api/run_functions', methods=['POST'])
 def run_functions():
     json_data = request.get_json()
-    # json_data = {'functions':[1,3,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    # json_data = {'functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
     if not type(json_data['functions']) == type(list()):
         json_data['functions'] = [json_data['functions']]
     functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
@@ -48,14 +60,15 @@ def run_functions():
     runs = json_data['runs']
     if not type(runs) == type(list()):
         runs = [runs]
-    conn = OctopusUtils.get_db_conn(json_data['db_name'])
+    conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
     result_arr = []
+    result_arr2 = []
     for run in runs:
         for func in functions:
             data = func.run(conn,run)
-            print(data)
             result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
-    
+            result_arr2.append(data)
+    overview = OverView(mission_id=10, results=result_arr2)
     return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
 
 

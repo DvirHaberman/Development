@@ -3,6 +3,7 @@ var function_select = $('#functions_select')[0];
 var run_ids_select_button = $('#run_ids_select_button')[0];
 var run_ids_text_button = $('#run_ids_text_button')[0];
 var res_table = $('#res_table')[0];
+var database_select = $('#database_select')[0];
 
 function fill_table(data){
     var num_of_rows = res_table.rows.length;
@@ -78,10 +79,11 @@ $.ajax({
     // function_ids=functions.filter(obj=>{return [1,3].includes(obj.id)})
     name = function_select.options[function_select.selectedIndex].innerHTML;
     function_id=functions.filter(obj=>{return obj.name === name})[0].id;
+    database = database_select.options[database_select.selectedIndex].value
     var data = {
         functions:function_id,
         runs: run_id,
-        db_name:'some_db'
+        db_name: database
     };
     $.ajax({
         type: "POST",
@@ -100,10 +102,11 @@ $.ajax({
     // function_ids=functions.filter(obj=>{return [1,3].includes(obj.id)})
     name = function_select.options[function_select.selectedIndex].innerHTML;
     function_id=functions.filter(obj=>{return obj.name === name})[0].id;
+    database = database_select.options[database_select.selectedIndex].text
     var data = {
         functions:function_id,
         runs: run_ids,
-        db_name:'some_db'
+        db_name: database
     };
     $.ajax({
         type: "POST",
