@@ -8,12 +8,18 @@
 import pandas as pd
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 from flask import Flask, redirect, request, jsonify, render_template
 import json
 from datetime import datetime
 from time import time, sleep
 from threading import Thread
 from queue import Queue
+import importlib
+from pathlib import Path
+import sys
+import os
+
 
 db = SQLAlchemy()
 
@@ -26,6 +32,34 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
                                         db.ForeignKey('FunctionsGroup.id'))
                               )
 
+
+
+###########################################
+########### OCTOPUSUTILS CLASS ############
+###########################################
+
+
+class OctopusUtils:
+
+    @staticmethod
+    def get_all_functions():
+        functions = OctopusFunction.query.all()
+        # owner_id = functions[0].owner
+        # owner = User.query.get(owner_id).name
+        # , owners=owner)
+        return jsonify(names=[func.name for func in functions])
+
+    @staticmethod
+    def get_sys_params():
+        return 'Sys_Params'
+    
+    @staticmethod
+    def get_test_params():
+        return 'Test_Params'
+
+    @staticmethod
+    def get_db_conn(db_name):
+        return 'db_conn for'+ db_name
 
 #########################################
 ########### TEAM MODEL CLASS ############
@@ -197,7 +231,33 @@ class FunctionParameters(db.Model):
         table = FunctionParameters.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    def get_value(self):
+        if self.kind == 'Sys_Params':
+            return OctopusUtils.get_sys_params()
+        
+        if self.kind == 'Test_Params':
+            return OctopusUtils.get_test_params()
 
+        if self.kind == 'value':
+            if self.type == 'int':
+                if not type(self.value) == type(1):
+                    if type(self.value) == type('str'):
+                        return int(self.value.split('.')[0])
+                    else:
+                        return int(self.value)
+                return self.value
+
+            if self.type == 'string':
+                if not type(self.value) == type('str'):
+                    return str(self.value)
+                return self.value
+            
+            if self.type == 'float':
+                if not type(self.value) == type(1.7):
+                    return float(self.value)
+                return self.value
+        
+        return self.value
 #####################################################
 ########### OCTOPUSFUNCTIONS MODEL CLASS ############
 #####################################################
@@ -208,6 +268,7 @@ class OctopusFunction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     callback = db.Column(db.Text)
+    file_name = db.Column(db.Text)
     location = db.Column(db.Text)
     owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
     status = db.Column(db.Integer)
@@ -216,7 +277,8 @@ class OctopusFunction(db.Model):
     kind = db.Column(db.Text)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
-    # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    is_class_method = db.Column(db.Integer)
+    class_name = db.Column(db.Text)
     version = db.Column(db.Integer)
     version_comments = db.Column(db.Text)
     function_checksum = db.Column(db.Text)
@@ -226,11 +288,12 @@ class OctopusFunction(db.Model):
     function_parameters = db.relationship(
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
 
-    def __init__(self, name=None, callback=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, version_comments=None,  # project=None,
-                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=None, is_locked=0):
+    def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
+                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=None, class_name=None,
+                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
         self.name = name
         self.callback = callback
+        self.file_name = file_name
         self.location = location
         self.owner = owner
         self.status = status
@@ -238,7 +301,8 @@ class OctopusFunction(db.Model):
         self.kind = kind
         self.tags = tags
         self.description = description
-        # self.project = project
+        self.is_class_method = is_class_method
+        self.class_name = class_name
         self.version = version
         self.version_comments = version_comments
         self.function_checksum = function_checksum
@@ -263,8 +327,10 @@ class OctopusFunction(db.Model):
             groups = None
 
         return jsonify(
+            id=self.id,
             name=self.name,
             callback=self.callback,
+            file_name=self.file_name,
             location=self.location,
             owner=owner,
             status=self.status,
@@ -272,6 +338,8 @@ class OctopusFunction(db.Model):
             kind=self.kind,
             tags=self.tags,
             description=self.description,
+            is_class_method=self.is_class_method,
+            class_name=self.class_name,
             groups=groups,
             version=self.version,
             version_comments=self.version_comments,
@@ -279,9 +347,7 @@ class OctopusFunction(db.Model):
             handler_checksum=self.handler_checksum,
             changed_date=self.changed_date,
             is_locked=self.is_locked,
-            function_parameters=jsonify(
-                [param.self_jsonify() for param in self.function_parameters]).json
-
+            function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
 
     @staticmethod
@@ -312,8 +378,79 @@ class OctopusFunction(db.Model):
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
-    def run_dummy(self, db_conn, run_id):
-        return {status:(self.id % 5), text:'man that was a long run...', result_arr : None}
+    def run(self, db_conn, run_id):
+        #check if path is in os.path
+        try:
+            if not self.location in sys.path:
+                return {   
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1, 
+                    'result_text':'Error! Function file is not included in Octopus Path', 
+                    'result_arr' : None
+                }
+            #check if file is in path
+            if not Path(self.location).exists():
+                return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1, 
+                    'result_text':'Error! Function module is not in the specified location', 
+                    'result_arr' : None
+                }
+            #import module
+            module = importlib.import_module(self.file_name.split('.')[0])
+            #if class - check for method
+
+            if self.is_class_method:
+                try:
+                    req_class = getattr(module, self.class_name)
+                    req_method = getattr(req_class, self.callback)
+                except:
+                    return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1, 
+                    'result_text':'Error! The specified module does not contain the given class or method', 
+                    'result_arr' : None
+                }
+            #else - check for function
+            else:
+                req_method = getattr(module, self.callback)
+        except:
+            return {
+                'run_id': run_id,
+                'db_conn': db_conn,
+                'result_status':1, 
+                'result_text':'Error! Unexpected error while extracting the method', 
+                'result_arr' : None
+            }
+        try:
+            parameters_tuple = self.get_parameters_tuple()
+        except:
+            return {
+                'run_id': run_id,
+                'db_conn': db_conn,
+                'result_status':1, 
+                'result_text':"Error! Unexpected error while extracting method's parameters", 
+                'result_arr' : None
+            }
+
+        try:
+            if len(parameters_tuple) > 0:
+                result_dict = req_method(db_conn, run_id, *parameters_tuple)
+            else:
+                result_dict = req_method(db_conn, run_id)
+            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name)])
+            return result_dict
+        except Exception as error:
+            return {
+                'run_id': run_id,
+                'db_conn': db_conn,
+                'result_status':1, 
+                'result_text':'Error! Unexpected error while activating the method \n error is:'+ error.args[0], 
+                'result_arr' : None
+            }
 
     def __repr__(self):
         print(f'my name is {self.name} and my owner is {self.owner}')
@@ -321,10 +458,13 @@ class OctopusFunction(db.Model):
     def printme(self):
         return f'my name is {self.name} and my owner is {self.owner}'
 
-    # def push(self, DB_Connection, run_id):
-        ###############################################
-        ########### TREES MODEL CLASS ############
-        ###############################################
+    def get_parameters_tuple(self):
+        params_tuple = [param.get_value() for param in self.function_parameters]
+        return params_tuple
+
+###############################################
+########### TREES MODEL CLASS ############
+###############################################
 
 
 class Trees(db.Model):
@@ -416,6 +556,43 @@ class FunctionsGroup(db.Model):
         return jsonify([row.self_jsonify() for row in table])
 
 ##################################################
+########### DBCONNECTION MODEL CLASS ####################
+##################################################
+
+class DbConnections(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    db_type = db.Column(db.Text)
+    user = db.Column(db.Text)
+    password = db.Column(db.Text)
+    hostname = db.Column(db.Text)
+    port = db.Column(db.Text)
+    schema = db.Column(db.Text)
+    conn_string = db.Column(db.Text)
+    
+
+    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string):
+        self.db_type = db_type
+        self.schema = schema
+        self.user = user
+        self.password = password
+        self.hostname = hostname
+        self.port = port
+        self.name = name
+        self.conn_string = conn_string
+
+    def self_jsonify(self):
+        return jsonify(
+            db_type = self.db_type,
+            schema = self.schema,
+            user = self.user,
+            password = self.password,
+            hostname = self.hostname,
+            port = self.port,
+            name = self.name,
+            conn_string = self.conn_string
+        ).json
+##################################################
 ########### TASK MODEL CLASS ####################
 ##################################################
 
@@ -464,6 +641,149 @@ class AnalyseTask(db.Model):
         tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
     
 
-# class OverView(db.Model):
+class OverView(db.Model):
+    __tablename__ = 'OverView'
+    id = db.Column(db.Integer, primary_key=True)
+    mission_id = db.Column(db.Integer)
+    overall_status = db.Column(db.Integer)
+    result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
+    elapsed_time = db.Column(db.Float)
 
-#     def __init__(self, mission_id, task_id, status, time_elapsed):
+    def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
+        self.mission_id = mission_id
+        self.overall_status = overall_status
+        self.result_id = result_id
+        self.time_elapsed = time_elapsed
+        db.session.add(self)
+        db.session.commit()
+        for result in results:
+            analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
+                                           result_status=result['result_status'], 
+                                           result_text=result['result_text'],
+                                           result_array=result['result_arr'])#,
+                                        #    result_array_header=[],#result['result_array_header'],
+                                        #    result_array_types=[])#=result['result_array_types'])
+
+            
+                                           
+
+class AnalyseResult(db.Model):
+    __tablename__ = 'AnalyseResult'
+    id = db.Column(db.Integer, primary_key=True)
+    overview_id = db.Column(db.Integer, db.ForeignKey('OverView.id'))
+    run_id = db.Column(db.Integer)
+    db_conn = db.Column(db.Text)
+    result_status = db.Column(db.Integer)
+    result_text = db.Column(db.Text)
+    result_array = db.relationship('ResultArray', backref='AnalyseResult', lazy=True, uselist=True)
+    result_array_header = db.Column(db.Text)
+    result_array_types = db.Column(db.Text)
+
+    def __init__(self, overview_id, run_id,  result_status, result_text,
+                db_conn=None, result_array=None, result_array_header=None, result_array_types=None):
+        self.overview_id = overview_id
+        self.run_id = run_id
+        self.db_conn = db_conn
+        self.result_status = result_status
+        self.result_text = result_text
+        self.result_array = []
+        db.session.add(self)
+        db.session.commit()
+
+class ResultArray(db.Model):
+    __tablename__ = 'ResultArray'
+    id = db.Column(db.Integer, primary_key=True)
+    overview_id = db.Column(db.Integer, db.ForeignKey('AnalyseResult.id'))
+    col1 = db.Column(db.Text)
+    col2 = db.Column(db.Text)
+    col3 = db.Column(db.Text)
+    col4 = db.Column(db.Text)
+    col5 = db.Column(db.Text)
+    col6 = db.Column(db.Text)
+    col7 = db.Column(db.Text)
+    col8 = db.Column(db.Text)
+    col9 = db.Column(db.Text)
+    col10 = db.Column(db.Text)
+    col11 = db.Column(db.Text)
+    col12 = db.Column(db.Text)
+    col13 = db.Column(db.Text)
+    col14 = db.Column(db.Text)
+    col15 = db.Column(db.Text)
+    col16 = db.Column(db.Text)
+    col17 = db.Column(db.Text)
+    col18 = db.Column(db.Text)
+    col19 = db.Column(db.Text)
+    col20 = db.Column(db.Text)
+    col21 = db.Column(db.Text)
+    col22 = db.Column(db.Text)
+    col23 = db.Column(db.Text)
+    col24 = db.Column(db.Text)
+    col25 = db.Column(db.Text)
+    col26 = db.Column(db.Text)
+    col27 = db.Column(db.Text)
+    col28 = db.Column(db.Text)
+    col29 = db.Column(db.Text)
+    col30 = db.Column(db.Text)
+
+    def __init__(self, 
+                col1 = None,
+                col2 = None,
+                col3 = None,
+                col4 = None,
+                col5 = None,
+                col6 = None,
+                col7 = None,
+                col8 = None,
+                col9 = None,
+                col10 = None,
+                col11 = None,
+                col12 = None,
+                col13 = None,
+                col14 = None,
+                col15 = None,
+                col16 = None,
+                col17 = None,
+                col18 = None,
+                col19 = None,
+                col20 = None,
+                col21 = None,
+                col22 = None,
+                col23 = None,
+                col24 = None,
+                col25 = None,
+                col26 = None,
+                col27 = None,
+                col28 = None,
+                col29 = None,
+                col30 = None
+                ):
+        self.col1 = col1
+        self.col2 = col2 
+        self.col3 = col3 
+        self.col4 = col4 
+        self.col5 = col5 
+        self.col6 = col6 
+        self.col7 = col7 
+        self.col8 = col8 
+        self.col9 = col9 
+        self.col10 = col10 
+        self.col11 = col11 
+        self.col12 = col12 
+        self.col13 = col13 
+        self.col14 = col14 
+        self.col15 = col15 
+        self.col16 = col16 
+        self.col17 = col17 
+        self.col18 = col18 
+        self.col19 = col19 
+        self.col20 = col20 
+        self.col21 = col21 
+        self.col22 = col22 
+        self.col23 = col23 
+        self.col24 = col24 
+        self.col25 = col25 
+        self.col26 = col26 
+        self.col27 = col27 
+        self.col28 = col28
+        self.col29 = col29 
+        self.col30 = col30 

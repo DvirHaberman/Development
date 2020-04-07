@@ -1,5 +1,5 @@
 from python.model import *
-
+import math
 
 class Worker:
 
@@ -46,22 +46,72 @@ class Worker:
 
 class DbConnector:
 
-    def __init__(self, db_type, schema, user, password, hostname):
+    def __init__(self, db_type, user, password, hostname, port, schema, name=None):
+        
+        # setting up propeties
         self.db_type = db_type
         self.schema = schema
         self.user = user
         self.password = password
         self.hostname = hostname
+        self.port = port
         self.connection = None
+        self.message = ''
+        
+        # assinging name - if no name is given then the name is composed of the type and schema
+        if name:
+            self.name = name
+        else:
+            self.name = self.db_type + self.schema
+
+        # checking db type
         if db_type == 'ORACLE':
-            self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+        elif db_type == 'SQLITE':
+            self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+        elif db_type == 'POSTGRESQL':
+            self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+        elif db_type == 'MYSQL':
+            self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}/{self.schema}'
         else:
             self.conn_string = None
+            self.message = 'Database type not found. Possible types are :\n'
+            'ORACLE, SQLITE, POSTGRESQL, MYSQL'
         
-    def connect(self):
-        self.connection = create_engine(self.conn_string)
+        # checking if we have a connection string and can try to connect
+        if self.conn_string:
+            try:
+                self.connection = create_engine(self.conn_string)
+                conn = self.connection.connect()
+                conn.close()
+            except Exception as error:
+                self.message = 'Someting went wrong while trying to connect. error message is:' + error.args[0]
+        # setting the connection status
+        if self.message == '':
+            self.status = 'valid'
+        else:
+            self.status = 'invalid'
 
+    def save(self):
+        # checking id connectiong is valid - cannot save invalid connection
+        if self.status == 'invalid':
+            self.message = 'Cannot save invalid connection'
+            return
 
+        # checking if the name exists - names must be unique
+        if DbConnections.query.filter_by(name=self.name).first():
+            self.message = 'cannot save - db name already exist'
+            return
+        # saving connection data to DB
+        try:
+            conn = DbConnections(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
+            db.session.add(conn)
+            db.session.commit()
+        except Exception as error:
+            self.message = 'Something when wrong while saving to DB. Error is:' + error.args[0]
+            self.status = 'invalid'
+
+        
 ################################################
 ########### MISSIONHANDLER CLASS ###############
 ################################################
@@ -88,22 +138,6 @@ class MissionHandler():
         func = OctopusFunction.query.get(function_id)
 
 
-
-
-###########################################
-########### OCTOPUSUTILS CLASS ############
-###########################################
-
-
-class OctopusUtils:
-
-    @staticmethod
-    def get_all_functions():
-        functions = OctopusFunction.query.all()
-        # owner_id = functions[0].owner
-        # owner = User.query.get(owner_id).name
-        # , owners=owner)
-        return jsonify(names=[func.name for func in functions])
 
 
 ########################################
@@ -144,9 +178,13 @@ class DataCollector():
         df = pd.read_excel(self.file_handler, 'Functions')
         try:
             for index, row in df.iterrows():
+                if not type(row.class_name) == type('str'):
+                    if math.isnan(row.class_name):
+                        row.class_name=None
                 func = OctopusFunction(
                     name=row.func_name,
                     callback=row.callback,
+                    file_name = row.file_name,
                     location=row.location,
                     owner=row.owner,
                     status=row.status,
@@ -154,7 +192,8 @@ class DataCollector():
                     kind=row.kind,
                     # tags=row.tags,
                     description=row.description,
-                    # project=row.project,
+                    is_class_method=row.is_class_method,
+                    class_name = row.class_name,
                     version=row.version,
                     version_comments=row.version_comments,
                     function_checksum=row.function_checksum,
