@@ -102,6 +102,18 @@ def get_conn_data():
     connections = DbConnections.query.all()
     return jsonify([conn.self_jsonify() for conn in connections])
 
+@app.route('/api/delete_connection/<string:conn_name>', methods=["POST"])
+def delete_connection(conn_name):
+    conn_to_delete = DbConnections.query.filter_by(name=conn_name).first()
+    if conn_to_delete:
+        try:
+            # db.session.delete(conn_to_delete)
+            # db.session.commit()
+            return jsonify(message=conn_name +' was deleted')
+        except Exception as error:
+            return jsonify(message='something went wrong while deleting ' +conn_name)
+    return jsonify(message='connectiong name not found')
+
 @app.route('/api/save_connection', methods = ['POST'])
 def save_connection():
     data = request.get_json()
@@ -113,7 +125,7 @@ def save_connection():
         conn_data = [conn.self_jsonify() for conn in connections]
         return jsonify(status = 1, message='connection successfuly saved!', connections=conn_data)
     else:
-        return jsonify(status=0, message='Failed saving the connection!')
+        return jsonify(status=0, message='Failed saving the connection!\n' + conn.message)
 
 @app.route('/Function_Definition')
 def Function_Definition():
