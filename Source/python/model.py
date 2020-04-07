@@ -384,7 +384,7 @@ class OctopusFunction(db.Model):
             if not self.location in sys.path:
                 return {   
                     'run_id': run_id,
-                    'db_conn': db_conn,
+                    'db_conn': db_conn.name,
                     'result_status':1, 
                     'result_text':'Error! Function file is not included in Octopus Path', 
                     'result_arr' : None
@@ -393,7 +393,7 @@ class OctopusFunction(db.Model):
             if not Path(self.location).exists():
                 return {
                     'run_id': run_id,
-                    'db_conn': db_conn,
+                    'db_conn': db_conn.name,
                     'result_status':1, 
                     'result_text':'Error! Function module is not in the specified location', 
                     'result_arr' : None
@@ -409,7 +409,7 @@ class OctopusFunction(db.Model):
                 except:
                     return {
                     'run_id': run_id,
-                    'db_conn': db_conn,
+                    'db_conn': db_conn.name,
                     'result_status':1, 
                     'result_text':'Error! The specified module does not contain the given class or method', 
                     'result_arr' : None
@@ -420,7 +420,7 @@ class OctopusFunction(db.Model):
         except:
             return {
                 'run_id': run_id,
-                'db_conn': db_conn,
+                'db_conn': db_conn.name,
                 'result_status':1, 
                 'result_text':'Error! Unexpected error while extracting the method', 
                 'result_arr' : None
@@ -446,9 +446,9 @@ class OctopusFunction(db.Model):
         except Exception as error:
             return {
                 'run_id': run_id,
-                'db_conn': db_conn,
+                'db_conn': db_conn.name,
                 'result_status':1, 
-                'result_text':'Error! Unexpected error while activating the method \n error is:'+ error.args[0], 
+                'result_text':'Error! Unexpected error while activating the method', 
                 'result_arr' : None
             }
 
