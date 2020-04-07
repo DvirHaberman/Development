@@ -216,6 +216,7 @@ function GetParameterDataTbl(id, kind, val, type) {
     value: val,
     type: type
   }
+}
 ////////////////////////////////////////////////////////////////////////////
 // Declaring the form handler class.                                      //
 // this class is holding all the form object controls and is in charge of //
@@ -232,7 +233,7 @@ function form_controls_handler() {
         clear_object(this.form_controls[key]);
       }
     });
-  };
+  },
 
   this.fill_form = function(index, exclude) {
     this.clear_form(exclude);
