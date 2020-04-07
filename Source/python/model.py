@@ -560,6 +560,7 @@ class FunctionsGroup(db.Model):
 ##################################################
 
 class DbConnections(db.Model):
+    __tablename__ = 'DbConnections'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     db_type = db.Column(db.Text)

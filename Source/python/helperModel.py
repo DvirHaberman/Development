@@ -46,7 +46,7 @@ class Worker:
 
 class DbConnector:
 
-    def __init__(self, db_type, user, password, hostname, port, schema, name=None):
+    def __init__(self, db_type, user, password, hostname, schema, port=None, name=None):
         
         # setting up propeties
         self.db_type = db_type
@@ -59,33 +59,48 @@ class DbConnector:
         self.message = ''
         
         # assinging name - if no name is given then the name is composed of the type and schema
-        if name:
+        if name or name == '':
             self.name = name
         else:
             self.name = self.db_type + self.schema
 
         # checking db type
-        if db_type == 'ORACLE':
-            self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
-        elif db_type == 'SQLITE':
-            self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
-        elif db_type == 'POSTGRESQL':
-            self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}/{self.schema}"
-        elif db_type == 'MYSQL':
-            self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+        if self.port == '':
+            if db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            elif db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
         else:
-            self.conn_string = None
-            self.message = 'Database type not found. Possible types are :\n'
-            'ORACLE, SQLITE, POSTGRESQL, MYSQL'
-        
+            if db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            elif db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
         # checking if we have a connection string and can try to connect
         if self.conn_string:
             try:
-                self.connection = create_engine(self.conn_string)
+                self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 10})
                 conn = self.connection.connect()
                 conn.close()
+                self.connection.dispose()
             except Exception as error:
-                self.message = 'Someting went wrong while trying to connect. error message is:' + error.args[0]
+                self.message = 'Someting went wrong while trying to connect.'
+                self.connection.dispose()
         # setting the connection status
         if self.message == '':
             self.status = 'valid'
@@ -101,6 +116,7 @@ class DbConnector:
         # checking if the name exists - names must be unique
         if DbConnections.query.filter_by(name=self.name).first():
             self.message = 'cannot save - db name already exist'
+            self.status = 'invalid'
             return
         # saving connection data to DB
         try:
@@ -108,7 +124,7 @@ class DbConnector:
             db.session.add(conn)
             db.session.commit()
         except Exception as error:
-            self.message = 'Something when wrong while saving to DB. Error is:' + error.args[0]
+            self.message = 'Something when wrong while saving to DB.'
             self.status = 'invalid'
 
         
