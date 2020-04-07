@@ -296,18 +296,11 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
     data: JSON.stringify(data),
     contentType: 'application/json',
     success: function(result) {
-<<<<<<< HEAD
       alert("Function '"  + data.name + "' was successfuly saved!")
       form_handler.get_all_functions();
     }
   });
   
-=======
-      var dd = result;
-      form_handler.get_all_functions();
-    }
-  });
->>>>>>> 66acceedf5f2e3a9ab41221d39a3c4d3a3c501dd
 });
 
 form_controls.function_select.addEventListener("change", function() {
