@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+{% extends "layout.html" %}
+{% block css %}
     <link rel="stylesheet" href="../static/css/simple_run.css">
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div>
         <label for="functions_select">select a function</label>
         <select name="functions" id="functions_select"></select>
@@ -52,7 +49,10 @@
     <table id="res_table">
 
     </table>
+
+    {% endblock %}
+
+    {% block scripts %}
     <script src="../static//js/jquery_3_4_1_min.js"></script>
     <script src="../static/js/run_simple.js"></script>
-</body>
-</html>
+    {% endblock %}
