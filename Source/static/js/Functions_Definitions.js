@@ -25,7 +25,9 @@ var form_controls = {
   description: $("input[name='description']")[0],
   changed_date: $("input[name='changed_date']")[0],
   function_parameters: $("table[name='function_parameters']")[0]
+
 };
+
 
 // Definition and Assignment TableHeaderNodes //
 
@@ -122,6 +124,22 @@ function fill_row(row_obj, values, header){
           else if (k===3){  // Type
             var textArray = paramsTblType;
             var currValueIndex = FindParamsTblTypeIndex (textArray, currValue);
+            let newElement = document.createElement('select');
+
+              for (m = 0; m < paramsTblType.length; m++) {
+                  var currType =  paramsTblType[m];
+                  // newElement.setAttribute("id", "MykindsDown");
+                  var option = document.createElement("option");
+                  option.value = m;
+                  option.text = currType;
+                  option.classList.add("table-option");
+                  newElement.add(option);
+              }
+
+              newElement.classList.add("form-control");
+              newElement.classList.add("table-select");
+              newElement.selectedIndex =  currValueIndex;
+              newCell.appendChild(newElement)
           }
 
           // let newElement = document.createElement('select');
@@ -256,6 +274,36 @@ function form_controls_handler() {
     });
   },
   this.get_form_data = function() {
+
+    var tableRowsLength = $("table[name='function_parameters']")[0].rows.length;
+    tableData = [];
+    for (i=1 ; i<tableRowsLength  ; i++) {
+      var currRow = $("table[name='function_parameters']")[0].rows[i]
+
+        // index
+        var index = currRow.cells[0].innerHTML;
+
+        // kind
+        var selectObj = currRow.cells[1].children[0];
+        var kind = selectObj.options[selectObj.selectedIndex].text;
+
+        // value
+        var value = currRow.cells[2].innerHTML;
+
+        // value
+        var selectObj = currRow.cells[3].children[0];
+        var type = selectObj.options[selectObj.selectedIndex].text;
+
+        var paramRowData = {
+          index: index,
+          kind: kind,
+          value: value,
+          type: type
+        }
+
+        tableData.push(paramRowData)
+    }
+
     var function_data = {
       owner: current_user,
       version: current_version,
@@ -268,7 +316,9 @@ function form_controls_handler() {
       description: $("input[name='description']")[0].value,
       // changed_date: $("input[name='changed_date']")[0],
       // function_parameters: $("table[name='function_parameters']")[0]
-    };
+      function_parameters: tableData
+    }
+
     return function_data;
   },
   this.get_all_functions = function() {
@@ -301,7 +351,7 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
       form_handler.get_all_functions();
     }
   });
-  
+
 });
 
 form_controls.function_select.addEventListener("change", function() {
