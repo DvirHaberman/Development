@@ -4,8 +4,8 @@ import os
 
 # app = create_app()
 app = Flask(__name__)
-app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
-app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
+# app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
+# app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
