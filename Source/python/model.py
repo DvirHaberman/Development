@@ -9,7 +9,7 @@ import pandas as pd
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
-from flask import Flask, redirect, request, jsonify, render_template, session
+from flask import Flask, redirect, request, jsonify, render_template, session, flash
 import json
 from datetime import datetime, timedelta
 from time import time, sleep
