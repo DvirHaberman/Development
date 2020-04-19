@@ -4,7 +4,7 @@ import os
 
 # app = create_app()
 app = Flask(__name__)
-# app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
+app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
@@ -75,8 +75,25 @@ def run_functions():
 
 
 @app.route('/')
-def index():
-    return render_template('Function_Definition.html')
+def login():
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    return render_template('login.html')
+
+@app.route('/validate_user', methods=["POST"])
+def validate_user():
+    if request.method == "POST":
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == 'dvirh' and password == '123456':
+            return render_template('welcome.html')
+        else:
+            flash('username or password invalid!')
+            return render_template('login.html')
+    else:
+        return render_template('login.html')
 
 @app.route('/run_simple')
 def run_simple():
