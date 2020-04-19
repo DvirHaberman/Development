@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+{% extends "layout.html"%}
+{%block content%}
+<br>
+<br>
+<br>
+<br>
+
     <h1>Define New Connection</h1>
     <label for="db_type">Type</label>
     <select type="text" id="db_type">
@@ -62,8 +61,9 @@
     <label for="disp_schema">Schema: </label>
     <text id="disp_schema"></text>
     <br>
+    {% endblock %}
     
+    {% block scripts%}
     <script src="../static//js/jquery_3_4_1_min.js"></script>
     <script src="../static/js/db_conn_wizard.js"></script>
-</body>
-</html>
+    {% endblock %}

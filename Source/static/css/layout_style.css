@@ -1,0 +1,14 @@
+#window-title {
+    font-family: cursive;
+    font-size: 2rem;
+    color: #ff4c68;
+}
+
+.octopus-img {
+    width: 8%;
+  }
+  
+  .nav-item {
+    text-align: center;
+    margin: 0 10px 0;
+  }
