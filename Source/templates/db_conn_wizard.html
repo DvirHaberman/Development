@@ -1,69 +1,110 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+{% extends "layout.html"%} {%block content%}
+<br />
+<br />
+<div class="row mx-4 my-1">
+  <div class = "col-6 mr-auto jumbotron">
     <h1>Define New Connection</h1>
-    <label for="db_type">Type</label>
-    <select type="text" id="db_type">
-        <option value="POSTGRESQL">POSTGRESQL</option>
-        <option value="MYSQL">MYSQL</option>
-        <option value="ORACLE">ORACLE</option>
-        <option value="SQLITE">SQLITE</option>
-    </select>
-    <br>
-    <label for="name">Name</label>
-    <input type="text" id='name'>
-    <br>
-    <label for="user">User</label>
-    <input type="text" id='user'>
-    <br>
-    <label for="password">Password</label>
-    <input type="text" id='password'>
-    <br>
-    <label for="hostname">Hostname</label>
-    <input type="text" id="hostname">
-    <br>
-    <label for="port">Port</label>
-    <input type="text" id="port">
-    <br>
-    <label for="schema">Schema</label>
-    <input type="text" id="schema">
-    <br>
-    <input type="button" value="Save" id='save_button'>
+    
+
+    <div class="row">
+        <div class="col-5">
+            <label for="db_type">Type</label>
+            <select type="text" id="db_type" class="form-control">
+            <option value="POSTGRESQL">POSTGRESQL</option>
+            <option value="MYSQL">MYSQL</option>
+            <option value="ORACLE">ORACLE</option>
+            <option value="SQLITE">SQLITE</option>
+            </select>
+        </div>
+        <div class="col-5">
+            <label for="name">Name</label>
+            <input class="form-control" type="text" id="name" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-5">
+            <label for="user">User</label>
+            <input class="form-control" type="text" id="user" />
+        </div>
+        <div class="col-5">
+            <label for="password">Password</label>
+            <input class="form-control" type="text" id="password" />
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-8">
+            <label for="hostname">Hostname</label>
+            <input class="form-control" type="text" id="hostname" />
+        </div>
+        <div class="col-2">
+            <label for="port">Port</label>
+            <input class="form-control" type="text" id="port" />
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-5">
+            <label for="schema">Schema</label>
+            <input class="form-control" type="text" id="schema" />
+        </div>
+    </div>
     
     <br>
-    <hr>
-    <br>
+    <input class="btn btn-lg btn-success" type="button" value="Save" id="save_button" />
+  </div>
+
+  <div  class = "col-6 ml-auto jumbotron bg-light">
     <h1>Existing Connections</h1>
-    <select name="current_connections" id="current_connections"></select>
-    <br>
-    <label for="disp_name">Name: </label>
-    <text id="disp_name"></text>
-    <br>
-    <label for="disp_db_type">Type: </label>
-    <text id="disp_db_type"></text>
-    <br>
-    <label for="disp_user">User: </label>
-    <text id='disp_user'></text>
-    <br>
-    <label for="disp_password">Password: </label>
-    <text id='disp_password'></text>
-    <br>
-    <label for="disp_host">Hostname: </label>
-    <text id="disp_hostname"></text>
-    <br>
-    <label for="disp_port">Port: </label>
-    <text id="disp_port"></text>
-    <br>
-    <label for="disp_schema">Schema: </label>
-    <text id="disp_schema"></text>
-    <br>
+    <div class="row">
+        <div class="col-10">
+            <label for="current_connections">Choose:</label>
+            <select class="form-control success-outline" name="current_connections" id="current_connections"></select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_name">Name: </label>
+            <text class="form-control" id="disp_name"></text>
+        </div>
+        <div class="col-5">
+            <label for="disp_db_type">Type: </label>
+            <text class="form-control" id="disp_db_type"></text>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_user">User: </label>
+            <text class="form-control" id="disp_user"></text>
+        </div>
+        <div class="col-5">
+            <label for="disp_password">Password: </label>
+            <text class="form-control" id="disp_password"></text>
+        </div>
+        
+    </div>
+    <div class="row">
+        <div class="col-8">
+            <label for="disp_host">Hostname: </label>
+            <text class="form-control" id="disp_hostname"></text>
+        </div>
+        <div class="col-2">
+            <label for="disp_port">Port: </label>
+            <text class="form-control" id="disp_port"></text>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_schema">Schema: </label>
+            <text class="form-control" id="disp_schema"></text>
+        </div>
+    </div>
     
-    <script src="../static//js/jquery_3_4_1_min.js"></script>
-    <script src="../static/js/db_conn_wizard.js"></script>
-</body>
-</html>
+    
+  </div>
+</div>
+{% endblock %} {% block scripts%}
+<script src="../static//js/jquery_3_4_1_min.js"></script>
+<script src="../static/js/db_conn_wizard.js"></script>
+{% endblock %}

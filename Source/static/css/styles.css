@@ -2,15 +2,6 @@ body {
     background-color: #fcf8e8;
 }
 
-.octopus-img {
-  width: 8%;
-}
-
-.nav-item {
-  text-align: center;
-  margin: 0 10px 0;
-}
-
 .user-name {
   /* background-color: gray; */
   /* border-radius: 100%; */
@@ -207,11 +198,7 @@ table{
  /* .table-option {
     background-color: black;
  } */
-#window-title {
-    font-family: cursive;
-    font-size: 2rem;
-    color: #ff4c68;
-}
+
 
 .oper_line {
     display: block;

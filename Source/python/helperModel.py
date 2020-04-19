@@ -100,7 +100,10 @@ class DbConnector:
                 self.connection.dispose()
             except Exception as error:
                 self.message = 'Someting went wrong while trying to connect.'
-                self.connection.dispose()
+                try:
+                    self.connection.dispose()
+                except Exception as error:
+                    pass
         # setting the connection status
         if self.message == '':
             self.status = 'valid'
