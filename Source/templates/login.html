@@ -34,14 +34,23 @@
     ></script>
   </head>
   <body>
-      {% with messages = get_flashed_messages() %}
+      
+    <div class="main">
+      <center>
+        <br><br>
+        {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
-                <h3>{{message}}</h3>
+            <div class="alert alert-danger alert-dismissible fade show col-5" role="alert">
+              <strong>{{message}}</strong>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
             {% endfor%}
         {% endif %}
       {% endwith %}
-    <div class="main">
+    </center>
       <div class="container">
         <center>
           <div class="middle">
@@ -73,7 +82,7 @@
                 </fieldset>
                 <div class="clearfix"></div>
               </form>
-
+              
               <div class="clearfix"></div>
             </div>
             <!-- end login -->
@@ -86,6 +95,8 @@
               Octopus
               
               <div class="clearfix"></div>
+              
+              
             </div>
           </div>
         </center>

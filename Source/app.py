@@ -75,29 +75,55 @@ def run_functions():
 
 
 @app.route('/')
+def index():
+    return redirect('/login')
+
+@app.route('/login')
 def login():
-    return render_template('login.html')
+    if session.get('username', None) is None:
+        return render_template('login.html')
+    else:
+        return redirect('/welcome')
+
+@app.route('/welcome')
+def welcome():
+    if session.get('username', None) is None:
+        return render_template('login.html')
+    else:
+        return render_template('welcome.html')
+    
 
 @app.route('/logout')
 def logout():
-    return render_template('login.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        session.pop('username', None)
+        flash('you were logged out')
+        return redirect('/login')
 
 @app.route('/validate_user', methods=["POST"])
 def validate_user():
     if request.method == "POST":
         username = request.form.get('username')
         password = request.form.get('password')
-        if username == 'dvirh' and password == '123456':
-            return render_template('welcome.html')
+        user = User.query.filter_by(name=username, password_sha=password).first()
+        if user:
+            session['username'] = username
+            return redirect('/welcome')
         else:
-            flash('username or password invalid!')
-            return render_template('login.html')
+            flash('Invalid username or password!')
+            return redirect('/login')
     else:
-        return render_template('login.html')
+        return redirect('/login')
 
 @app.route('/run_simple')
 def run_simple():
-    return render_template('run_simple.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        return render_template('run_simple.html')
+    
 
 @app.route('/api/run_queue_test')
 def run_queue_test():
@@ -114,8 +140,10 @@ def run_queue_test():
 
 @app.route('/db_conn_wizard')
 def db_conn_wizard():
-    # validate user(session,user)
-    return render_template('db_conn_wizard.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        return render_template('db_conn_wizard.html')    
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
@@ -149,12 +177,20 @@ def save_connection():
 
 @app.route('/Function_Definition')
 def Function_Definition():
-    return render_template('Function_Definition.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        return render_template('Function_Definition.html')
+    
     # return jsonify(data = [num for num in range(10)])
 
 @app.route('/Function_Analysis')
 def Function_Analysis():
-    return render_template('Function_Analysis.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        return render_template('Function_Analysis.html')
+   
 
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])
