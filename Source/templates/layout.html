@@ -45,7 +45,7 @@
               src="{{url_for('static',filename='images/Octopus-Green.png')}}"
               alt=""
             />
-            <h6 class="user-name">TheDude</h6>
+            <h6 class="user-name">{{session['username']}}</h6>
           </a>
           <a href="/logout" class="text-primary"><h6>logout</h6></a>
         </div>

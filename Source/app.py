@@ -78,6 +78,10 @@ def run_functions():
 def index():
     return redirect('/login')
 
+@app.route('/login_first')
+def login_first():
+    return render_template('login_first.html')
+
 @app.route('/login')
 def login():
     if session.get('username', None) is None:
@@ -88,7 +92,7 @@ def login():
 @app.route('/welcome')
 def welcome():
     if session.get('username', None) is None:
-        return render_template('login.html')
+        return redirect('/login_first')
     else:
         return render_template('welcome.html')
     
@@ -120,7 +124,7 @@ def validate_user():
 @app.route('/run_simple')
 def run_simple():
     if session.get('username', None) is None:
-        return redirect('/login')
+        return redirect('/login_first')
     else:
         return render_template('run_simple.html')
     
@@ -141,7 +145,7 @@ def run_queue_test():
 @app.route('/db_conn_wizard')
 def db_conn_wizard():
     if session.get('username', None) is None:
-        return redirect('/login')
+        return redirect('/login_first')
     else:
         return render_template('db_conn_wizard.html')    
 
@@ -178,7 +182,7 @@ def save_connection():
 @app.route('/Function_Definition')
 def Function_Definition():
     if session.get('username', None) is None:
-        return redirect('/login')
+        return redirect('/login_first')
     else:
         return render_template('Function_Definition.html')
     
@@ -187,7 +191,7 @@ def Function_Definition():
 @app.route('/Function_Analysis')
 def Function_Analysis():
     if session.get('username', None) is None:
-        return redirect('/login')
+        return redirect('/login_first')
     else:
         return render_template('Function_Analysis.html')
    
