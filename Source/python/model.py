@@ -7,14 +7,11 @@
 
 import pandas as pd
 import sqlalchemy
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
+from flask_sqlalchemy import SQLAlchemy, flask_scoped_session
 from flask import Flask, redirect, request, jsonify, render_template, session, flash
 import json
 from datetime import datetime, timedelta
 from time import time, sleep
-from threading import Thread
-from queue import Queue
 import importlib
 from pathlib import Path
 import sys
@@ -23,7 +20,7 @@ import os
 
 db = SQLAlchemy()
 
-tasks_queue = Queue()
+
 
 FunctionsAndGroups = db.Table('FunctionsAndGroups',
                               db.Column('function_id', db.Integer,
@@ -60,6 +57,34 @@ class OctopusUtils:
     @staticmethod
     def get_db_conn(db_name):
         return 'db_conn for'+ db_name
+
+
+
+
+########################################
+########### TASK CLASS ############
+########################################
+
+
+class Task:
+
+    def __init__(self, mission_id, db_conn_obj, run_id, function_obj, user_id, task_id=0, priority=1, status=0):
+        self.id=task_id
+        self.mission_id=mission_id
+        self.db_conn_obj = db_conn_obj
+        self.run_id = run_id
+        self.function_obj = function_obj
+        self.user_id = user_id
+        self.priority = priority
+        self.status = status
+
+    def log(self):
+        task = AnalyseTask(mission_id=self.mission_id, mission_type='function', function_id=self.function_obj.id,
+                 run_id=self.run_id, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.conn_string,
+                 priority=1, user_id=self.user_id, status=2)
+        db.session.add(task)
+        db.session.commit()
+        self.id = task.id
 
 #########################################
 ########### TEAM MODEL CLASS ############
@@ -163,16 +188,16 @@ class User(db.Model):
         table = User.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
-    def __repr__(self):
-        print(f'my name is {self.name} and my function are:')
-        for func in self.functions:
-            print(func.printme())
+    # def __repr__(self):
+    #     print(f'my name is {self.name} and my function are:')
+    #     for func in self.functions:
+    #         print(func.printme())
 
-    def printme(self):
-        str1 = f'my name is {self.name} and my function are:'
-        for func in self.Functions:
-            str1 = str1 + func.printme()
-        return str1
+    # def printme(self):
+    #     str1 = f'my name is {self.name} and my function are:'
+    #     for func in self.Functions:
+    #         str1 = str1 + func.printme()
+    #     return str1
 
 
 ##########################################
@@ -377,7 +402,7 @@ class OctopusFunction(db.Model):
     def jsonify_all():
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
-
+    
     def run(self, db_conn, run_id):
         #check if path is in os.path
         try:
@@ -452,11 +477,11 @@ class OctopusFunction(db.Model):
                 'result_arr' : None
             }
 
-    def __repr__(self):
-        print(f'my name is {self.name} and my owner is {self.owner}')
+    # def __repr__(self):
+    #     print(f'my name is {self.name} and my owner is {self.owner}')
 
-    def printme(self):
-        return f'my name is {self.name} and my owner is {self.owner}'
+    # def printme(self):
+    #     return f'my name is {self.name} and my owner is {self.owner}'
 
     def get_parameters_tuple(self):
         params_tuple = [param.get_value() for param in self.function_parameters]
@@ -596,7 +621,27 @@ class DbConnections(db.Model):
 ##################################################
 ########### TASK MODEL CLASS ####################
 ##################################################
+class ErrorLog(db.Model):
+    __tablename__ = 'ErrorLog'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer)
+    error_time = db.Column(db.DateTime)
+    stage = db.Column(db.Text)
+    error_string = db.Column(db.Text)
 
+    def __init__(self, error_string, error_time=datetime.utcnow(), task_id=None,stage='unknown'):
+        self.task_id = task_id
+        self.error_time = error_time
+        self.stage = stage
+        self.error_string = error_string
+    
+    def log(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def push(self):
+        global error_queue
+        error_queue.put_nowait(self)
 
 class AnalyseTask(db.Model):
     __tablename__ = "AnalyseTask"
@@ -611,10 +656,11 @@ class AnalyseTask(db.Model):
     priority = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
     status = db.Column(db.Integer)
+    message = db.Column(db.Text)
 
     def __init__(self, mission_id=None, mission_type='function', function_id=None,
                  run_id=None, scenario_id=None, ovr_file_location=None, db_conn_string=None,
-                 priority=None, user_id=None, status=0):
+                 priority=1, user_id=None, status=0, message=None):
         
         self.mission_id = mission_id
         self.mission_type = mission_type
@@ -626,6 +672,7 @@ class AnalyseTask(db.Model):
         self.priority = priority
         self.user_id = user_id
         self.status = status
+        self.message = message
         
         #status
         #0 - created
@@ -641,19 +688,53 @@ class AnalyseTask(db.Model):
         global tasks_queue
         tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
     
+class Mission(db.Model):
+    __tablename__ = 'Mission'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, name=None):
+        if name:
+            self.name=name
+        else:
+            self.name='mission'+str(self.id)
+    
+    # @staticmethod
+    # def push_task(user_id, function, run_id, db_conn)
+        
+    @staticmethod
+    def create_mission(json_data):
+        global tasks_queue
+        if not type(json_data['functions']) == type(list()):
+            json_data['functions'] = [json_data['functions']]
+        functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
+        names = [func.name for func in functions]
+        runs = json_data['runs']
+        if not type(runs) == type(list()):
+            runs = [runs]
+    
+        conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
+        mission = Mission(json_data['mission_name'])
+        db.session.add(mission)
+        db.session.commit()
+        user_id = json_data['user_id']
+        for run in runs:
+            for func in functions:
+                task = Task(mission.id, conn, run, func, user_id)
+                tasks_queue.put_nowait(task)
 
 class OverView(db.Model):
     __tablename__ = 'OverView'
     id = db.Column(db.Integer, primary_key=True)
     mission_id = db.Column(db.Integer)
     overall_status = db.Column(db.Integer)
-    result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
+    # result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
     elapsed_time = db.Column(db.Float)
 
     def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
         self.mission_id = mission_id
         self.overall_status = overall_status
-        self.result_id = result_id
+        # self.result_id = result_id
         self.time_elapsed = time_elapsed
         db.session.add(self)
         db.session.commit()
@@ -671,7 +752,8 @@ class OverView(db.Model):
 class AnalyseResult(db.Model):
     __tablename__ = 'AnalyseResult'
     id = db.Column(db.Integer, primary_key=True)
-    overview_id = db.Column(db.Integer, db.ForeignKey('OverView.id'))
+    # overview_id = db.Column(db.Integer, db.ForeignKey('OverView.id'))
+    task_id = db.Column(db.Integer)
     run_id = db.Column(db.Integer)
     db_conn = db.Column(db.Text)
     result_status = db.Column(db.Integer)
@@ -680,11 +762,11 @@ class AnalyseResult(db.Model):
     result_array_header = db.Column(db.Text)
     result_array_types = db.Column(db.Text)
 
-    def __init__(self, overview_id, run_id,  result_status, result_text,
-                db_conn=None, result_array=None, result_array_header=None, result_array_types=None):
-        self.overview_id = overview_id
+    def __init__(self, task_id, run_id,  result_status, result_text,
+                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None):
+        self.task_id = task_id
         self.run_id = run_id
-        self.db_conn = db_conn
+        self.db_conn = db_conn_string
         self.result_status = result_status
         self.result_text = result_text
         self.result_array = []
@@ -694,7 +776,7 @@ class AnalyseResult(db.Model):
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
     id = db.Column(db.Integer, primary_key=True)
-    overview_id = db.Column(db.Integer, db.ForeignKey('AnalyseResult.id'))
+    result_id = db.Column(db.Integer, db.ForeignKey('AnalyseResult.id'))
     col1 = db.Column(db.Text)
     col2 = db.Column(db.Text)
     col3 = db.Column(db.Text)
@@ -726,7 +808,7 @@ class ResultArray(db.Model):
     col29 = db.Column(db.Text)
     col30 = db.Column(db.Text)
 
-    def __init__(self, 
+    def __init__(self, result_id=None,
                 col1 = None,
                 col2 = None,
                 col3 = None,

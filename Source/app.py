@@ -1,5 +1,7 @@
-# from python.model import *
-from python.helperModel import *
+from python.DataCollector import DataCollector
+from python.model import *
+from threaded_workers import Worker, init_threads
+from DbConnector import DbConnector
 import os
 
 # app = create_app()
@@ -7,9 +9,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -41,6 +43,13 @@ def collect_data():
     collector.CollectAll()
     return 'done'
 
+@app.route('/init_workers', methods=['GET','POST'])
+def init_workers():
+    init_threads()
+        # p=Process(target=init_proccesses)
+        # p.start()
+    return 'done'
+
 @app.route('/run_functions_test')
 def run_functions_test():
     functions = OctopusFunction.query.all()
@@ -51,28 +60,33 @@ def run_functions_test():
         result_arr.append(data)
     return jsonify(result_arr)
 
-@app.route('/api/run_functions', methods=['POST'])
+@app.route('/api/run_functions', methods=['GET','POST'])
 def run_functions():
-    json_data = request.get_json()
-    # json_data = {'functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
-    if not type(json_data['functions']) == type(list()):
-        json_data['functions'] = [json_data['functions']]
-    functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
-    names = [func.name for func in functions]
-    runs = json_data['runs']
-    if not type(runs) == type(list()):
-        runs = [runs]
-    conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
-    result_arr = []
-    result_arr2 = []
-    for run in runs:
-        for func in functions:
-            data = func.run(conn,run)
-            result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
-            result_arr2.append(data)
-    overview = OverView(mission_id=10, results=result_arr2)
-    return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
-
+    # json_data = request.get_json()
+    json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    # mission = Mission(json_data['mission_name'])
+    # db.session.add(mission)
+    # db.session.commit()
+    Mission.create_mission(json_data)
+    # if not type(json_data['functions']) == type(list()):
+    #     json_data['functions'] = [json_data['functions']]
+    # functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
+    # names = [func.name for func in functions]
+    # runs = json_data['runs']
+    # if not type(runs) == type(list()):
+    #     runs = [runs]
+    
+    # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
+    # result_arr = []
+    # result_arr2 = []
+    # for run in runs:
+    #     for func in functions:
+            # data = func.run(conn,run)
+            # result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
+            # result_arr2.append(data)
+    # overview = OverView(mission_id=10, results=result_arr2)
+    # return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
+    return 'done'
 
 @app.route('/')
 def index():
