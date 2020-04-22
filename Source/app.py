@@ -1,10 +1,14 @@
 from python.DataCollector import DataCollector
 from python.model import *
-from threaded_workers import Worker, init_threads
-from DbConnector import DbConnector
+from threading import Thread
+from threads_app import threaded_app
+from queue import Queue
+
+from python.threaded_workers import Worker, init_threads
+# from python.DbConnector import DbConnector
 import os
 
-# app = create_app()
+# app = create_app().app_context().push()
 app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
@@ -13,6 +17,18 @@ db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+run_queue_flag = True
+
+num_of_analyser_workers = 10
+
+threads_dict = {}
+queue_dict = {}
+tasks_queue = Queue()
+error_queue = Queue()
+updates_queue = Queue()
+to_do_queue = Queue()
+done_queue = Queue()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -27,6 +43,9 @@ else:
     sys.path.append(basedir[:-7] + r'/Functions')
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
+
+init_threads(threads_dict,num_of_analyser_workers,run_queue_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue)
 
 @app.route('/create_all')
 def create_tables():
@@ -45,7 +64,11 @@ def collect_data():
 
 @app.route('/init_workers', methods=['GET','POST'])
 def init_workers():
-    init_threads()
+    init_threads(threads_dict,num_of_analyser_workers,run_queue_flag,
+                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue)
+    # t=Thread(target=threaded_app)
+    # t.start()
+    # threaded_app(db)
         # p=Process(target=init_proccesses)
         # p.start()
     return 'done'
@@ -64,29 +87,11 @@ def run_functions_test():
 def run_functions():
     # json_data = request.get_json()
     json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
-    # mission = Mission(json_data['mission_name'])
-    # db.session.add(mission)
-    # db.session.commit()
-    Mission.create_mission(json_data)
-    # if not type(json_data['functions']) == type(list()):
-    #     json_data['functions'] = [json_data['functions']]
-    # functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
-    # names = [func.name for func in functions]
-    # runs = json_data['runs']
-    # if not type(runs) == type(list()):
-    #     runs = [runs]
-    
-    # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
-    # result_arr = []
-    # result_arr2 = []
-    # for run in runs:
-    #     for func in functions:
-            # data = func.run(conn,run)
-            # result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
-            # result_arr2.append(data)
-    # overview = OverView(mission_id=10, results=result_arr2)
-    # return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
-    return 'done'
+    try:
+        Mission.create_mission(json_data,tasks_queue)
+        return 'done'
+    except:
+        return 'something went wrong'
 
 @app.route('/')
 def index():

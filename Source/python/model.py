@@ -7,9 +7,10 @@
 
 import pandas as pd
 import sqlalchemy
-from flask_sqlalchemy import SQLAlchemy, flask_scoped_session
+from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, redirect, request, jsonify, render_template, session, flash
 import json
+from sqlalchemy import create_engine
 from datetime import datetime, timedelta
 from time import time, sleep
 import importlib
@@ -17,10 +18,22 @@ from pathlib import Path
 import sys
 import os
 
+def init_db():
+    db = SQLAlchemy()
+    return db
 
-db = SQLAlchemy()
+def create_threaded_app(db):
+    threaded_app = Flask(__name__)
+    db.init_app(threaded_app)
+    threaded_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    threaded_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    return threaded_app
+def create_app(db):
+    app = Flask(__name__)
+    db.init_app(app)
+    return app
 
-
+db = init_db()
 
 FunctionsAndGroups = db.Table('FunctionsAndGroups',
                               db.Column('function_id', db.Integer,
@@ -31,6 +44,95 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
 
 
 
+################################################
+########### DBCONNECTOR CLASS ###############
+################################################
+
+class DbConnector:
+
+    def __init__(self, db_type, user, password, hostname, schema, port=None, name=None):
+        
+        # setting up propeties
+        self.db_type = db_type
+        self.schema = schema
+        self.user = user
+        self.password = password
+        self.hostname = hostname
+        self.port = port
+        self.connection = None
+        self.message = ''
+        
+        # assinging name - if no name is given then the name is composed of the type and schema
+        if name or name == '':
+            self.name = name
+        else:
+            self.name = self.db_type + self.schema
+
+        # checking db type
+        if self.port == '':
+            if db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            elif db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
+        else:
+            if db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            elif db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
+        # checking if we have a connection string and can try to connect
+        if self.conn_string:
+            try:
+                self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 10})
+                conn = self.connection.connect()
+                conn.close()
+                self.connection.dispose()
+            except Exception as error:
+                self.message = 'Someting went wrong while trying to connect.'
+                try:
+                    self.connection.dispose()
+                except Exception as error:
+                    pass
+        # setting the connection status
+        if self.message == '':
+            self.status = 'valid'
+        else:
+            self.status = 'invalid'
+
+    def save(self):
+        # checking id connectiong is valid - cannot save invalid connection
+        if self.status == 'invalid':
+            self.message = 'Cannot save invalid connection'
+            return
+
+        # checking if the name exists - names must be unique
+        if DbConnections.query.filter_by(name=self.name).first():
+            self.message = 'cannot save - db name already exist'
+            self.status = 'invalid'
+            return
+        # saving connection data to DB
+        try:
+            conn = DbConnections(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
+            db.session.add(conn)
+            db.session.commit()
+        except Exception as error:
+            self.message = 'Something when wrong while saving to DB.'
+            self.status = 'invalid'
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -68,23 +170,33 @@ class OctopusUtils:
 
 class Task:
 
-    def __init__(self, mission_id, db_conn_obj, run_id, function_obj, user_id, task_id=0, priority=1, status=0):
+    def __init__(self, mission_id, db_conn_obj, run_id, function_id, user_id, task_id=0, priority=1, status=0):
         self.id=task_id
         self.mission_id=mission_id
         self.db_conn_obj = db_conn_obj
         self.run_id = run_id
-        self.function_obj = function_obj
+        self.function_id = function_id
         self.user_id = user_id
         self.priority = priority
         self.status = status
 
     def log(self):
-        task = AnalyseTask(mission_id=self.mission_id, mission_type='function', function_id=self.function_obj.id,
+        task = AnalyseTask(mission_id=self.mission_id, mission_type=0, function_id=self.function_id,
                  run_id=self.run_id, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.conn_string,
-                 priority=1, user_id=self.user_id, status=2)
+                 priority=1, user_id=self.user_id, status=0)
         db.session.add(task)
         db.session.commit()
         self.id = task.id
+    
+    def run(self):
+        function_obj = OctopusFunction.query.get(self.function_id)
+        result_dict = self.function_obj.run(self.db_conn_obj, self.run_id)
+        self.status = result_dict['result_status']
+    def update(self):
+        task = AnalyseTask.query.filter_by(id=self.id).first()
+        task.status = self.status
+        db.session.add(task)
+        db.session.commit()
 
 #########################################
 ########### TEAM MODEL CLASS ############
@@ -619,7 +731,7 @@ class DbConnections(db.Model):
             conn_string = self.conn_string
         ).json
 ##################################################
-########### TASK MODEL CLASS ####################
+########### ERRORLOG MODEL CLASS ####################
 ##################################################
 class ErrorLog(db.Model):
     __tablename__ = 'ErrorLog'
@@ -639,8 +751,7 @@ class ErrorLog(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def push(self):
-        global error_queue
+    def push(self, error_queue):
         error_queue.put_nowait(self)
 
 class AnalyseTask(db.Model):
@@ -658,7 +769,7 @@ class AnalyseTask(db.Model):
     status = db.Column(db.Integer)
     message = db.Column(db.Text)
 
-    def __init__(self, mission_id=None, mission_type='function', function_id=None,
+    def __init__(self, mission_id=None, mission_type=0, function_id=None,
                  run_id=None, scenario_id=None, ovr_file_location=None, db_conn_string=None,
                  priority=1, user_id=None, status=0, message=None):
         
@@ -703,8 +814,8 @@ class Mission(db.Model):
     # def push_task(user_id, function, run_id, db_conn)
         
     @staticmethod
-    def create_mission(json_data):
-        global tasks_queue
+    def create_mission(json_data,tasks_queue):
+        # global tasks_queue
         if not type(json_data['functions']) == type(list()):
             json_data['functions'] = [json_data['functions']]
         functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
@@ -720,8 +831,11 @@ class Mission(db.Model):
         user_id = json_data['user_id']
         for run in runs:
             for func in functions:
-                task = Task(mission.id, conn, run, func, user_id)
+                task = Task(mission.id, conn, run, func.id, user_id)
                 tasks_queue.put_nowait(task)
+                # task.log()
+                # task.run()
+                # task.update()
 
 class OverView(db.Model):
     __tablename__ = 'OverView'
