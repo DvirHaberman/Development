@@ -229,7 +229,8 @@
         <div class="card bg-light mb-3 main-form-card">
             <div class="row card-body main-form-card-body">
                 <label>Inputs:</label>
-                <i class="fas fa-plus-circle ml-auto"></i>
+                <button name="plus_param_row_button" class = "ml-auto"> <i class="fas fa-plus-circle"></i></button>
+                 <!-- //plus_param_row_button -->
 
                 <table  class="table table-hover" name="function_parameters">
                     <thead>
@@ -243,46 +244,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <th scope="row">1</th>
-                        <!-- <td>Sys Params</td> -->
-                        <td>
-                          <select id="MykindsDown">
-                              <option value="0">Google</option>
-                              <option value="1">Bing</option>
-                              <option value="2">Yahoo</option>
-                          </select>
-                        <td>
-                        <td> --- </td>
-                        <td>Table</td>
-                        <td><i class="far fa-trash-alt"></i></td>
-                      </tr>
-                      <tr>
-                        <th scope="row">2</th>
-                        <td>text</td>
-                        <td>66</td>
-                        <td>double</td>
-                        <td><i class="far fa-trash-alt"></i></td>
-
-                      </tr>
-                      <tr>
-                        <th scope="row">3</th>
-                        <td>text</td>
-                        <td>RV</td>
-                        <td>string</td>
-                        <td><i class="far fa-trash-alt"></i></td>
-                      </tr>
-                      <tr>
-                        <th scope="row">4</th>
-                        <td>Octopus Param</td>
-                        <td><select name="" id="" class="form-control table-select">
-                            <option selected class="table-option">BM-Params</option>
-                            <option class="table-option">SP-Params</option>
-                            </select>
-                        </td>
-                        <td>DataFrame</td>
-                        <td><i class="far fa-trash-alt"></i></td>
-                      </tr>
+                      
 
                     </tbody>
                   </table>
@@ -327,4 +289,3 @@
     <script src="../static//js/jquery_3_4_1_min.js"></script>
     <script src="../static//js/Functions_Definitions.js"></script>
     {%endblock%}
-
