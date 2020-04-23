@@ -1,8 +1,9 @@
 from python.DataCollector import DataCollector
 from python.model import *
 from threading import Thread
+from multiprocessing import Queue
 from threads_app import threaded_app
-from queue import Queue
+# from queue import Queue
 
 from python.threaded_workers import Worker, init_threads
 # from python.DbConnector import DbConnector
@@ -20,7 +21,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 run_queue_flag = True
 
-num_of_analyser_workers = 10
+num_of_analyser_workers = 3
 
 threads_dict = {}
 queue_dict = {}

@@ -188,6 +188,15 @@ class Task:
         db.session.commit()
         self.id = task.id
     
+    # def log_result(self, results):
+    #     analyse_result = AnalyseResult(task_id=self.id,run_id=results['run_id'],
+    #                                 db_conn_string=self.db_conn_obj.conn_string,
+    #                                 result_status=results['result_status'], 
+    #                                 result_text=results['result_text'],
+    #                                 result_array=results['result_arr'])
+    #     db.session.add(analyse_result)
+    #     db.session.commit()
+
     def run(self):
         function_obj = OctopusFunction.query.get(self.function_id)
         result_dict = self.function_obj.run(self.db_conn_obj, self.run_id)
@@ -884,8 +893,54 @@ class AnalyseResult(db.Model):
         self.result_status = result_status
         self.result_text = result_text
         self.result_array = []
+        self.result_array_types = result_array_types
+        # db.session.add(self)
+        # db.session.commit()
+
+    @staticmethod
+    def extract_headers(data_obj):
+        status = False
+        message = ''
+        header = None
+        if type(data_obj) == type(pd.DataFrame()):
+            cols = list(data_obj.columns)
+            if not len(cols) > 30:
+                header = ''
+                for col in cols:
+                    header += col
+                status = True
+            else:
+                message = 'result array must not have more than 30 columns'
+        else:
+            message = 'result array must be a DataFrame'
+            
+        return (status, message, header)
+    
+    def log(self, data_obj, error_queue):
         db.session.add(self)
         db.session.commit()
+        message = ''
+        try:
+            status, message, self.result_array_header = AnalyseResult.extract_headers(data_obj)
+            if status:
+                if len(data_obj.index)>0:
+                    data_obj = data_obj.astype(str)
+                    for index, row in data_obj.iterrows():
+                        result_array = ResultArray(self.id, *list(row.values))
+                        db.session.add(result_array)
+                        db.session.commit()
+                else:
+                    message = 'Return None for no result array and not an empty DataFrame'
+                    error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
+                    error_log.push(error_queue)
+            else:
+                error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
+                error_log.push(error_queue)
+        except:
+            message = 'something went wrong while logging the result array'
+            error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
+            error_log.push(error_queue)
+        return message
 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
@@ -922,8 +977,7 @@ class ResultArray(db.Model):
     col29 = db.Column(db.Text)
     col30 = db.Column(db.Text)
 
-    def __init__(self, result_id=None,
-                col1 = None,
+    def __init__(self, result_id, col1,
                 col2 = None,
                 col3 = None,
                 col4 = None,
@@ -954,6 +1008,7 @@ class ResultArray(db.Model):
                 col29 = None,
                 col30 = None
                 ):
+        self.result_id = result_id
         self.col1 = col1
         self.col2 = col2 
         self.col3 = col3 
@@ -984,3 +1039,9 @@ class ResultArray(db.Model):
         self.col28 = col28
         self.col29 = col29 
         self.col30 = col30 
+    
+    # @staticmethod
+    # def log(result_id, result_array, data_obj, headers=None):
+    #     result_array = ResultArray(result_id, data_obj, headers)
+
+    
