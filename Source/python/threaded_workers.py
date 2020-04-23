@@ -90,7 +90,7 @@ class Worker:
                         continue
                     try:
                         done_queue.put_nowait((task,results,status,message))
-                        print(f'done with logging result for task {task.id} in {datetime.utcnow()}')
+                        print(f'done with pushing result for task {task.id} in {datetime.utcnow()}')
                         # to_do_queue.task_done()
                     except Exception as error:
                         status=5
@@ -169,7 +169,7 @@ class Worker:
                     try:
                         # results = task.function_obj.run(task.db_conn_obj, task.run_id)
                         analyse_result = AnalyseResult(task_id=task.id,run_id=results['run_id'],
-                                            db_conn_string=task.db_conn_obj.conn_string,
+                                            db_conn_string=task.db_conn_obj.name,
                                             result_status=results['result_status'], 
                                             result_text=results['result_text'])
                         # db.session.add(analyse_result)

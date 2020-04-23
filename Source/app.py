@@ -87,7 +87,7 @@ def run_functions_test():
 @app.route('/api/run_functions', methods=['GET','POST'])
 def run_functions():
     # json_data = request.get_json()
-    json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
+    json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'conn_id':1, 'db_name':'conn_name'}
     try:
         Mission.create_mission(json_data,tasks_queue)
         return 'done'

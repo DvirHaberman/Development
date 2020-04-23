@@ -1,6 +1,7 @@
 import pandas as pd
 
 def return_success(conn, run_id):
+    data = pd.read_sql('select * from run_ids_data',con=conn)
     return {'result_status':4, 'results_arr':pd.DataFrame({'head1':1,'head2':'wow'}), 'result_text':'just success'}
 
 def return_warning(conn, run_id):

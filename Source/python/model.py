@@ -98,10 +98,11 @@ class DbConnector:
         # checking if we have a connection string and can try to connect
         if self.conn_string:
             try:
-                self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 10})
+                self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 5})
                 conn = self.connection.connect()
                 conn.close()
                 self.connection.dispose()
+                self.connection = None
             except Exception as error:
                 self.message = 'Someting went wrong while trying to connect.'
                 try:
@@ -133,6 +134,14 @@ class DbConnector:
         except Exception as error:
             self.message = 'Something when wrong while saving to DB.'
             self.status = 'invalid'
+    @staticmethod 
+    def load_conn_by_id(conn_id=1):
+        conn_data = DbConnections.query.get(conn_id)
+        return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
+                         password=conn_data.password, hostname=conn_data.hostname,
+                         schema=conn_data.schema, port=conn_data.port, 
+                         name=conn_data.name)
+
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -182,7 +191,7 @@ class Task:
 
     def log(self):
         task = AnalyseTask(mission_id=self.mission_id, mission_type=0, function_id=self.function_id,
-                 run_id=self.run_id, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.conn_string,
+                 run_id=self.run_id, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.name,
                  priority=1, user_id=self.user_id, status=0)
         db.session.add(task)
         db.session.commit()
@@ -583,13 +592,25 @@ class OctopusFunction(db.Model):
             }
 
         try:
+            db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
+            conn = db_conn.connection.connect()
             if len(parameters_tuple) > 0:
-                result_dict = req_method(db_conn, run_id, *parameters_tuple)
+                result_dict = req_method(conn, run_id, *parameters_tuple)
             else:
-                result_dict = req_method(db_conn, run_id)
+                result_dict = req_method(conn, run_id)
+            conn.close()
+            db_conn.connection.dispose()
+            db_conn.connection = None
             result_dict.update([('run_id', run_id), ('db_conn', db_conn.name)])
             return result_dict
         except Exception as error:
+            try:
+                conn.close()
+                db_conn.connection.dispose()
+                db_conn.connection = None
+            except:
+                self.connection = None
+
             return {
                 'run_id': run_id,
                 'db_conn': db_conn.name,
@@ -832,8 +853,8 @@ class Mission(db.Model):
         runs = json_data['runs']
         if not type(runs) == type(list()):
             runs = [runs]
-    
-        conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
+        conn = DbConnector.load_conn_by_id(int(json_data['conn_id']))
+        # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
         mission = Mission(json_data['mission_name'])
         db.session.add(mission)
         db.session.commit()
@@ -941,6 +962,18 @@ class AnalyseResult(db.Model):
             error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
             error_log.push(error_queue)
         return message
+    
+    def self_jsonify(self):
+        return jsonify(
+            id=self.id,
+            task_id = self.task_id,
+            run_id = self.run_id,
+            db_conn = self.db_conn_string,
+            result_status = self.result_status,
+            result_text = self.result_text,
+            result_array_types = self.result_array_types,
+            result_array=jsonify([result.self_jsonify() for result in self.result_array]).json
+        ).json
 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
