@@ -63,9 +63,10 @@ sleep(3)
 
 # update_tests_params()
 
-@app.route('/create_all')
+@app.route('/api/create_all')
 def create_tables():
     db.create_all()
+    # redirect('/api/collect_data')
     return 'done'
 
 
@@ -97,13 +98,22 @@ def stop_processes():
     except:
         return jsonify(status=False, message = 'technical failure')
 
-@app.route('/collect_all')
+@app.route('/api/collect_all')
 def collect_data():
     if sys.platform.startswith('win'):
         collector = DataCollector(basedir + r"\..\Data\DataToCollect.xlsx")
     else:
         collector = DataCollector(basedir + r"/../Data/DataToCollect.xlsx")
-    collector.CollectAll()
+    # collector.CollectAll()
+    collector.get_projects()
+    collector.get_teams()
+    collector.get_roles()
+    collector.get_users()
+    collector.get_functions()
+    collector.get_function_params()
+    collector.get_tree_names()
+    collector.get_trees_structures()
+    collector.get_groups()
     return 'done'
 
 @app.route('/init_workers', methods=['GET','POST'])
