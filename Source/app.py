@@ -1,11 +1,11 @@
 from python.DataCollector import DataCollector
 from python.model import *
 from threading import Thread
-from multiprocessing import Queue
-from threads_app import threaded_app
+from multiprocessing import Queue, Event
+# from threads_app import threaded_app
 # from queue import Queue
 
-from python.threaded_workers import Worker, init_threads
+from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
 # from python.DbConnector import DbConnector
 import os
 
@@ -19,11 +19,15 @@ db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-run_queue_flag = True
-
 num_of_analyser_workers = 3
 
-threads_dict = {}
+pipes_dict = create_pipes(num_of_analyser_workers)
+
+run_or_stop_flag = Event()
+
+run_or_stop_flag.set()
+
+processes_dict = {}
 queue_dict = {}
 tasks_queue = Queue()
 error_queue = Queue()
@@ -32,6 +36,13 @@ to_do_queue = Queue()
 done_queue = Queue()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+if sys.platform.startswith('win'):
+    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+else:
+    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+
+send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 if sys.platform.startswith('win'):
     sys.path.append('C' + basedir[1:-7] + '\\Functions')
@@ -45,14 +56,46 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-init_threads(threads_dict,num_of_analyser_workers,run_queue_flag,
-            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue)
+init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+
+sleep(3)
+
+# update_tests_params()
 
 @app.route('/create_all')
 def create_tables():
     db.create_all()
     return 'done'
 
+
+@app.route('/api/start_processes')
+def start_processes():
+    try:
+        if not run_or_stop_flag.is_set():
+            if sys.platform.startswith('win'):
+                tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+            else:
+                tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+
+            send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+            run_or_stop_flag.set()
+            init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+            
+            return jsonify(status=True, message = '')
+        else:
+            return jsonify(status=False, message = 'processes are already running')
+    except:
+        return jsonify(status=False, message = 'technical failure')
+
+@app.route('/api/stop_processes')
+def stop_processes():
+    try:
+        run_or_stop_flag.clear()
+        return jsonify(status=True, message = '')
+    except:
+        return jsonify(status=False, message = 'technical failure')
 
 @app.route('/collect_all')
 def collect_data():
@@ -65,13 +108,24 @@ def collect_data():
 
 @app.route('/init_workers', methods=['GET','POST'])
 def init_workers():
-    init_threads(threads_dict,num_of_analyser_workers,run_queue_flag,
-                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue)
+    processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, update_event, pipes_dict)
     # t=Thread(target=threaded_app)
     # t.start()
     # threaded_app(db)
         # p=Process(target=init_proccesses)
         # p.start()
+    return 'done'
+
+@app.route('/api/update_tests_params', methods=['GET','POST'])
+def update_tests_params():
+    if sys.platform.startswith('win'):
+        tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+    else:
+        tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+    
+    send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+
     return 'done'
 
 @app.route('/run_functions_test')

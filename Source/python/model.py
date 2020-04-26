@@ -22,12 +22,13 @@ def init_db():
     db = SQLAlchemy()
     return db
 
-def create_threaded_app(db):
-    threaded_app = Flask(__name__)
-    db.init_app(threaded_app)
-    threaded_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
-    threaded_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    return threaded_app
+def create_process_app(db):
+    process_app = Flask(__name__)
+    db.init_app(process_app)
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    return process_app
+
 def create_app(db):
     app = Flask(__name__)
     db.init_app(app)
@@ -158,12 +159,13 @@ class OctopusUtils:
         return jsonify(names=[func.name for func in functions])
 
     @staticmethod
-    def get_sys_params():
-        return 'Sys_Params'
+    def get_sys_params(conn, run_id):
+        return pd.read_sql('select * from sys_params',con=conn)
+        # return pd.read_sql(f'select * from sys_params where run_id={run_id}',con=conn)
     
     @staticmethod
     def get_test_params():
-        return 'Test_Params'
+        return 'Tests_Params'
 
     @staticmethod
     def get_db_conn(db_name):
@@ -386,11 +388,11 @@ class FunctionParameters(db.Model):
         table = FunctionParameters.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
-    def get_value(self):
+    def get_value(self, conn, run_id):
         if self.kind == 'Sys_Params':
-            return OctopusUtils.get_sys_params()
+            return OctopusUtils.get_sys_params(conn, run_id)
         
-        if self.kind == 'Test_Params':
+        if self.kind == 'Tests_Params':
             return OctopusUtils.get_test_params()
 
         if self.kind == 'value':
@@ -533,7 +535,7 @@ class OctopusFunction(db.Model):
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
     
-    def run(self, db_conn, run_id):
+    def run(self, db_conn, run_id, tests_params=None):
         #check if path is in os.path
         try:
             if not self.location in sys.path:
@@ -581,8 +583,16 @@ class OctopusFunction(db.Model):
                 'result_arr' : None
             }
         try:
-            parameters_tuple = self.get_parameters_tuple()
+            db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
+            conn = db_conn.connection.connect()
+            parameters_list = self.get_parameters_list(conn, run_id)
         except:
+            try:
+                conn.close()
+                db_conn.connection.dispose()
+                db_conn.connection = None
+            except:
+                db_conn.connection = None
             return {
                 'run_id': run_id,
                 'db_conn': db_conn,
@@ -590,12 +600,12 @@ class OctopusFunction(db.Model):
                 'result_text':"Error! Unexpected error while extracting method's parameters", 
                 'result_arr' : None
             }
-
         try:
-            db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
-            conn = db_conn.connection.connect()
-            if len(parameters_tuple) > 0:
-                result_dict = req_method(conn, run_id, *parameters_tuple)
+            if len(parameters_list) > 0:
+                if 'Tests_Params' in parameters_list:
+                    index = parameters_list.index('Tests_Params')
+                    parameters_list[index] = tests_params
+                result_dict = req_method(conn, run_id, *parameters_list)
             else:
                 result_dict = req_method(conn, run_id)
             conn.close()
@@ -609,7 +619,7 @@ class OctopusFunction(db.Model):
                 db_conn.connection.dispose()
                 db_conn.connection = None
             except:
-                self.connection = None
+                db_conn.connection = None
 
             return {
                 'run_id': run_id,
@@ -625,9 +635,9 @@ class OctopusFunction(db.Model):
     # def printme(self):
     #     return f'my name is {self.name} and my owner is {self.owner}'
 
-    def get_parameters_tuple(self):
-        params_tuple = [param.get_value() for param in self.function_parameters]
-        return params_tuple
+    def get_parameters_list(self, conn, run_id):
+        params_list = [param.get_value(conn, run_id) for param in self.function_parameters]
+        return params_list
 
 ###############################################
 ########### TREES MODEL CLASS ############
@@ -723,7 +733,7 @@ class FunctionsGroup(db.Model):
         return jsonify([row.self_jsonify() for row in table])
 
 ##################################################
-########### DBCONNECTION MODEL CLASS ####################
+########### DBCONNECTION MODEL CLASS #############
 ##################################################
 
 class DbConnections(db.Model):
@@ -760,6 +770,11 @@ class DbConnections(db.Model):
             name = self.name,
             conn_string = self.conn_string
         ).json
+
+    @staticmethod
+    def get_names():
+        connections = DbConnections.query.all()
+        return jsonify([conn.name for conn in connections])
 ##################################################
 ########### ERRORLOG MODEL CLASS ####################
 ##################################################

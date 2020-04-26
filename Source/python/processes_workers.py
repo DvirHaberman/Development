@@ -1,39 +1,68 @@
 from threading import Thread
-from multiprocessing import Process
+from multiprocessing import Process, Pipe
 # from multiprocessing import Process, Queue
 # from multiprocessing import Queue as process_queue
 from queue import Queue
 from python.model import *
 from datetime import datetime
+# from DataCollector import get_tests_params
 # from model import ErrorLog, Task, AnalyseTask, AnalyseResult
 
 
+def send_data_to_workers(data, pipes_dict, num_of_analyser_workers):
+    for num in range(num_of_analyser_workers):
+        pipes_dict[f'master_conn_{num}'].send(data)
 
-
-def init_threads(threads_dict,num_of_analyser_workers,run_queue_flag,
-                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue):
-    # global num_of_analyser_workers
-    # global threads_dict
-    # global run_queue_flag
-    # global error_queue
-    error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_queue_flag]))
-    error_logger.start()
-    threads_dict['error_logger'] = error_logger
-
-    threads_dict['analyser_workers'] = []
-    for _ in range(num_of_analyser_workers):
-        p = Process(target=Worker.analyser_worker, args=([tasks_queue,error_queue,updates_queue,to_do_queue,done_queue,run_queue_flag]))
-        p.start()
-        threads_dict['analyser_workers'].append(p)
     
-    task_logger = Process(target=Worker.task_logger_worker, args=([tasks_queue,error_queue,updates_queue,to_do_queue,run_queue_flag]))
+def create_pipes(num_of_analyser_workers):
+    pipes_dict = {}
+    for num in range(num_of_analyser_workers):
+        conn1, conn2 = Pipe()
+        pipes_dict[f'analyser_worker_conn_{num}'] = conn1
+        pipes_dict[f'master_conn_{num}'] = conn2
+    return pipes_dict
+
+def check_tests_params_update(pipe_conn):
+    test_params = None
+    update_flag = False
+    while pipe_conn.poll():
+        test_params = pipe_conn.recv()
+        update_flag = True
+
+    
+    return (update_flag, test_params)
+        
+    
+
+
+def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict):
+    # global num_of_analyser_workers
+    # global processes_dict
+    # global run_or_stop_flag
+    # global error_queue
+    error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
+    error_logger.start()
+    processes_dict['error_logger'] = error_logger
+
+    # processes_dict['analyser_workers'] = []
+    for num in range(num_of_analyser_workers):
+        p = Process(target=Worker.analyser_worker, args=([tasks_queue,error_queue,
+                                                        updates_queue,to_do_queue,
+                                                        done_queue,run_or_stop_flag,
+                                                        pipes_dict[f'analyser_worker_conn_{num}']]))
+        p.start()
+        processes_dict[f'analyser_workers_{num}'] = p
+    
+    task_logger = Process(target=Worker.task_logger_worker, args=([tasks_queue,error_queue,updates_queue,to_do_queue,run_or_stop_flag]))
     task_logger.start()
-    threads_dict['task_logger'] = task_logger
+    processes_dict['task_logger'] = task_logger
 
-    results_logger_worker = Process(target=Worker.results_logger_worker, args=([done_queue,updates_queue,error_queue,run_queue_flag]))
+    results_logger_worker = Process(target=Worker.results_logger_worker, args=([done_queue,updates_queue,error_queue,run_or_stop_flag]))
     results_logger_worker.start()
-    threads_dict['results_logger_worker'] = results_logger_worker
+    processes_dict['results_logger_worker'] = results_logger_worker
 
+    return processes_dict
 
 class Worker:
 
@@ -44,13 +73,13 @@ class Worker:
     #         self.thread.start()
     
     @staticmethod
-    def error_logger_worker(error_queue, run_queue_flag):
+    def error_logger_worker(error_queue, run_or_stop_flag):
         # global error_queue
-        # global run_queue_flag
-        threaded_app = create_threaded_app(db)
+        # global run_or_stop_flag
+        process_app = create_process_app(db)
         # scoped_session = db.create_scoped_session()
-        with threaded_app.app_context():
-            while run_queue_flag:
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
                 if not error_queue.empty():
                     error_log = error_queue.get_nowait()
                     error_log.log()
@@ -59,15 +88,27 @@ class Worker:
 
     @staticmethod
     def analyser_worker(tasks_queue,error_queue,updates_queue,
-                        to_do_queue,done_queue,run_queue_flag):
+                        to_do_queue,done_queue,run_or_stop_flag,pipe_conn):
         # global to_do_queue
         # global done_queue
-        # global run_queue_flag
+        # global run_or_stop_flag
         # global updates_queue
-        threaded_app = create_threaded_app(db)
+        process_app = create_process_app(db)
         # scoped_session = db.create_scoped_session()
-        with threaded_app.app_context():
-            while run_queue_flag:
+        tests_params = None
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
+                try:
+                    update_flag, new_tests_params = check_tests_params_update(pipe_conn)
+                    if update_flag:
+                        tests_params = new_tests_params
+                except:
+                    message='failed reading Tests_Params from pipe'
+                    # updates_queue.put_nowait((task.id,status,message))
+                    # to_do_queue.task_done()
+                    error_log = ErrorLog(task_id = 0, stage='reading Tests_Params from pipe', error_string=message)
+                    error_log.push(error_queue)
+                    sleep(5)
                 if not to_do_queue.empty():
                     try:
                         task = to_do_queue.get_nowait()
@@ -75,7 +116,7 @@ class Worker:
                         continue
                     try:
                         function_obj = OctopusFunction.query.get(task.function_id)
-                        results = function_obj.run(task.db_conn_obj, task.run_id)
+                        results = function_obj.run(task.db_conn_obj, task.run_id, tests_params)
                         status=4
                         message=''
                         print(f'done with preforming task {task.id} in {datetime.utcnow()}')
@@ -103,17 +144,17 @@ class Worker:
 
                 
 
-    def task_logger_worker(tasks_queue,error_queue,updates_queue,to_do_queue,run_queue_flag):
+    def task_logger_worker(tasks_queue,error_queue,updates_queue,to_do_queue,run_or_stop_flag):
         # global tasks_queue
         # global to_do_queue
         # global updates_queue
 
-        threaded_app = create_threaded_app(db)
+        process_app = create_process_app(db)
         flag = True
 
-        with threaded_app.app_context():
+        with process_app.app_context():
                 
-            while run_queue_flag:
+            while run_or_stop_flag.is_set():
                 if flag:
                     flag = False
                     if not tasks_queue.empty():
@@ -156,14 +197,14 @@ class Worker:
                             error_log.push(error_queue)
                     
     @staticmethod
-    def results_logger_worker(done_queue,updates_queue,error_queue,run_queue_flag):
+    def results_logger_worker(done_queue,updates_queue,error_queue,run_or_stop_flag):
         # global done_queue
-        # global run_queue_flag
+        # global run_or_stop_flag
         # global updates_queue
 
-        threaded_app = create_threaded_app(db)
-        with threaded_app.app_context():
-            while run_queue_flag:
+        process_app = create_process_app(db)
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
                 if not done_queue.empty():
                     task, results, status, message = done_queue.get_nowait()
                     try:

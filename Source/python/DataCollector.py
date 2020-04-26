@@ -8,9 +8,17 @@ import math
 
 class DataCollector():
 
-    def __init__(self, source_file):
-        self.file_handler = pd.ExcelFile(source_file)
+    def __init__(self, mockup_db_file_path):
+        self.mockup_db_file_handler = pd.ExcelFile(mockup_db_file_path)
+        # self.test_params_file_handler = pd.ExcelFile(tests_params_file_path)
 
+    @staticmethod
+    def get_tests_params(tests_params_file_path):
+        try:
+            return pd.read_excel(pd.ExcelFile(tests_params_file_path), 'Tests_Params')
+        except:
+            return None
+    
     def CollectAll(self):
         self.get_projects()
         self.get_teams()
@@ -25,7 +33,7 @@ class DataCollector():
         # db.session.commit()
 
     def get_functions(self):
-        df = pd.read_excel(self.file_handler, 'Functions')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Functions')
         try:
             for index, row in df.iterrows():
                 if not type(row.class_name) == type('str'):
@@ -57,7 +65,7 @@ class DataCollector():
                 'problem in DataCollector - something went wrong with creating the functions table')
 
     def get_function_params(self):
-        df = pd.read_excel(self.file_handler, 'function_parameters')
+        df = pd.read_excel(self.mockup_db_file_handler, 'function_parameters')
         try:
             for index, row in df.iterrows():
                 param = FunctionParameters(
@@ -74,7 +82,7 @@ class DataCollector():
 
 
     def get_projects(self):
-        df = pd.read_excel(self.file_handler, 'Projects')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Projects')
         try:
             for index, row in df.iterrows():
                 project = Project(
@@ -88,7 +96,7 @@ class DataCollector():
                 'problem in DataCollector - something went wrong with creating the projects table')
 
     def get_users(self):
-        df = pd.read_excel(self.file_handler, 'Users')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Users')
         try:
             for index, row in df.iterrows():
                 user = User(
@@ -110,7 +118,7 @@ class DataCollector():
 
 
     def get_teams(self):
-        df = pd.read_excel(self.file_handler, 'Teams')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Teams')
         try:
             for index, row in df.iterrows():
                 team = Team(
@@ -124,7 +132,7 @@ class DataCollector():
 
 
     def get_roles(self):
-        df = pd.read_excel(self.file_handler, 'Roles')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Roles')
         try:
             for index, row in df.iterrows():
                 role = Role(
@@ -137,7 +145,7 @@ class DataCollector():
                 'problem in DataCollector - something went wrong with creating the role table')
     
     def get_tree_names(self):
-        df = pd.read_excel(self.file_handler, 'Trees')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Trees')
         try:
             for index, row in df.iterrows():
                 tree = Trees(
@@ -152,7 +160,7 @@ class DataCollector():
                 'problem in DataCollector - something went wrong with creating the Trees table')
     
     def get_trees_structures(self):
-        df = pd.read_excel(self.file_handler, 'TreeStructre')
+        df = pd.read_excel(self.mockup_db_file_handler, 'TreeStructre')
         try:
             for index, row in df.iterrows():
                 structure = TreeStructre(
@@ -169,7 +177,7 @@ class DataCollector():
                 'problem in DataCollector - something went wrong with creating the TreeStructure table')
 
     def get_groups(self):
-        df = pd.read_excel(self.file_handler, 'Groups')
+        df = pd.read_excel(self.mockup_db_file_handler, 'Groups')
         try:
             for index, row in df.iterrows():
                 group = FunctionsGroup(
