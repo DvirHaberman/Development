@@ -902,6 +902,16 @@ class Mission(db.Model):
                 # task.log()
                 # task.run()
                 # task.update()
+    def self_jsonify(self):
+        return jsonify(
+            id=self.id,
+            name = self.name).json
+        
+    
+    @staticmethod
+    def jsonify_all():
+        table = Mission.query.all()
+        return jsonify([row.self_jsonify() for row in table])
 
 class OverView(db.Model):
     __tablename__ = 'OverView'
