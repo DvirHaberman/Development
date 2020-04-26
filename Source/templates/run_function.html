@@ -1,0 +1,236 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function Definition</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+  <link rel="stylesheet" href="../static/css/styles.css" />
+</head>
+
+<body>
+
+  <section id="navigation-bar">
+    <div class="container-fluid fixed-top">
+      <!-- Nav Bar -->
+      <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#"><img class="octopus-img" src="{{url_for('static',filename='images/Octopus-Green.png')}}" alt="" />
+          <h6 class="user-name">TheDude</h6>
+        </a>
+        <a class="navbar-brand" id="window-title" href="">Function Definition Window</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo2" aria-controls="navbarTogglerDemo2" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
+          <ul class="navbar-nav ml-auto">
+
+            <li class="nav-item active">
+              <a class="nav-link" href="Function_Definition">Define</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="Function_Analysis">Run</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="run_simple">Run Demo</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href=""> Results</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <!-- <h1 class="function-definition-header">Function Definition Window</h1> -->
+  </section>
+
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+
+  <section id="inputs">
+
+
+    <div class="card" style="width: 35rem;">
+
+      <div class="card-body">
+
+        <form role="search" class="bd-search d-flex align-items-center">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="RunFunction" value="option1" checked>
+            <label class="form-check-label" for="RunFunction">Run Function</label>
+          </div>
+
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="LoadMissionResults" value="option2">
+            <label class="form-check-label" for="LoadMissionResults">Load Mission</label unchecked>
+            <input type="search" class="form-control ds-input" id="search-input" placeholder="Mission ID..." aria-label="Search for..." autocomplete="off" data-docs-version="4.4" spellcheck="false" role="combobox" aria-autocomplete="list"
+              aria-expanded="false" aria-owns="algolia-autocomplete-listbox-0" dir="auto" style="position: relative; vertical-align: top;" value="disabled">
+          </div>
+        </form>
+
+
+        <div>
+          <label for="functions_select">select a function</label>
+          <select name="functions" id="functions_select"></select>
+          <br>
+          <br>
+        </div>
+
+        <div>
+          <label for="database_select">select a db</label>
+          <select name="databases" id="database_select">
+            <option value="">POSTGRESQL</option>
+            <option value="">MYSQL</option>
+            <option value="">SQLITE</option>
+            <option value="">ORACLE</option>
+          </select>
+          <br>
+          <br>
+        </div>
+
+        <div>
+          <label for="run_ids_select">select a run id</label>
+          <select name="run_ids" id="run_ids_select">
+            <option value="">12121</option>
+            <option value="">31313</option>
+            <option value="">33333</option>
+            <option value="">44444</option>
+          </select>
+          <input type="button" value="GO" id="run_ids_select_button">
+          <br>
+          <br>
+          <br>
+        </div>
+
+        <div>
+          <label for="run_ids_text">type run ids with (,) seperator</label>
+          <input type="text" id="run_ids_text">
+          <input type="button" value="GO" id="run_ids_text_button">
+        </div>
+
+      </div>
+
+    </div>
+
+    <br>
+    <hr>
+    <br>
+
+
+  </section>
+
+  <!-- Results -->
+  <div class="row">
+    <label class="col" for="FunctionStatusMissionID">Analyse Mission ID: </label>
+    <label class="col" for="FunctionStatusMissionID"> AAA </label>
+  </div>
+
+  <br>
+
+  <table id="res_table" class="table table-hover">
+
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Function Name</th>
+        <th scope="col">Run ID</th>
+        <th scope="col">Status</th>
+        <th scope="col">Comment</th>
+        <th scope="col">Owner</th>
+        <th scope="col">Show me the Data</th>
+      </tr>
+
+    </thead>
+
+    <tbody>
+      <tr>
+        <th scope="row">1</th>
+        <td>CheckMe</td>
+        <td>12345</td>
+        <td>Success</td>
+        <td>--</td>
+        <td>ilan</td>
+        <td><i class="far fa-trash-alt"></i></td>
+      </tr>
+
+    </tbody>
+
+  </table>
+
+  <br>
+
+  <div class="row">
+    <label class="col" for="FunctionSelected"> Data of: Funciton CheckMe, @ Run: 12345 ... Owner: ilan </label>
+  </div>
+
+  <table id="res_table_data" class="table table-hover">
+
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+    </tbody>
+
+
+
+    <table id="FunctionsVsRunIDs" class="table table-hover">
+
+      <thead>
+        <tr>
+          <th scope="col"> </th>
+          <th scope="col">Run 123</th>
+          <th scope="col">Run 124</th>
+          <th scope="col">Run 125</th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+        <tr>
+          <th scope="row">CheckMeFunction</th>
+          <td>Success</td>
+          <td>Fail</td>
+          <td>Fail</td>
+
+
+        </tr>
+        <tr>
+          <th scope="row">AreYouShureFunction</th>
+          <td>Success</td>
+          <td>Fail</td>
+          <td>Fail</td>
+        </tr>
+        <tr>
+          <th scope="row"> IbizaFunction </th>
+          <td>Success</td>
+          <td>Fail</td>
+          <td>Fail</td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+
+
+  </table>
+
+
+
+  <script src="../static//js/jquery_3_4_1_min.js"></script>
+  <script src="../static//js/Functions_Definitions.js"></script>
+</body>
+
+</html>

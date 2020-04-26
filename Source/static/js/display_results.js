@@ -15,7 +15,7 @@ function load_results(){
     $.ajax({
         url: "/api/AnalyseResult/jsonify_by_mission_id/" + mission_id,
         success: function(result) {
-          functions = result;
+          // functions = result;
           alert('got it!');
         }
       });
