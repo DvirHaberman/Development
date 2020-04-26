@@ -366,22 +366,34 @@ class FunctionParameters(db.Model):
     __tablename__ = 'FunctionParameters'
     id = db.Column(db.Integer, primary_key=True)
     function_id = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
+    index = db.Column(db.Integer)
     kind = db.Column(db.Text)
     value = db.Column(db.Text)
-    type = db.Column(db.Text)
+    param_type = db.Column(db.Text)
 
-    def __init__(self, function_id=None, kind=None, value=None, type=None):
+    def __init__(self, function_id=None, index=None, kind=None, value=None, param_type=None):
         self.function_id = function_id
+        self.index = index
         self.kind = kind
         self.value = value
-        self.type = type
+        self.param_type = param_type
+
     def self_jsonify(self):
         return jsonify(
             function_id=self.function_id,
+            index = self.index,
             kind=self.kind,
             value=self.value,
-            type=self.type
+            type=self.param_type
         ).json
+
+    @staticmethod
+    def save(function_id=None, index=index, kind=None, value=None, param_type=None):
+        param = FunctionParameters(function_id = function_id,
+                                    index = index, kind = kind,
+                                    value = value, param_type = param_type)
+        db.session.add(param)
+        db.session.commit()
 
     @staticmethod
     def jsonify_all():
@@ -513,7 +525,7 @@ class OctopusFunction(db.Model):
             name=data['name'],
             callback=data['callback'],
             location=data['location'],
-            owner=User.query.filter_by(name=data['owner'])[0].name,
+            owner=User.query.filter_by(name=session['username'])[0].id,
             # status=data.status,
             # tree=row.tree,
             kind=data['kind'],
@@ -528,6 +540,15 @@ class OctopusFunction(db.Model):
         )
         db.session.add(func)
         db.session.commit()
+        function_id = func.id
+        for param in data['function_parameters']:
+            index = param['index']
+            kind = param['kind']
+            value = param['value']
+            param_type = param['type']
+            FunctionParameters.save(function_id = function_id,
+                                    index = index, kind = kind,
+                                    value = value, param_type = param_type)
         return func.self_jsonify()
 
     @staticmethod
@@ -941,9 +962,9 @@ class AnalyseResult(db.Model):
         if type(data_obj) == type(pd.DataFrame()):
             cols = list(data_obj.columns)
             if not len(cols) > 30:
-                header = ''
-                for col in cols:
-                    header += col
+                header = ','.join(cols)
+                # for col in cols:
+                #     header += col
                 status = True
             else:
                 message = 'result array must not have more than 30 columns'
@@ -983,12 +1004,28 @@ class AnalyseResult(db.Model):
             id=self.id,
             task_id = self.task_id,
             run_id = self.run_id,
-            db_conn = self.db_conn_string,
+            db_conn = self.db_conn,
             result_status = self.result_status,
             result_text = self.result_text,
             result_array_types = self.result_array_types,
             result_array=jsonify([result.self_jsonify() for result in self.result_array]).json
-        ).json
+        )
+
+    @staticmethod
+    def jsonify_by_ids(*args):
+        # if not type(ids) == type([1]):
+        ids = list(args)
+        ids = [int(id) for id in ids]
+        results = db.session.query(AnalyseResult).filter(AnalyseResult.id.in_(ids)).all()
+        return jsonify([result.self_jsonify().json for result in results])
+
+    @staticmethod
+    def jsonify_by_mission_id(id):
+        tasks = AnalyseTask.query.filter_by(mission_id=int(id))
+        ids = [int(task.id) for task in tasks]
+        ids = db.session.query(AnalyseResult).filter(AnalyseResult.task_id.in_(ids)).with_entities(AnalyseResult.id).all()
+        # ids = list(zip(*ids))
+        return AnalyseResult.jsonify_by_ids(*list((*zip(*ids))))
 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
@@ -1088,8 +1125,39 @@ class ResultArray(db.Model):
         self.col29 = col29 
         self.col30 = col30 
     
-    # @staticmethod
-    # def log(result_id, result_array, data_obj, headers=None):
-    #     result_array = ResultArray(result_id, data_obj, headers)
+    def self_jsonify(self):
+        return jsonify(
+            result_id = self.result_id,
+            col1 = self.col1,
+            col2 = self.col2, 
+            col3 = self.col3, 
+            col4 = self.col4, 
+            col5 = self.col5, 
+            col6 = self.col6, 
+            col7 = self.col7, 
+            col8 = self.col8, 
+            col9 = self.col9, 
+            col10 =self. col10, 
+            col11 =self. col11, 
+            col12 =self. col12, 
+            col13 =self. col13, 
+            col14 =self. col14, 
+            col15 =self. col15, 
+            col16 =self. col16, 
+            col17 =self. col17, 
+            col18 =self. col18, 
+            col19 =self. col19, 
+            col20 =self. col20, 
+            col21 =self. col21, 
+            col22 =self. col22, 
+            col23 =self. col23, 
+            col24 =self. col24, 
+            col25 =self. col25, 
+            col26 =self. col26, 
+            col27 =self. col27, 
+            col28 =self. col28,
+            col29 =self. col29, 
+            col30 =self. col30
+        ).json
 
     

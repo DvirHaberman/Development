@@ -70,9 +70,10 @@ class DataCollector():
             for index, row in df.iterrows():
                 param = FunctionParameters(
                     function_id=row.function_id,
+                    index = row.param_index,
                     kind=row.kind,
                     value=row.value,
-                    type=row.type
+                    param_type=row.type
                 )
                 db.session.add(param)
             db.session.commit()
