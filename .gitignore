@@ -1,10 +1,27 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+Source/__pycache__/
 *.py[cod]
 *$py.class
-
+*.pyc
 # C extensions
 *.so
+*.cpython-37.pyc
+
+Source/python/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+# C extensions
+*.so
+*.cpython-37.pyc
+
+Functions/python/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+# C extensions
+*.so
+*.cpython-37.pyc
 
 # Distribution / packaging
 .Python

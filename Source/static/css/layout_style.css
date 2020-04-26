@@ -7,8 +7,17 @@
 .octopus-img {
     width: 8%;
   }
-  
-  .nav-item {
-    text-align: center;
-    margin: 0 10px 0;
-  }
+
+h6 {
+    display: inline-block;
+}
+
+.nav-item {
+  text-align: center;
+  margin: 0 10px 0;
+}
+
+#brand-image {
+  max-width:10%;
+}
+

@@ -1,18 +1,48 @@
-# from python.model import *
-from python.helperModel import *
+from python.DataCollector import DataCollector
+from python.model import *
+from threading import Thread
+from multiprocessing import Queue, Event
+# from threads_app import threaded_app
+# from queue import Queue
+
+from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
+# from python.DbConnector import DbConnector
 import os
 
-# app = create_app()
+# app = create_app().app_context().push()
 app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+num_of_analyser_workers = 3
+
+pipes_dict = create_pipes(num_of_analyser_workers)
+
+run_or_stop_flag = Event()
+
+run_or_stop_flag.set()
+
+processes_dict = {}
+queue_dict = {}
+tasks_queue = Queue()
+error_queue = Queue()
+updates_queue = Queue()
+to_do_queue = Queue()
+done_queue = Queue()
+
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+if sys.platform.startswith('win'):
+    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+else:
+    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+
+send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 if sys.platform.startswith('win'):
     sys.path.append('C' + basedir[1:-7] + '\\Functions')
@@ -26,11 +56,46 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
+init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+
+sleep(3)
+
+# update_tests_params()
+
 @app.route('/create_all')
 def create_tables():
     db.create_all()
     return 'done'
 
+
+@app.route('/api/start_processes')
+def start_processes():
+    try:
+        if not run_or_stop_flag.is_set():
+            if sys.platform.startswith('win'):
+                tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+            else:
+                tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+
+            send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+            run_or_stop_flag.set()
+            init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+            
+            return jsonify(status=True, message = '')
+        else:
+            return jsonify(status=False, message = 'processes are already running')
+    except:
+        return jsonify(status=False, message = 'technical failure')
+
+@app.route('/api/stop_processes')
+def stop_processes():
+    try:
+        run_or_stop_flag.clear()
+        return jsonify(status=True, message = '')
+    except:
+        return jsonify(status=False, message = 'technical failure')
 
 @app.route('/collect_all')
 def collect_data():
@@ -39,6 +104,28 @@ def collect_data():
     else:
         collector = DataCollector(basedir + r"/../Data/DataToCollect.xlsx")
     collector.CollectAll()
+    return 'done'
+
+@app.route('/init_workers', methods=['GET','POST'])
+def init_workers():
+    processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, update_event, pipes_dict)
+    # t=Thread(target=threaded_app)
+    # t.start()
+    # threaded_app(db)
+        # p=Process(target=init_proccesses)
+        # p.start()
+    return 'done'
+
+@app.route('/api/update_tests_params', methods=['GET','POST'])
+def update_tests_params():
+    if sys.platform.startswith('win'):
+        tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+    else:
+        tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+    
+    send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+
     return 'done'
 
 @app.route('/run_functions_test')
@@ -51,53 +138,70 @@ def run_functions_test():
         result_arr.append(data)
     return jsonify(result_arr)
 
-@app.route('/api/run_functions', methods=['POST'])
+@app.route('/api/run_functions', methods=['GET','POST'])
 def run_functions():
-    json_data = request.get_json()
-    # json_data = {'functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'db_name':'db_name'}
-    if not type(json_data['functions']) == type(list()):
-        json_data['functions'] = [json_data['functions']]
-    functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
-    names = [func.name for func in functions]
-    runs = json_data['runs']
-    if not type(runs) == type(list()):
-        runs = [runs]
-    conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
-    result_arr = []
-    result_arr2 = []
-    for run in runs:
-        for func in functions:
-            data = func.run(conn,run)
-            result_arr.append({'db_name':json_data['db_name'], 'run_id':run, 'function':func.name, 'function_id':func.id, 'result':data})
-            result_arr2.append(data)
-    overview = OverView(mission_id=10, results=result_arr2)
-    return jsonify({'runs':runs, 'function_names':names, 'results':result_arr})
-
+    # json_data = request.get_json()
+    json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'conn_id':1, 'db_name':'conn_name'}
+    try:
+        Mission.create_mission(json_data,tasks_queue)
+        return 'done'
+    except:
+        return 'something went wrong'
 
 @app.route('/')
+def index():
+    return redirect('/login')
+
+@app.route('/login_first')
+def login_first():
+    return render_template('login_first.html')
+
+@app.route('/login')
 def login():
-    return render_template('login.html')
+    if session.get('username', None) is None:
+        return render_template('login.html')
+    else:
+        return redirect('/welcome')
+
+@app.route('/welcome')
+def welcome():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('welcome.html')
+    
 
 @app.route('/logout')
 def logout():
-    return render_template('login.html')
+    if session.get('username', None) is None:
+        return redirect('/login')
+    else:
+        session.pop('username', None)
+        flash('you were logged out')
+        return redirect('/login')
 
 @app.route('/validate_user', methods=["POST"])
 def validate_user():
     if request.method == "POST":
         username = request.form.get('username')
         password = request.form.get('password')
-        if username == 'dvirh' and password == '123456':
-            return render_template('welcome.html')
+        user = User.query.filter_by(name=username, password_sha=password).first()
+        if user:
+            session['username'] = username
+            return redirect('/welcome')
         else:
-            flash('username or password invalid!')
-            return render_template('login.html')
+            flash('Invalid username or password!')
+            return redirect('/login')
     else:
-        return render_template('login.html')
+        return redirect('/login')
 
 @app.route('/run_simple')
 def run_simple():
-    return render_template('run_simple.html')
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('run_simple.html')
+    
 
 @app.route('/api/run_queue_test')
 def run_queue_test():
@@ -114,8 +218,10 @@ def run_queue_test():
 
 @app.route('/db_conn_wizard')
 def db_conn_wizard():
-    # validate user(session,user)
-    return render_template('db_conn_wizard.html')
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('db_conn_wizard.html')    
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
@@ -149,12 +255,20 @@ def save_connection():
 
 @app.route('/Function_Definition')
 def Function_Definition():
-    return render_template('Function_Definition.html')
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('Function_Definition.html')
+    
     # return jsonify(data = [num for num in range(10)])
 
 @app.route('/Function_Analysis')
 def Function_Analysis():
-    return render_template('Function_Analysis.html')
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('Function_Analysis.html')
+   
 
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])

@@ -38,14 +38,17 @@
       <div class="container-fluid fixed-top">
         <!-- Nav Bar -->
         <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
-          <a class="navbar-brand" href="#"
+          <div>
+          <a class="navbar-brand" href="/welcome"
             ><img
               class="octopus-img"
               src="{{url_for('static',filename='images/Octopus-Green.png')}}"
               alt=""
             />
-            <h6 class="user-name">TheDude</h6>
+            <h6 class="user-name">{{session['username']}}</h6>
           </a>
+          <a href="/logout" class="text-primary"><h6>logout</h6></a>
+        </div>
             <a class="navbar-brand" id="window-title" href="">Function Definition Window</a>
           <button
             class="navbar-toggler"
