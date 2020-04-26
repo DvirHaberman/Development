@@ -69,6 +69,12 @@ def create_tables():
     # redirect('/api/collect_data')
     return 'done'
 
+@app.route('/display_results')
+def display_results():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('display_results.html')
 
 @app.route('/api/start_processes')
 def start_processes():
