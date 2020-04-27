@@ -135,6 +135,19 @@ class DbConnector:
         except Exception as error:
             self.message = 'Something when wrong while saving to DB.'
             self.status = 'invalid'
+    
+    def run_sql(self,sql):
+        if self.status == 'valid':
+            self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 5})
+            conn = self.connection.connect()
+            data = pd.read_sql('select run_id from run_ids',con=conn)
+            conn.close()
+            self.connection.dispose()
+            self.connection = None
+            return data
+        else:
+            return 'invalid conn'
+    
     @staticmethod 
     def load_conn_by_id(conn_id=1):
         conn_data = DbConnections.query.get(conn_id)
@@ -142,7 +155,19 @@ class DbConnector:
                          password=conn_data.password, hostname=conn_data.hostname,
                          schema=conn_data.schema, port=conn_data.port, 
                          name=conn_data.name)
-
+    
+    @staticmethod 
+    def load_conn_by_name(db_name):
+        conn_data = DbConnections.query.filter_by(name=db_name).first()
+        return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
+                         password=conn_data.password, hostname=conn_data.hostname,
+                         schema=conn_data.schema, port=conn_data.port, 
+                         name=conn_data.name)
+    @staticmethod                     
+    def get_run_ids(db_name):
+        conn = DbConnector.load_conn_by_name(db_name)
+        run_ids = conn.run_sql('select run_id from run_ids')
+        return jsonify([int(x) for x in list(run_ids['run_id'].values)])
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -165,7 +190,7 @@ class OctopusUtils:
     
     @staticmethod
     def get_test_params():
-        return 'Tests_Params'
+        return 'Tests Params'
 
     @staticmethod
     def get_db_conn(db_name):
@@ -401,10 +426,10 @@ class FunctionParameters(db.Model):
         return jsonify([row.self_jsonify() for row in table])
 
     def get_value(self, conn, run_id):
-        if self.kind == 'Sys_Params':
+        if self.kind == 'Sys Params':
             return OctopusUtils.get_sys_params(conn, run_id)
         
-        if self.kind == 'Tests_Params':
+        if self.kind == 'Tests Params':
             return OctopusUtils.get_test_params()
 
         if self.kind == 'value':
@@ -623,8 +648,8 @@ class OctopusFunction(db.Model):
             }
         try:
             if len(parameters_list) > 0:
-                if 'Tests_Params' in parameters_list:
-                    index = parameters_list.index('Tests_Params')
+                if 'Tests Params' in parameters_list:
+                    index = parameters_list.index('Tests Params')
                     parameters_list[index] = tests_params
                 result_dict = req_method(conn, run_id, *parameters_list)
             else:
@@ -902,6 +927,9 @@ class Mission(db.Model):
                 # task.log()
                 # task.run()
                 # task.update()
+        
+        return str(mission.id)
+        
     def self_jsonify(self):
         return jsonify(
             id=self.id,
@@ -1013,6 +1041,7 @@ class AnalyseResult(db.Model):
         return jsonify(
             id=self.id,
             task_id = self.task_id,
+            function_id = AnalyseTask.query.get(self.task_id).function_id,
             run_id = self.run_id,
             db_conn = self.db_conn,
             result_status = self.result_status,
@@ -1031,12 +1060,28 @@ class AnalyseResult(db.Model):
 
     @staticmethod
     def jsonify_by_mission_id(id):
-        tasks = AnalyseTask.query.filter_by(mission_id=int(id))
-        ids = [int(task.id) for task in tasks]
-        ids = db.session.query(AnalyseResult).filter(AnalyseResult.task_id.in_(ids)).with_entities(AnalyseResult.id).all()
-        # ids = list(zip(*ids))
-        return AnalyseResult.jsonify_by_ids(*list((*zip(*ids))))
-
+        tasks = AnalyseTask.query.filter_by(mission_id=int(id)).all()
+        # mission_results = [{'task_status':task.status,'run_id':task.run_id,
+        #             'function_name':OctopusFunction.query.get(task.function_id).name,
+        #             'status:':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status} 
+        #             for task in tasks]
+        # functions = list(set([OctopusFunction.query.get(task.function_id).name for task in tasks]))
+        # run_ids = list(set([task.run_id for task in tasks]))
+        # ids = [int(task.id) for task in tasks]
+        # ids = db.session.query(AnalyseResult).filter(AnalyseResult.task_id.in_(ids)).with_entities(AnalyseResult.id).all()
+        # # ids = list(zip(*ids))
+        # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
+        mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
+                            task.run_id:AnalyseResult.query.filter_by(task_id=task.id)[0].result_status} 
+                            if task.status == 4
+                            else 
+                            {'function_name':OctopusFunction.query.get(task.function_id).name,
+                            task.run_id:-1}
+                            for task in tasks]
+        res_df = pd.DataFrame(mission_results)
+        res_df = res_df.set_index('function_name').groupby(level=0).sum()
+        return jsonify(json.loads(res_df.to_json(orient='table')))
+        # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
     id = db.Column(db.Integer, primary_key=True)

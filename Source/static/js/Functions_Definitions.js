@@ -90,7 +90,7 @@ function FindParamsTblKindsIndex (paramsTblKinds, name){
 }
 
 function FindParamsTblTypeIndex (paramsTblType, name){
-  var index = paramsTblKinds.indexOf( name);
+  var index = paramsTblType.indexOf( name);
   return index
 }
 
@@ -145,6 +145,7 @@ function fill_row(row_obj, values, header){
 
           } else {
             let newElement = document.createElement('text');
+            newElement.innerHTML = '--';
             newCell.appendChild(newElement);
           }
 
@@ -200,7 +201,11 @@ function fill_row(row_obj, values, header){
        newText.data = rowNums - 1;
        newCell.appendChild(newText);
       } else{
-        newCell.innerHTML = header[k].handle();
+        newElement = document.createElement('button');
+        newElement.innerHTML = PlaceRemoveImg();
+        newElement.addEventListener('click', RemoveTblRow);
+        // newCell.innerHTML = header[k].handle();
+        newCell.appendChild(newElement);
       }
 
 
@@ -326,9 +331,14 @@ function form_controls_handler() {
         var kind = selectObj.options[selectObj.selectedIndex].text;
 
         // value
-        var value = currRow.cells[2].innerHTML;
+        if (currRow.cells[2].childElementCount >0){
+          var value = currRow.cells[2].children[0].value;
+        }else{
+          var value = currRow.cells[2].innerHTML;
+        }
+        
 
-        // value
+        // type
         var selectObj = currRow.cells[3].children[0];
         var type = selectObj.options[selectObj.selectedIndex].text;
 
@@ -381,10 +391,10 @@ $("button[name='plus_param_row_button']")[0].addEventListener("click", function(
   var newRow = table.insertRow(numOfRows);
   // fill_row(newRow, [], ParamTableArrayNodes)
   var cell1 = newRow.insertCell(0);
-  var cell2 = newRow.insertCell(1);
-  var cell3 = newRow.insertCell(2);
-  var cell4 = newRow.insertCell(3);
-  var cell5 = newRow.insertCell(4);
+  var cell2 = newRow.insertCell(1); //kind
+  var cell3 = newRow.insertCell(2); //value
+  var cell4 = newRow.insertCell(3); //type
+  var cell5 = newRow.insertCell(4); // remove Img
 
   cell1.innerHTML = numOfRows;
   let newElement = CreateParamSelectElement(paramsTblKinds, 0)

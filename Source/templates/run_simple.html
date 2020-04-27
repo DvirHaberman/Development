@@ -1,64 +1,103 @@
-{% extends "layout.html" %}
-{% block css %}
-    <link rel="stylesheet" href="../static/css/simple_run.css">
+{% extends "layout.html" %} {% block css %}
+<link rel="stylesheet" href="../static/css/simple_run.css" />
+{% endblock %} {% block content %}
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<!-- <center> -->
+    <div class="row col-10 mx-4">
+        <div class="col-5 mr-auto jumbotron">
+            <div class="row">
+
+                <div class="col-6">
+                    <label for="database_select">select a db</label>
+                    <select class ="form-control" name="databases" id="database_select">
+                        <option value="">POSTGRESQL</option>
+                        <option value="">MYSQL</option>
+                        <option value="">SQLITE</option>
+                        <option value="">ORACLE</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label for="run_ids_select">select a run id</label>
+                    <div class="row">
+                        <div>
+                            <select class ="form-control" name="run_ids" id="run_ids_select">
+                                <option value="">12121</option>
+                                <option value="">31313</option>
+                                <option value="">33333</option>
+                                <option value="">44444</option>
+                            </select>
+                        </div>
+                        <div>
+                            <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_run_id_button" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="my-2">
+                <label for="run_ids_list">selected run ids:</label>   
+                <textarea id="run_ids_list" cols="10" rows="3" class="form-control"></textarea>
+            </div>
+        </div>
+        
+        <div class="col-5 ml-auto jumbotron">
+            <label for="functions_select">select a function</label>
+            <div class="row">
+                <div class="col-5">
+                    <select class ="form-control" name="functions" id="functions_select"></select>
+                </div>
+                <div>
+                    <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_function_button" />
+                </div>
+            </div>
+            <div class="my-2">
+                <label for="functions_list">selected functions:</label>   
+                <textarea id="functions_list" cols="10" rows="3" class="form-control"></textarea>
+            </div>
+            
+        </div>
+        
+    </div>
+    <button id="go_button" class="btn btn-primary btn-lg m-4">GO!</button>
+
+            
+ 
+    
+<!-- </center> -->
+<hr>
+<br>
+<br>
+<div class="col-5 mx-4">
+    <label for="mission_id">select mission id:</label>
+    <div class="row ml-auto">
+        <div>
+            <select class ="form-control" id="mission_id_select"></select>
+        </div>
+        <div>
+            <button class ="btn btn-lg btn-success ml-1" id='display_button'>display</button>
+        </div>
+    </div>
+</div>
+<table id="res_table"></table>
+<br />
+<br />
+<hr />
+
+<div id="results_table_div">
+  <table id="results_table">
+  </table>
+</div>
+<br>
+<br>
+<br>
+<br>
+{% endblock %} {% block scripts %}
+<script src="../static//js/jquery_3_4_1_min.js"></script>
+<script src="../static/js/run_simple.js"></script>
+<script src="../static/js/display_results.js"></script>
+
 {% endblock %}
-
-{% block content %}
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-    <div>
-        <label for="functions_select">select a function</label>
-        <select name="functions" id="functions_select"></select>
-        <br>
-        <br>
-    </div>
-
-    <div>
-        <label for="database_select">select a db</label>
-        <select name="databases" id="database_select">
-            <option value="">POSTGRESQL</option>
-            <option value="">MYSQL</option>
-            <option value="">SQLITE</option>
-            <option value="">ORACLE</option>
-        </select>
-        <br>
-        <br>
-    </div>
-
-    <div>
-        <label for="run_ids_select">select a run id</label>
-        <select name="run_ids" id="run_ids_select">
-            <option value="">12121</option>
-            <option value="">31313</option>
-            <option value="">33333</option>
-            <option value="">44444</option>
-        </select>
-        <input type="button" value="GO" id="run_ids_select_button">
-        <br>
-        <br>
-        <br>
-    </div>
-
-    <div>
-        <label for="run_ids_text">type run ids with (,) seperator</label>
-        <input type="text" id="run_ids_text">
-        <input type="button" value="GO" id="run_ids_text_button">
-    </div>
-    <br>
-    <hr>
-    <br>
-
-    <table id="res_table">
-
-    </table>
-
-    {% endblock %}
-
-    {% block scripts %}
-    <script src="../static//js/jquery_3_4_1_min.js"></script>
-    <script src="../static/js/run_simple.js"></script>
-    {% endblock %}
