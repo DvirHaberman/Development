@@ -1,0 +1,94 @@
+{% extends "layout.html"%} {%block content%}
+<br />
+<br />
+<div class="row mx-4 my-1">
+  <div class = "col-6 mr-auto jumbotron">
+    <h1>Define a New User</h1>
+    
+
+    <div class="row">
+        <div class="col-5">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" class="form-control">
+            </input>
+        </div>
+        <div class="col-5">
+            <label for="last_name">Last Name</label>
+            <input class="form-control" type="text" id="last_name" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-5">
+            <label for="project">Project</label>
+            <select class="form-control" type="text" id="project"></select>
+        </div>
+        <div class="col-5">
+            <label for="team">Team</label>
+            <select class="form-control" type="text" id="team"></select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-5">
+            <label for="role">Role</label>
+            <select class="form-control" type="text" id="role"></select>
+        </div>
+        <div class="col-5">
+            <label for="max_priority">Max Priority</label>
+            <input class="form-control" type="text" id="max_priority" />
+        </div>
+    </div>
+    
+    <br>
+    <input class="btn btn-lg btn-success" type="button" value="Save" id="save_button" />
+  </div>
+
+  <div  class = "col-6 ml-auto jumbotron bg-light">
+    <h1>Existing Users</h1>
+    <div class="row">
+        <div class="col-10">
+            <label for="current_connections">Choose:</label>
+            <select class="form-control success-outline" name="current_connections" id="current_connections"></select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_first_name">First Name</label>
+            <text class="form-control" id="disp_first_name"></text>
+        </div>
+        <div class="col-5">
+            <label for="disp_last_name">Last Name</label>
+            <text class="form-control" id="disp_last_name"></text>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_project">Project </label>
+            <select class="form-control" id="disp_project"></select>
+        </div>
+        <div class="col-5">
+            <label for="disp_team">Team </label>
+            <select class="form-control" id="disp_team"></select>
+        </div>
+        
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <label for="disp_role">Role </label>
+            <select class="form-control" id="disp_role"></select>
+        </div>
+        <div class="col-5">
+            <label for="disp_max_priority">Max Priority </label>
+            <text class="form-control" id="disp_max_priority"></text>
+        </div>
+    </div>
+    <input class="btn btn-lg btn-success mt-4" type="button" value="Save Changes" id="save_changes_button" />
+    <input class="btn btn-lg btn-danger mt-4 mr-auto" type="button" value="Reset Password" id="reset_password_button" />
+    
+  </div>
+</div>
+{% endblock %} {% block scripts%}
+<script src="../static//js/jquery_3_4_1_min.js"></script>
+<script src="../static/js/user_wizard.js"></script>
+{% endblock %}
