@@ -7,51 +7,6 @@
 {%block content%}
 
 
-    <section id="navigation-bar" >
-      <div class="container-fluid fixed-top">
-        <!-- Nav Bar -->
-        <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
-          <a class="navbar-brand" href="#"
-            ><img
-              class="octopus-img"
-              src="{{url_for('static',filename='images/Octopus-Green.png')}}"
-              alt=""
-            />
-            <h6 class="user-name">TheDude</h6>
-          </a>
-            <a class="navbar-brand" id="window-title" href="">Function Definition Window</a>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-toggle="collapse"
-            data-target="#navbarTogglerDemo2"
-            aria-controls="navbarTogglerDemo2"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
-            <ul class="navbar-nav ml-auto">
-
-              <li class="nav-item active">
-                <a class="nav-link" href="Function_Definition">Define</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="Function_Analysis">Run</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="run_simple">Run Demo</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href=""> Results</a>
-              </li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-      <!-- <h1 class="function-definition-header">Function Definition Window</h1> -->
-    </section>
 
     <section id="fixed-menus">
       <div class="row">
@@ -170,9 +125,9 @@
                         <input class="form-control" type="text" name="callback"></input>
                       </div>
 
-                      <div class="function-input-row col-1">
+                      <!-- <div class="function-input-row col-1">
                         <i class="fas fa-ellipsis-h inline-icon" ></i>
-                      </div>
+                      </div> -->
 
                   </div>
 
@@ -196,7 +151,7 @@
               <div class="input-groups-data col-2">
                     <label for="GroupsList">Groups</label>
                     <ul id="GroupsList">
-                    <li>group1</li>
+                    <!-- <li>group1</li>
                     <li>group2</li>
                     <li>group3</li>
                     <li>group4</li>
@@ -219,7 +174,7 @@
                     <li>group1</li>
                     <li>group2</li>
                     <li>group3</li>
-                    <li>group4</li>
+                    <li>group4</li> -->
                   </ul>
               </div>
             </div>
@@ -265,7 +220,7 @@
 
     </section>
 
-    <section id = "Tree">
+    <!-- <section id = "Tree">
         <div class="card bg-light mb-3 main-form-card">
             <div class="row card-body main-form-card-body">
                 <h4>Tree</h4>
@@ -283,7 +238,7 @@
             </div>
             </div>
         </div>
-    </section>
+    </section> -->
     {%endblock%}
     {%block scripts%}
     <script src="../static//js/jquery_3_4_1_min.js"></script>

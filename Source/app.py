@@ -156,11 +156,21 @@ def run_functions_test():
 
 @app.route('/api/run_functions', methods=['GET','POST'])
 def run_functions():
-    # json_data = request.get_json()
-    json_data = {'user_id':1,'mission_name':'mission1','functions':[1,2,3,4,5],'runs':[1122,1122,3344], 'conn_id':1, 'db_name':'conn_name'}
+    json_input = request.get_json()
+    user_id = User.query.filter_by(name=session['username']).first().id
+    mission_name = 'mission_' + session['username']
+    function_names = json_input['functions'].split(',')
+    functions_ids = db.session.query(OctopusFunction).filter(OctopusFunction.name.in_( function_names)).with_entities(OctopusFunction.id).all()
+    functions_ids = list(*zip(*functions_ids))
+    runs = json_input['runs'].split(',')
+    db_name = json_input['db_name']
+    db_id = DbConnections.query.filter_by(name=db_name).first().id
+    json_data = {'user_id':user_id,'mission_name':mission_name,
+                'functions':functions_ids,'runs':runs,
+                 'conn_id':db_id, 'db_name':db_name}
     try:
-        Mission.create_mission(json_data,tasks_queue)
-        return 'done'
+        return jsonify(Mission.create_mission(json_data,tasks_queue))
+        # return 'done'
     except:
         return 'something went wrong'
 
@@ -178,6 +188,13 @@ def login():
         return render_template('login.html')
     else:
         return redirect('/welcome')
+
+@app.route('/run_function')
+def run_function():
+    if session.get('username', None) is None: 
+        return redirect('/login')
+    else:
+        return render_template('run_function.html')
 
 @app.route('/welcome')
 def welcome():
