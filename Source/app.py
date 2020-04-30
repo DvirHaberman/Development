@@ -2,14 +2,9 @@ from python.DataCollector import DataCollector
 from python.model import *
 from threading import Thread
 from multiprocessing import Queue, Event
-# from threads_app import threaded_app
-# from queue import Queue
-
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
-# from python.DbConnector import DbConnector
 import os
 
-# app = create_app().app_context().push()
 app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
@@ -68,6 +63,13 @@ def create_tables():
     db.create_all()
     # redirect('/api/collect_data')
     return 'done'
+
+@app.route('/api/user_wizard')
+def user_wizard():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('user_wizard.html')
 
 @app.route('/display_results')
 def display_results():
