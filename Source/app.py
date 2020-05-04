@@ -253,6 +253,8 @@ def run_queue_test():
 
 @app.route('/db_conn_wizard')
 def db_conn_wizard():
+    session['username'] = 'dvirh'
+    session['password'] = 'dvirh'
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
@@ -312,7 +314,10 @@ def api_methods_with_args(class_name,class_method,args):
     req_class = getattr(module,class_name)
     class_method = getattr(req_class, class_method)
     method_args = [arg for arg in args.split(',')]
-    return class_method(*method_args)
+    if type(method_args) == type([1]):
+        return class_method(*method_args)   
+    else:
+        return class_method(method_args)   
 
 
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])

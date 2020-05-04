@@ -268,6 +268,11 @@ class Team(db.Model):
         table = Team.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    @staticmethod
+    def get_names():
+        names = Team.query.with_entities(Team.name).all()
+        return jsonify(list(*zip(*names)))
+
 #########################################
 ########### ROLE MODEL CLASS ############
 #########################################
@@ -293,6 +298,11 @@ class Role(db.Model):
     def jsonify_all():
         table = Role.query.all()
         return jsonify([row.self_jsonify() for row in table])
+
+    @staticmethod
+    def get_names():
+        names = Role.query.with_entities(Role.name).all()
+        return jsonify(list(*zip(*names)))
 
 
 #########################################
@@ -325,6 +335,7 @@ class User(db.Model):
         self.functions = functions
         self.max_priority = max_priority
         self.project = project
+
     def self_jsonify(self):
         return jsonify(
             name=self.name,
@@ -337,13 +348,64 @@ class User(db.Model):
             functions=jsonify([func.self_jsonify()
                                for func in self.functions]).json,
             max_priority=self.max_priority,
-            project=Project.query.get(self.project).name
+            project=Project.query.get(self.project).name +' - ' + Project.query.get(self.project).version
         ).json
+
+    @staticmethod
+    def save_user(data):
+        status = 0
+        if len(data['first_name']) == 0 or len(data['last_name']) == 0:
+            return jsonify(status=status,msg='user first and last name must not be empty')
+        if len(data['max_priority']) == 0:
+            return jsonify(status=status,msg='user max priority must not be empty')
+        if not (data['max_priority']).isdigit():
+            return jsonify(status=status,msg='user max priority must be a number')
+        user = User.query.filter_by(first_name=data['first_name'], last_name=data['last_name']).all()
+        if len(user) > 0:
+            return jsonify(status=status,msg='user with this name already exist')
+        k=0
+        while len(User.query.filter_by(name = data['first_name']+data['last_name'][:k+1]).all())>0:
+            k+=1
+        team_id = Team.query.filter_by(name=data['team']).first().id
+        role_id = Role.query.filter_by(name=data['role']).first().id
+        project_id = Project.query.filter_by(name=data['project'].split(' - ')[0], version = data['project'].split(' - ')[1]).first().id
+        user = User(name=data['first_name']+data['last_name'][:k+1], first_name=data['first_name'], last_name=data['last_name'], password_sha='123456', state=0,
+                 role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), project=project_id)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(status=1, msg='user ' + user.name +' was successfuly saved')
+
+    @staticmethod
+    def update_user(data):
+        user = User.query.get(int(data['id']))
+        user.max_priority = data['max_priority']
+        user.team = Team.query.filter_by(name=data['team']).first().id
+        user.role = Role.query.filter_by(name=data['role']).first().id
+        user.project = Project.query.filter_by(name=data['project'].split(' - ')[0], version = data['project'].split(' - ')[1]).first().id
+        db.session.add(user)
+        db.session.commit()
 
     @staticmethod
     def jsonify_all():
         table = User.query.all()
         return jsonify([row.self_jsonify() for row in table])
+
+    @staticmethod
+    def get_names():
+        names = User.query.with_entities(User.name).all()
+        return jsonify(list(*zip(*names)))
+    
+    @staticmethod
+    def get_names_and_ids():
+        users = User.query.with_entities(User.name, User.id).all()
+        names = [user.name for user in users]
+        ids = [user.id for user in users]
+        return jsonify(names=names, ids=ids)
+    
+    @staticmethod
+    def get_user_by_id(user_id):
+        user = User.query.get(user_id)
+        return jsonify(user.self_jsonify())
 
     # def __repr__(self):
     #     print(f'my name is {self.name} and my function are:')
@@ -381,7 +443,11 @@ class Project(db.Model):
             users=jsonify([user.self_jsonify() for user in self.users]).json
         ).json
 
-
+    @staticmethod
+    def get_names():
+        projects = Project.query.with_entities(Project.name, Project.version).all()
+        names = [proj.name+' - '+proj.version for proj in projects]
+        return jsonify(names)
 #####################################################
 ######### FunctionParameters MODEL CLASS ############
 #####################################################
