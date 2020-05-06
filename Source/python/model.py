@@ -17,6 +17,7 @@ import importlib
 from pathlib import Path
 import sys
 import os
+import cx_Oracle
 
 def init_db():
     db = SQLAlchemy()
@@ -549,7 +550,7 @@ class OctopusFunction(db.Model):
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
 
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=None, class_name=None,
+                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
         self.name = name
         self.callback = callback
@@ -617,6 +618,7 @@ class OctopusFunction(db.Model):
             callback=data['callback'],
             location=data['location'],
             owner=User.query.filter_by(name=session['username'])[0].id,
+            file_name = data['location'].split('\\')[-1],
             # status=data.status,
             # tree=row.tree,
             kind=data['kind'],
@@ -650,14 +652,14 @@ class OctopusFunction(db.Model):
     def run(self, db_conn, run_id, tests_params=None):
         #check if path is in os.path
         try:
-            if not self.location in sys.path:
-                return {   
-                    'run_id': run_id,
-                    'db_conn': db_conn.name,
-                    'result_status':1, 
-                    'result_text':'Error! Function file is not included in Octopus Path', 
-                    'result_arr' : None
-                }
+            # if not self.location in sys.path:
+            #     return {   
+            #         'run_id': run_id,
+            #         'db_conn': db_conn.name,
+            #         'result_status':1, 
+            #         'result_text':'Error! Function file is not included in Octopus Path', 
+            #         'result_arr' : None
+            #     }
             #check if file is in path
             if not Path(self.location).exists():
                 return {
@@ -668,7 +670,11 @@ class OctopusFunction(db.Model):
                     'result_arr' : None
                 }
             #import module
-            module = importlib.import_module(self.file_name.split('.')[0])
+            if self.file_name == None:
+                file_name = self.location.split('\\')[-1]
+                module = importlib.import_module(file_name.split('.')[0])
+            else:
+                module = importlib.import_module(self.file_name.split('.')[0])
             #if class - check for method
 
             if self.is_class_method:
@@ -1101,9 +1107,16 @@ class AnalyseResult(db.Model):
             message = 'something went wrong while logging the result array'
             error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
             error_log.push(error_queue)
+        
+        db.session.add(self)
+        db.session.commit()
         return message
     
     def self_jsonify(self):
+        if self.result_array_header:
+            result_array = self.tablify_results_arrays()
+        else:
+            result_array = None
         return jsonify(
             id=self.id,
             task_id = self.task_id,
@@ -1113,8 +1126,16 @@ class AnalyseResult(db.Model):
             result_status = self.result_status,
             result_text = self.result_text,
             result_array_types = self.result_array_types,
-            result_array=jsonify([result.self_jsonify() for result in self.result_array]).json
+            result_array=result_array
         )
+    
+    def tablify_results_arrays(self):
+        res_arr = pd.DataFrame([{col:val for col, val in result.self_jsonify().items() if val}
+                    for result in self.result_array])
+        column_names = {'col'+str(num+1):header 
+                        for num, header in enumerate(self.result_array_header.split(','))}
+        res_arr.rename(columns=column_names)
+        return jsonify(json.loads(res_arr.to_json(orient='table'))).json
 
     @staticmethod
     def jsonify_by_ids(*args):
@@ -1138,16 +1159,22 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
-                            task.run_id:AnalyseResult.query.filter_by(task_id=task.id)[0].result_status} 
+                            task.run_id:{
+                                            'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
+                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
+                                        }
+                            } 
                             if task.status == 4
                             else 
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
                             task.run_id:-1}
                             for task in tasks]
         res_df = pd.DataFrame(mission_results)
-        res_df = res_df.set_index('function_name').groupby(level=0).sum()
+        res_df = res_df.set_index('function_name').groupby(level=0).last()
         return jsonify(json.loads(res_df.to_json(orient='table')))
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
+
+ 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
     id = db.Column(db.Integer, primary_key=True)
@@ -1247,6 +1274,7 @@ class ResultArray(db.Model):
         self.col30 = col30 
     
     def self_jsonify(self):
+
         return jsonify(
             result_id = self.result_id,
             col1 = self.col1,

@@ -13,6 +13,7 @@ var project_select = $('#project')[0];
 var max_priority = $('#max_priority')[0];
 var user_select = $('#user_select')[0];
 
+var disp_nick_name = $('#disp_nick_name')[0];
 var disp_first_name = $('#disp_first_name')[0];
 var disp_last_name = $('#disp_last_name')[0];
 var disp_team_select = $('#disp_team')[0];
@@ -89,6 +90,7 @@ function update_all(index){
         url: "/api/User/get_user_by_id/" + String(users_ids[index]),
         success: function(user) {
             user_data = user;
+            disp_nick_name.innerHTML = user_data.name;
             disp_first_name.innerHTML = user_data.first_name;
             disp_last_name.innerHTML = user_data.last_name;
             disp_max_priority.value = user_data.max_priority;
@@ -104,6 +106,7 @@ function update_user_data(index){
         url: "/api/User/get_user_by_id/" + String(users_ids[index]),
         success: function(user) {
             user_data = user;
+            disp_nick_name.innerHTML = user_data.name;
             disp_first_name.innerHTML = user_data.first_name;
             disp_last_name.innerHTML = user_data.last_name;
             disp_max_priority.value = user_data.max_priority;
@@ -142,6 +145,7 @@ function save_user(){
             }
         }
     });
+}
 
 function update_user(){
     var send_team = team_select.options[team_select.selectedIndex].text;

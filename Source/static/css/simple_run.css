@@ -33,3 +33,7 @@ table {
     font-family: sans-serif;
     font-size: .8rem;
 }
+
+td:hover{
+    background-color: #17ebce;
+}

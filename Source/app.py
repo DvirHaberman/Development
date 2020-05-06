@@ -1,7 +1,7 @@
 from python.DataCollector import DataCollector
 from python.model import *
 from threading import Thread
-from multiprocessing import Queue, Event
+from multiprocessing import Queue, Event, freeze_support
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
 import os
 
@@ -14,7 +14,7 @@ db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-num_of_analyser_workers = 3
+num_of_analyser_workers = 1
 
 pipes_dict = create_pipes(num_of_analyser_workers)
 
@@ -343,4 +343,5 @@ def api():
 
 
 if __name__ == "__main__":
+    freeze_support()
     app.run(debug=True)
