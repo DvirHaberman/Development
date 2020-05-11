@@ -66,18 +66,18 @@ var go_button = $('#go_button')[0];
 // }
 
 function add_function(){
-  if (functions_list.innerHTML === ''){
-    functions_list.innerHTML = function_select.options[function_select.selectedIndex].text;
+  if (functions_list.value === ''){
+    functions_list.value = function_select.options[function_select.selectedIndex].text;
   }else{
-    functions_list.innerHTML = functions_list.innerHTML + ',' + function_select.options[function_select.selectedIndex].text;
+    functions_list.value = functions_list.value + ',' + function_select.options[function_select.selectedIndex].text;
   }
 }
 
 function add_run_id(){
-  if (run_ids_list.innerHTML === ''){
-    run_ids_list.innerHTML = run_ids_select.options[run_ids_select.selectedIndex].text;
+  if (run_ids_list.value === ''){
+    run_ids_list.value = run_ids_select.options[run_ids_select.selectedIndex].text;
   }else{
-    run_ids_list.innerHTML = run_ids_list.innerHTML + ',' + run_ids_select.options[run_ids_select.selectedIndex].text;
+    run_ids_list.value = run_ids_list.value + ',' + run_ids_select.options[run_ids_select.selectedIndex].text;
   }
   
 }
@@ -113,10 +113,10 @@ $.ajax({
     });
   }
   function run_setup(){
-    run_ids = run_ids_list.innerHTML;
+    run_ids = run_ids_list.value;
     // function_ids=functions.filter(obj=>{return [1,3].includes(obj.id)})
     // name = function_select.options[function_select.selectedIndex].innerHTML;
-    function_names=functions_list.innerHTML;
+    function_names=functions_list.value;
     database_name = database_select.options[database_select.selectedIndex].value
     var data = {
         functions:function_names,

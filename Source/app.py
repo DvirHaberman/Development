@@ -1,7 +1,7 @@
 from python.DataCollector import DataCollector
 from python.model import *
 from threading import Thread
-from multiprocessing import Queue, Event
+from multiprocessing import Queue, Event, freeze_support
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
 import os
 
@@ -343,6 +343,7 @@ def api():
 
 
 if __name__ == "__main__":
+    freeze_support()
     app.run(debug=True)
     init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)

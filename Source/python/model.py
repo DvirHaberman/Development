@@ -17,6 +17,7 @@ import importlib
 from pathlib import Path
 import sys
 import os
+import cx_Oracle
 
 def init_db():
     db = SQLAlchemy()
@@ -550,7 +551,7 @@ class OctopusFunction(db.Model):
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
 
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
-                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=None, class_name=None,
+                 kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
         self.name = name
         self.callback = callback
@@ -613,52 +614,91 @@ class OctopusFunction(db.Model):
 
     @staticmethod
     def save_function(data):
-        func = OctopusFunction(
-            name=data['name'],
-            callback=data['callback'],
-            location=data['location'],
-            owner=User.query.filter_by(name=session['username'])[0].id,
-            # status=data.status,
-            # tree=row.tree,
-            kind=data['kind'],
-            tags=data['tags'],
-            description=data['description'],
-            # project=row.project,
-            version=data['version'],
-            version_comments=data['version_comments'],
-            function_checksum=22,
-            handler_checksum=33,
-            # is_locked=row.is_locked
-        )
-        db.session.add(func)
-        db.session.commit()
-        function_id = func.id
-        for param in data['function_parameters']:
-            index = param['index']
-            kind = param['kind']
-            value = param['value']
-            param_type = param['type']
-            FunctionParameters.save(function_id = function_id,
-                                    index = index, kind = kind,
-                                    value = value, param_type = param_type)
-        return func.self_jsonify()
-
+        try:
+            if data['name'] in [func.name for func in OctopusFunction.query.all()]:
+                return jsonify(f"Couldn't save function - already exist")
+            func = OctopusFunction(
+                name=data['name'],
+                callback=data['callback'],
+                location=data['location'],
+                owner=User.query.filter_by(name=session['username'])[0].id,
+                file_name = data['location'].split('\\')[-1],
+                # status=data.status,
+                # tree=row.tree,
+                kind=data['kind'],
+                tags=data['tags'],
+                description=data['description'],
+                # project=row.project,
+                version=data['version'],
+                version_comments=data['version_comments'],
+                function_checksum=22,
+                handler_checksum=33,
+                # is_locked=row.is_locked
+            )
+            db.session.add(func)
+            db.session.commit()
+        except Exception as error:
+            return jsonify("Not Saved! Something went wrong while saving the functions")
+        
+        try:
+            function_id = func.id
+            for param in data['function_parameters']:
+                index = param['index']
+                kind = param['kind']
+                value = param['value']
+                param_type = param['type']
+                FunctionParameters.save(function_id = function_id,
+                                        index = index, kind = kind,
+                                        value = value, param_type = param_type)
+            return jsonify(f"function {func.name} was succefully saved")
+        except Exception as error:
+            try:
+                FunctionParameters.query.filter_by(function_id = func.id).delete()
+                db.session.delete(func)
+                db.session.commit()
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+            except:
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
     @staticmethod
     def jsonify_all():
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            func = OctopusFunction.query.filter_by(name=name).first()
+            if len(func)>0:
+                db.session.delete(func)
+                db.session.commit()
+                return jsonify('Function succefully deleted')
+            else:
+                return jsonify('Not deleted! No function with this name')
+        except:
+            return jsonify('Not deleted! Something went wrong in the delete process')
+
+    @staticmethod
+    def delete_by_id(func_id):
+        try:
+            func = OctopusFunction.query.get(int(func_id)).delete()
+            db.session.commit()
+            return jsonify('Function succefully deleted')
+        except:
+            return jsonify('Not deleted! Something went wrong in the delete process')
+
+
     def run(self, db_conn, run_id, tests_params=None):
         #check if path is in os.path
         try:
-            if not self.location in sys.path:
-                return {
-                    'run_id': run_id,
-                    'db_conn': db_conn.name,
-                    'result_status':1,
-                    'result_text':'Error! Function file is not included in Octopus Path',
-                    'result_arr' : None
-                }
+            # if not self.location in sys.path:
+            #     return {   
+            #         'run_id': run_id,
+            #         'db_conn': db_conn.name,
+            #         'result_status':1, 
+            #         'result_text':'Error! Function file is not included in Octopus Path', 
+            #         'result_arr' : None
+            #     }
+
             #check if file is in path
             if not Path(self.location).exists():
                 return {
@@ -669,7 +709,11 @@ class OctopusFunction(db.Model):
                     'result_arr' : None
                 }
             #import module
-            module = importlib.import_module(self.file_name.split('.')[0])
+            if self.file_name == None:
+                file_name = self.location.split('\\')[-1]
+                module = importlib.import_module(file_name.split('.')[0])
+            else:
+                module = importlib.import_module(self.file_name.split('.')[0])
             #if class - check for method
 
             if self.is_class_method:
@@ -1102,9 +1146,16 @@ class AnalyseResult(db.Model):
             message = 'something went wrong while logging the result array'
             error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
             error_log.push(error_queue)
+        
+        db.session.add(self)
+        db.session.commit()
         return message
 
     def self_jsonify(self):
+        if self.result_array_header:
+            result_array = self.tablify_results_arrays()
+        else:
+            result_array = None
         return jsonify(
             id=self.id,
             task_id = self.task_id,
@@ -1114,8 +1165,16 @@ class AnalyseResult(db.Model):
             result_status = self.result_status,
             result_text = self.result_text,
             result_array_types = self.result_array_types,
-            result_array=jsonify([result.self_jsonify() for result in self.result_array]).json
+            result_array=result_array
         )
+    
+    def tablify_results_arrays(self):
+        res_arr = pd.DataFrame([{col:val for col, val in result.self_jsonify().items() if val}
+                    for result in self.result_array])
+        column_names = {'col'+str(num+1):header 
+                        for num, header in enumerate(self.result_array_header.split(','))}
+        res_arr = res_arr.rename(columns=column_names)
+        return jsonify(json.loads(res_arr.to_json(orient='table'))).json
 
     @staticmethod
     def jsonify_by_ids(*args):
@@ -1139,16 +1198,23 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
-                            task.run_id:AnalyseResult.query.filter_by(task_id=task.id)[0].result_status}
+                            task.run_id:{
+                                            'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
+                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
+                                        }
+                            } 
+
                             if task.status == 4
                             else
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
                             task.run_id:-1}
                             for task in tasks]
         res_df = pd.DataFrame(mission_results)
-        res_df = res_df.set_index('function_name').groupby(level=0).sum()
+        res_df = res_df.set_index('function_name').groupby(level=0).last()
         return jsonify(json.loads(res_df.to_json(orient='table')))
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
+
+ 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
     id = db.Column(db.Integer, primary_key=True)
@@ -1248,6 +1314,7 @@ class ResultArray(db.Model):
         self.col30 = col30
 
     def self_jsonify(self):
+
         return jsonify(
             result_id = self.result_id,
             col1 = self.col1,

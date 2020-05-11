@@ -425,8 +425,8 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
     dataType: "json",
     data: JSON.stringify(data),
     contentType: 'application/json',
-    success: function(result) {
-      alert("Function '"  + data.name + "' was successfuly saved!")
+    success: function(msg) {
+      alert(msg)
       form_handler.get_all_functions();
     }
   });

@@ -9,7 +9,7 @@ td {
 }
 
 tr:nth-child(even) {
-    /* background-color: #eee; */
+    background-color: #eee;
 }
 
 th[scope="col"] {
@@ -32,4 +32,12 @@ table {
     letter-spacing: 1px;
     font-family: sans-serif;
     font-size: .8rem;
+}
+
+td:hover{
+    background-color: #17ebce;
+}
+
+.results_divs {
+    text-align: center;
 }
