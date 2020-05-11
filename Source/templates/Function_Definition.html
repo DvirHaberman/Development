@@ -122,27 +122,49 @@
                   <div class="row">
                       <div class="function-input-row col-8">
                         <label>Function Callback</label>
-                        <input class="form-control" type="text" name="callback"></input>
+                        <input class="form-control" type="text" id="functionCallback" name="callback"></input>
                       </div>
-
-                      <!-- <div class="function-input-row col-1">
-                        <i class="fas fa-ellipsis-h inline-icon" ></i>
-                      </div> -->
-
                   </div>
+
 
                   <div class="row">
+                    <div class="function-input-row col-10">
+                      <label>Function Location</label>
+                      <div class="custom-file input-group">
+                        <input class="custom-file-input" type="file" id="functionLocation" name="location" aria-describedby="myInput">
+                        <label class="custom-file-label" for="myInput">Choose file</label>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- <div class="row">
                         <div class="function-input-row col-10">
                             <label>Function Location</label>
-                            <input class="form-control" type="text" name="location"></input>
+                            <input class="form-control" type="text" name="location" id="functionLocation"></input>
                         </div>
-                  </div>
+                  </div> -->
 
                   <div class="row">
                         <div class="function-input-row col-10">
                             <label>Description</label>
                             <input class="form-control" type="text" name="description"></input>
                         </div>
+                  </div>
+
+                  <div class = "function-input-row">
+                    <label> Output </label>
+                  </div>
+
+                  <div class = "row">
+                    <div class="function-input-row col-3">
+                        <input type="checkbox" id="isOutputIsAClass" name="isOutputIsAClass" onclick="calc();">
+                        <label for="isOutputIsAClass"> Is a class </label><br>
+                    </div>
+
+                    <label> Class Name: </label>
+                    <input class="form-control col-4" type="text" id = "className" name="outputClassName"></input>
+
                   </div>
 
             </div>
@@ -199,7 +221,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      
+
 
                     </tbody>
                   </table>
@@ -213,7 +235,7 @@
             <div class="row card-body main-form-card-body">
                 <div>
                     <h5 class="mb-2">Function Oper Line:</h5>
-                        <h5 class="oper_line">your_function(param1, param2, ...., paramN)</h5>
+                        <h5 class="oper_line" name = "funcOperLine">your_function(param1, param2, ...., paramN)</h5>
                     </div>
             </div>
         </div>
