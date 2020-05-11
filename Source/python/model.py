@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -386,7 +386,53 @@ class User(db.Model):
         user.project = Project.query.filter_by(name=data['project'].split(' - ')[0], version = data['project'].split(' - ')[1]).first().id
         db.session.add(user)
         db.session.commit()
+        return jsonify(status=1,msg='user updated!')
+    @staticmethod
+    def delete_user_by_name(name):
+        try:
+            user = User.query.filter_by(name=name).first()
+            if len(user)>0:
+                db.session.delete(user)
+                db.session.commit()
+                return jsonify(status=1,msg='User succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No user with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
 
+    @staticmethod
+    def delete_user_by_id(user_id):
+        try:
+            user = User.query.get(user_id)
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify(status=1,msg='User succefully deleted')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+
+    @staticmethod
+    def reset_password_by_name(user_id):
+        try:
+            user = User.query.filter_by(name=name).first()
+            if len(user)>0:
+                user.password = '123456'
+                db.session.add(user)
+                db.session.commit()
+                return jsonify(status=1,msg='Pasword resetted')
+            else:
+                return jsonify(status=0,msg='Not resetted! No user with this name')
+        except:
+            return jsonify(status=0,msg='Not resetted! Something went wrong in the reset process')
+    
+    @staticmethod
+    def reset_password_by_id(user_id):
+        try:
+            user = User.query.get(user_id).update({'password':'123456'})
+            db.session.commit()
+            return jsonify(status=1,msg='Pasword resetted')
+        except:
+            return jsonify(status=0,msg='Not resetted! Something went wrong in the reset process')
+    
     @staticmethod
     def jsonify_all():
         table = User.query.all()
@@ -680,7 +726,8 @@ class OctopusFunction(db.Model):
     @staticmethod
     def delete_by_id(func_id):
         try:
-            func = OctopusFunction.query.get(int(func_id)).delete()
+            func = OctopusFunction.query.get(int(func_id))
+            db.session.delete(func)
             db.session.commit()
             return jsonify('Function succefully deleted')
         except:
