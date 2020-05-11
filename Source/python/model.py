@@ -613,42 +613,78 @@ class OctopusFunction(db.Model):
 
     @staticmethod
     def save_function(data):
-        func = OctopusFunction(
-            name=data['name'],
-            callback=data['callback'],
-            location=data['location'],
-            owner=User.query.filter_by(name=session['username'])[0].id,
-            file_name = data['location'].split('\\')[-1],
-            # status=data.status,
-            # tree=row.tree,
-            kind=data['kind'],
-            tags=data['tags'],
-            description=data['description'],
-            # project=row.project,
-            version=data['version'],
-            version_comments=data['version_comments'],
-            function_checksum=22,
-            handler_checksum=33,
-            # is_locked=row.is_locked
-        )
-        db.session.add(func)
-        db.session.commit()
-        function_id = func.id
-        for param in data['function_parameters']:
-            index = param['index']
-            kind = param['kind']
-            value = param['value']
-            param_type = param['type']
-            FunctionParameters.save(function_id = function_id,
-                                    index = index, kind = kind,
-                                    value = value, param_type = param_type)
-        return func.self_jsonify()
-
+        try:
+            if data['name'] in [func.name for func in OctopusFunction.query.all()]:
+                return jsonify(f"Couldn't save function - already exist")
+            func = OctopusFunction(
+                name=data['name'],
+                callback=data['callback'],
+                location=data['location'],
+                owner=User.query.filter_by(name=session['username'])[0].id,
+                file_name = data['location'].split('\\')[-1],
+                # status=data.status,
+                # tree=row.tree,
+                kind=data['kind'],
+                tags=data['tags'],
+                description=data['description'],
+                # project=row.project,
+                version=data['version'],
+                version_comments=data['version_comments'],
+                function_checksum=22,
+                handler_checksum=33,
+                # is_locked=row.is_locked
+            )
+            db.session.add(func)
+            db.session.commit()
+        except Exception as error:
+            return jsonify("Not Saved! Something went wrong while saving the functions")
+        
+        try:
+            function_id = func.id
+            for param in data['function_parameters']:
+                index = param['index']
+                kind = param['kind']
+                value = param['value']
+                param_type = param['type']
+                FunctionParameters.save(function_id = function_id,
+                                        index = index, kind = kind,
+                                        value = value, param_type = param_type)
+            return jsonify(f"function {func.name} was succefully saved")
+        except Exception as error:
+            try:
+                FunctionParameters.query.filter_by(function_id = func.id).delete()
+                db.session.delete(func)
+                db.session.commit()
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+            except:
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
     @staticmethod
     def jsonify_all():
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
     
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            func = OctopusFunction.query.filter_by(name=name).first()
+            if len(func)>0:
+                db.session.delete(func)
+                db.session.commit()
+                return jsonify('Function succefully deleted')
+            else:
+                return jsonify('Not deleted! No function with this name')
+        except:
+            return jsonify('Not deleted! Something went wrong in the delete process')
+
+    @staticmethod
+    def delete_by_id(func_id):
+        try:
+            func = OctopusFunction.query.get(int(func_id)).delete()
+            db.session.commit()
+            return jsonify('Function succefully deleted')
+        except:
+            return jsonify('Not deleted! Something went wrong in the delete process')
+
     def run(self, db_conn, run_id, tests_params=None):
         #check if path is in os.path
         try:
@@ -1134,7 +1170,7 @@ class AnalyseResult(db.Model):
                     for result in self.result_array])
         column_names = {'col'+str(num+1):header 
                         for num, header in enumerate(self.result_array_header.split(','))}
-        res_arr.rename(columns=column_names)
+        res_arr = res_arr.rename(columns=column_names)
         return jsonify(json.loads(res_arr.to_json(orient='table'))).json
 
     @staticmethod

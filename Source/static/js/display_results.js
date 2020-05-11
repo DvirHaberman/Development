@@ -5,16 +5,18 @@ var results_header = document.createElement('h1');
 var drill_down_result = null;
 var drill_down_table = $('#drill_down_table')[0];
 var drill_down_div = $('#drill_down_div')[0];
-var drill_down_header = document.createElement('h1');
-var drill_down_run_id = document.createElement('h2');
-var drill_down_function_name = document.createElement('h2');
-var drill_down_db_name = document.createElement('h2');
+var drill_down_header = $('#drill_down_header')[0];
+var drill_down_run_id = $('#drill_down_run_id')[0];
+var drill_down_function_name = $('#drill_down_function_name')[0];
+var drill_down_db_name = $('#drill_down_db_name')[0];
+var result_status = $('#result_status')[0];
+var result_text = $('#result_text')[0];
 results_table_div.appendChild(results_header);
-drill_down_div.appendChild(drill_down_header);
-drill_down_div.appendChild(drill_down_function_name);
-drill_down_div.appendChild(drill_down_run_id);
-drill_down_div.appendChild(drill_down_db_name);
-drill_down_div.appendChild(drill_down_table);
+// drill_down_div.appendChild(drill_down_header);
+// drill_down_div.appendChild(drill_down_function_name);
+// drill_down_div.appendChild(drill_down_run_id);
+// drill_down_div.appendChild(drill_down_db_name);
+// drill_down_div.appendChild(drill_down_table);
 
 function get_mission_ids(){
     var select_obj = $('#mission_id_select')[0];
@@ -48,6 +50,8 @@ function drill_down(){
       drill_down_function_name.innerHTML = 'Function name: '+ function_name;
       drill_down_run_id.innerHTML = 'Run id: '+ run_id;
       drill_down_db_name.innerHTML = 'DB name: '+ drill_down_result[0].db_conn;
+      result_status.innerHTML = 'Result Status: '+ drill_down_result[0].result_status;
+      result_text.innerHTML = 'Result Text: '+ drill_down_result[0].result_text;
       drill_down_div.removeChild(drill_down_table)
       drill_down_table = document.createElement('table');
       drill_down_table.id = 'drill_down_table';
@@ -74,7 +78,7 @@ function drill_down(){
         newRow = drill_down_table.insertRow(-1);
         for (j=0; j<num_of_cols-1; j++){
           td = document.createElement('td');
-          td.addEventListener("click",drill_down);
+          // td.addEventListener("click",drill_down);
           // if (j==0){
             var status = result_array.data[i][result_array.schema.fields[j].name];
           // }

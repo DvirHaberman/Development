@@ -9,7 +9,7 @@ td {
 }
 
 tr:nth-child(even) {
-    /* background-color: #eee; */
+    background-color: #eee;
 }
 
 th[scope="col"] {
@@ -36,4 +36,8 @@ table {
 
 td:hover{
     background-color: #17ebce;
+}
+
+.results_divs {
+    text-align: center;
 }
