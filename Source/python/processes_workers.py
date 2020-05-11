@@ -13,7 +13,7 @@ def send_data_to_workers(data, pipes_dict, num_of_analyser_workers):
     for num in range(num_of_analyser_workers):
         pipes_dict[f'master_conn_{num}'].send(data)
 
-    
+
 def create_pipes(num_of_analyser_workers):
     pipes_dict = {}
     for num in range(num_of_analyser_workers):
@@ -29,10 +29,10 @@ def check_tests_params_update(pipe_conn):
         test_params = pipe_conn.recv()
         update_flag = True
 
-    
+
     return (update_flag, test_params)
-        
-    
+
+
 
 
 def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
@@ -53,7 +53,7 @@ def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
                                                         pipes_dict[f'analyser_worker_conn_{num}']]))
         p.start()
         processes_dict[f'analyser_workers_{num}'] = p
-    
+
     task_logger = Process(target=Worker.task_logger_worker, args=([tasks_queue,error_queue,updates_queue,to_do_queue,run_or_stop_flag]))
     task_logger.start()
     processes_dict['task_logger'] = task_logger
@@ -71,7 +71,7 @@ class Worker:
     #     if worker_type == 'analyser':
     #         self.thread = Thread(target=Worker.analyser_worker)
     #         self.thread.start()
-    
+
     @staticmethod
     def error_logger_worker(error_queue, run_or_stop_flag):
         # global error_queue
@@ -142,7 +142,7 @@ class Worker:
                         error_log.push(error_queue)
                         continue
 
-                
+
 
     def task_logger_worker(tasks_queue,error_queue,updates_queue,to_do_queue,run_or_stop_flag):
         # global tasks_queue
@@ -153,7 +153,7 @@ class Worker:
         flag = True
 
         with process_app.app_context():
-                
+
             while run_or_stop_flag.is_set():
                 if flag:
                     flag = False
@@ -195,7 +195,7 @@ class Worker:
                             # updates_queue.task_done()
                             error_log = ErrorLog(task_id = task.id, stage='updating the task', error_string=message)
                             error_log.push(error_queue)
-                    
+
     @staticmethod
     def results_logger_worker(done_queue,updates_queue,error_queue,run_or_stop_flag):
         # global done_queue
@@ -211,7 +211,7 @@ class Worker:
                         # results = task.function_obj.run(task.db_conn_obj, task.run_id)
                         analyse_result = AnalyseResult(task_id=task.id,run_id=results['run_id'],
                                             db_conn_string=task.db_conn_obj.name,
-                                            result_status=results['result_status'], 
+                                            result_status=results['result_status'],
                                             result_text=results['result_text'])
                         # db.session.add(analyse_result)
                         # db.session.commit()

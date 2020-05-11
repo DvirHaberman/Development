@@ -11,7 +11,7 @@ app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1
@@ -51,8 +51,8 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+# init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+#             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
 
 sleep(3)
 
@@ -64,7 +64,7 @@ def create_tables():
     # redirect('/api/collect_data')
     return 'done'
 
-@app.route('/api/user_wizard')
+@app.route('/user_wizard')
 def user_wizard():
     if session.get('username', None) is None:
         return redirect('/login_first')
@@ -91,7 +91,7 @@ def start_processes():
             run_or_stop_flag.set()
             init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
-            
+
             return jsonify(status=True, message = '')
         else:
             return jsonify(status=False, message = 'processes are already running')
@@ -141,7 +141,7 @@ def update_tests_params():
         tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
     else:
         tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
-    
+
     send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
     return 'done'
@@ -193,7 +193,7 @@ def login():
 
 @app.route('/run_function')
 def run_function():
-    if session.get('username', None) is None: 
+    if session.get('username', None) is None:
         return redirect('/login')
     else:
         return render_template('run_function.html')
@@ -204,7 +204,7 @@ def welcome():
         return redirect('/login_first')
     else:
         return render_template('welcome.html')
-    
+
 
 @app.route('/logout')
 def logout():
@@ -236,7 +236,7 @@ def run_simple():
         return redirect('/login_first')
     else:
         return render_template('run_simple.html')
-    
+
 
 @app.route('/api/run_queue_test')
 def run_queue_test():
@@ -253,12 +253,12 @@ def run_queue_test():
 
 @app.route('/db_conn_wizard')
 def db_conn_wizard():
-    session['username'] = 'dvirh'
-    session['password'] = 'dvirh'
+    # session['username'] = 'dvirh'
+    # session['password'] = 'dvirh'
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
-        return render_template('db_conn_wizard.html')    
+        return render_template('db_conn_wizard.html')
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
@@ -296,7 +296,7 @@ def Function_Definition():
         return redirect('/login_first')
     else:
         return render_template('Function_Definition.html')
-    
+
     # return jsonify(data = [num for num in range(10)])
 
 @app.route('/Function_Analysis')
@@ -305,7 +305,7 @@ def Function_Analysis():
         return redirect('/login_first')
     else:
         return render_template('Function_Analysis.html')
-   
+
 
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])
@@ -315,9 +315,9 @@ def api_methods_with_args(class_name,class_method,args):
     class_method = getattr(req_class, class_method)
     method_args = [arg for arg in args.split(',')]
     if type(method_args) == type([1]):
-        return class_method(*method_args)   
+        return class_method(*method_args)
     else:
-        return class_method(method_args)   
+        return class_method(method_args)
 
 
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])
@@ -345,3 +345,5 @@ def api():
 if __name__ == "__main__":
     freeze_support()
     app.run(debug=True)
+    init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+                tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)

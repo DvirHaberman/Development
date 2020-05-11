@@ -44,7 +44,7 @@ function update_team_names(){
             team_names = names;
             update_select_obj(team_select, team_names, 0);
             update_select_obj(disp_team_select, team_names, team_names.indexOf(user_data.team));
-        }    
+        }
     });
 }
 
@@ -55,7 +55,7 @@ function update_role_names(){
             role_names = names;
             update_select_obj(role_select, role_names, 0);
             update_select_obj(disp_role_select, role_names, role_names.indexOf(user_data.role));
-        }    
+        }
     });
 }
 
@@ -66,7 +66,7 @@ function update_project_names(){
             project_names = names;
             update_select_obj(project_select, project_names, 0);
             update_select_obj(disp_project_select, project_names, project_names.indexOf(user_data.project));
-        }    
+        }
     });
 }
 
@@ -81,7 +81,7 @@ function update_user_names(index){
             }
             update_select_obj(user_select, user_names, index);
             update_all(index);
-        }    
+        }
     });
 }
 

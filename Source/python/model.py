@@ -26,7 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -53,7 +54,7 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
 class DbConnector:
 
     def __init__(self, db_type, user, password, hostname, schema, port=None, name=None):
-        
+
         # setting up propeties
         self.db_type = db_type
         self.schema = schema
@@ -63,7 +64,7 @@ class DbConnector:
         self.port = port
         self.connection = None
         self.message = ''
-        
+
         # assinging name - if no name is given then the name is composed of the type and schema
         if name or name == '':
             self.name = name
@@ -136,7 +137,7 @@ class DbConnector:
         except Exception as error:
             self.message = 'Something when wrong while saving to DB.'
             self.status = 'invalid'
-    
+
     def run_sql(self,sql):
         if self.status == 'valid':
             self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 5})
@@ -148,23 +149,23 @@ class DbConnector:
             return data
         else:
             return 'invalid conn'
-    
-    @staticmethod 
+
+    @staticmethod
     def load_conn_by_id(conn_id=1):
         conn_data = DbConnections.query.get(conn_id)
         return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                          password=conn_data.password, hostname=conn_data.hostname,
-                         schema=conn_data.schema, port=conn_data.port, 
+                         schema=conn_data.schema, port=conn_data.port,
                          name=conn_data.name)
-    
-    @staticmethod 
+
+    @staticmethod
     def load_conn_by_name(db_name):
         conn_data = DbConnections.query.filter_by(name=db_name).first()
         return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                          password=conn_data.password, hostname=conn_data.hostname,
-                         schema=conn_data.schema, port=conn_data.port, 
+                         schema=conn_data.schema, port=conn_data.port,
                          name=conn_data.name)
-    @staticmethod                     
+    @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
         run_ids = conn.run_sql('select run_id from run_ids')
@@ -188,7 +189,7 @@ class OctopusUtils:
     def get_sys_params(conn, run_id):
         return pd.read_sql('select * from sys_params',con=conn)
         # return pd.read_sql(f'select * from sys_params where run_id={run_id}',con=conn)
-    
+
     @staticmethod
     def get_test_params():
         return 'Tests Params'
@@ -224,11 +225,11 @@ class Task:
         db.session.add(task)
         db.session.commit()
         self.id = task.id
-    
+
     # def log_result(self, results):
     #     analyse_result = AnalyseResult(task_id=self.id,run_id=results['run_id'],
     #                                 db_conn_string=self.db_conn_obj.conn_string,
-    #                                 result_status=results['result_status'], 
+    #                                 result_status=results['result_status'],
     #                                 result_text=results['result_text'],
     #                                 result_array=results['result_arr'])
     #     db.session.add(analyse_result)
@@ -395,14 +396,14 @@ class User(db.Model):
     def get_names():
         names = User.query.with_entities(User.name).all()
         return jsonify(list(*zip(*names)))
-    
+
     @staticmethod
     def get_names_and_ids():
         users = User.query.with_entities(User.name, User.id).all()
         names = [user.name for user in users]
         ids = [user.id for user in users]
         return jsonify(names=names, ids=ids)
-    
+
     @staticmethod
     def get_user_by_id(user_id):
         user = User.query.get(user_id)
@@ -495,7 +496,7 @@ class FunctionParameters(db.Model):
     def get_value(self, conn, run_id):
         if self.kind == 'Sys Params':
             return OctopusUtils.get_sys_params(conn, run_id)
-        
+
         if self.kind == 'Tests Params':
             return OctopusUtils.get_test_params()
 
@@ -512,12 +513,12 @@ class FunctionParameters(db.Model):
                 if not type(self.value) == type('str'):
                     return str(self.value)
                 return self.value
-            
+
             if self.type == 'float':
                 if not type(self.value) == type(1.7):
                     return float(self.value)
                 return self.value
-        
+
         return self.value
 #####################################################
 ########### OCTOPUSFUNCTIONS MODEL CLASS ############
@@ -662,7 +663,7 @@ class OctopusFunction(db.Model):
     def jsonify_all():
         table = OctopusFunction.query.all()
         return jsonify([row.self_jsonify() for row in table])
-    
+
     @staticmethod
     def delete_by_name(name):
         try:
@@ -685,6 +686,7 @@ class OctopusFunction(db.Model):
         except:
             return jsonify('Not deleted! Something went wrong in the delete process')
 
+
     def run(self, db_conn, run_id, tests_params=None):
         #check if path is in os.path
         try:
@@ -696,13 +698,14 @@ class OctopusFunction(db.Model):
             #         'result_text':'Error! Function file is not included in Octopus Path', 
             #         'result_arr' : None
             #     }
+
             #check if file is in path
             if not Path(self.location).exists():
                 return {
                     'run_id': run_id,
                     'db_conn': db_conn.name,
-                    'result_status':1, 
-                    'result_text':'Error! Function module is not in the specified location', 
+                    'result_status':1,
+                    'result_text':'Error! Function module is not in the specified location',
                     'result_arr' : None
                 }
             #import module
@@ -721,8 +724,8 @@ class OctopusFunction(db.Model):
                     return {
                     'run_id': run_id,
                     'db_conn': db_conn.name,
-                    'result_status':1, 
-                    'result_text':'Error! The specified module does not contain the given class or method', 
+                    'result_status':1,
+                    'result_text':'Error! The specified module does not contain the given class or method',
                     'result_arr' : None
                 }
             #else - check for function
@@ -732,8 +735,8 @@ class OctopusFunction(db.Model):
             return {
                 'run_id': run_id,
                 'db_conn': db_conn.name,
-                'result_status':1, 
-                'result_text':'Error! Unexpected error while extracting the method', 
+                'result_status':1,
+                'result_text':'Error! Unexpected error while extracting the method',
                 'result_arr' : None
             }
         try:
@@ -750,8 +753,8 @@ class OctopusFunction(db.Model):
             return {
                 'run_id': run_id,
                 'db_conn': db_conn,
-                'result_status':1, 
-                'result_text':"Error! Unexpected error while extracting method's parameters", 
+                'result_status':1,
+                'result_text':"Error! Unexpected error while extracting method's parameters",
                 'result_arr' : None
             }
         try:
@@ -778,8 +781,8 @@ class OctopusFunction(db.Model):
             return {
                 'run_id': run_id,
                 'db_conn': db_conn.name,
-                'result_status':1, 
-                'result_text':'Error! Unexpected error while activating the method', 
+                'result_status':1,
+                'result_text':'Error! Unexpected error while activating the method',
                 'result_arr' : None
             }
 
@@ -901,7 +904,7 @@ class DbConnections(db.Model):
     port = db.Column(db.Text)
     schema = db.Column(db.Text)
     conn_string = db.Column(db.Text)
-    
+
 
     def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string):
         self.db_type = db_type
@@ -945,7 +948,7 @@ class ErrorLog(db.Model):
         self.error_time = error_time
         self.stage = stage
         self.error_string = error_string
-    
+
     def log(self):
         db.session.add(self)
         db.session.commit()
@@ -971,7 +974,7 @@ class AnalyseTask(db.Model):
     def __init__(self, mission_id=None, mission_type=0, function_id=None,
                  run_id=None, scenario_id=None, ovr_file_location=None, db_conn_string=None,
                  priority=1, user_id=None, status=0, message=None):
-        
+
         self.mission_id = mission_id
         self.mission_type = mission_type
         self.function_id = function_id
@@ -983,7 +986,7 @@ class AnalyseTask(db.Model):
         self.user_id = user_id
         self.status = status
         self.message = message
-        
+
         #status
         #0 - created
         #1 - failure pushing to tasks queue
@@ -997,7 +1000,7 @@ class AnalyseTask(db.Model):
 
         global tasks_queue
         tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
-    
+
 class Mission(db.Model):
     __tablename__ = 'Mission'
     id = db.Column(db.Integer, primary_key=True)
@@ -1008,10 +1011,10 @@ class Mission(db.Model):
             self.name=name
         else:
             self.name='mission'+str(self.id)
-    
+
     # @staticmethod
     # def push_task(user_id, function, run_id, db_conn)
-        
+
     @staticmethod
     def create_mission(json_data,tasks_queue):
         # global tasks_queue
@@ -1035,15 +1038,15 @@ class Mission(db.Model):
                 # task.log()
                 # task.run()
                 # task.update()
-        
+
         return str(mission.id)
-        
+
     def self_jsonify(self):
         return jsonify(
             id=self.id,
             name = self.name).json
-        
-    
+
+
     @staticmethod
     def jsonify_all():
         table = Mission.query.all()
@@ -1066,14 +1069,14 @@ class OverView(db.Model):
         db.session.commit()
         for result in results:
             analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
-                                           result_status=result['result_status'], 
+                                           result_status=result['result_status'],
                                            result_text=result['result_text'],
                                            result_array=result['result_arr'])#,
                                         #    result_array_header=[],#result['result_array_header'],
                                         #    result_array_types=[])#=result['result_array_types'])
 
-            
-                                           
+
+
 
 class AnalyseResult(db.Model):
     __tablename__ = 'AnalyseResult'
@@ -1116,9 +1119,9 @@ class AnalyseResult(db.Model):
                 message = 'result array must not have more than 30 columns'
         else:
             message = 'result array must be a DataFrame'
-            
+
         return (status, message, header)
-    
+
     def log(self, data_obj, error_queue):
         db.session.add(self)
         db.session.commit()
@@ -1147,7 +1150,7 @@ class AnalyseResult(db.Model):
         db.session.add(self)
         db.session.commit()
         return message
-    
+
     def self_jsonify(self):
         if self.result_array_header:
             result_array = self.tablify_results_arrays()
@@ -1186,7 +1189,7 @@ class AnalyseResult(db.Model):
         tasks = AnalyseTask.query.filter_by(mission_id=int(id)).all()
         # mission_results = [{'task_status':task.status,'run_id':task.run_id,
         #             'function_name':OctopusFunction.query.get(task.function_id).name,
-        #             'status:':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status} 
+        #             'status:':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status}
         #             for task in tasks]
         # functions = list(set([OctopusFunction.query.get(task.function_id).name for task in tasks]))
         # run_ids = list(set([task.run_id for task in tasks]))
@@ -1200,8 +1203,9 @@ class AnalyseResult(db.Model):
                                             'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
                                         }
                             } 
+
                             if task.status == 4
-                            else 
+                            else
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
                             task.run_id:-1}
                             for task in tasks]
@@ -1279,70 +1283,68 @@ class ResultArray(db.Model):
                 ):
         self.result_id = result_id
         self.col1 = col1
-        self.col2 = col2 
-        self.col3 = col3 
-        self.col4 = col4 
-        self.col5 = col5 
-        self.col6 = col6 
-        self.col7 = col7 
-        self.col8 = col8 
-        self.col9 = col9 
-        self.col10 = col10 
-        self.col11 = col11 
-        self.col12 = col12 
-        self.col13 = col13 
-        self.col14 = col14 
-        self.col15 = col15 
-        self.col16 = col16 
-        self.col17 = col17 
-        self.col18 = col18 
-        self.col19 = col19 
-        self.col20 = col20 
-        self.col21 = col21 
-        self.col22 = col22 
-        self.col23 = col23 
-        self.col24 = col24 
-        self.col25 = col25 
-        self.col26 = col26 
-        self.col27 = col27 
+        self.col2 = col2
+        self.col3 = col3
+        self.col4 = col4
+        self.col5 = col5
+        self.col6 = col6
+        self.col7 = col7
+        self.col8 = col8
+        self.col9 = col9
+        self.col10 = col10
+        self.col11 = col11
+        self.col12 = col12
+        self.col13 = col13
+        self.col14 = col14
+        self.col15 = col15
+        self.col16 = col16
+        self.col17 = col17
+        self.col18 = col18
+        self.col19 = col19
+        self.col20 = col20
+        self.col21 = col21
+        self.col22 = col22
+        self.col23 = col23
+        self.col24 = col24
+        self.col25 = col25
+        self.col26 = col26
+        self.col27 = col27
         self.col28 = col28
-        self.col29 = col29 
-        self.col30 = col30 
-    
+        self.col29 = col29
+        self.col30 = col30
+
     def self_jsonify(self):
 
         return jsonify(
             result_id = self.result_id,
             col1 = self.col1,
-            col2 = self.col2, 
-            col3 = self.col3, 
-            col4 = self.col4, 
-            col5 = self.col5, 
-            col6 = self.col6, 
-            col7 = self.col7, 
-            col8 = self.col8, 
-            col9 = self.col9, 
-            col10 =self. col10, 
-            col11 =self. col11, 
-            col12 =self. col12, 
-            col13 =self. col13, 
-            col14 =self. col14, 
-            col15 =self. col15, 
-            col16 =self. col16, 
-            col17 =self. col17, 
-            col18 =self. col18, 
-            col19 =self. col19, 
-            col20 =self. col20, 
-            col21 =self. col21, 
-            col22 =self. col22, 
-            col23 =self. col23, 
-            col24 =self. col24, 
-            col25 =self. col25, 
-            col26 =self. col26, 
-            col27 =self. col27, 
+            col2 = self.col2,
+            col3 = self.col3,
+            col4 = self.col4,
+            col5 = self.col5,
+            col6 = self.col6,
+            col7 = self.col7,
+            col8 = self.col8,
+            col9 = self.col9,
+            col10 =self. col10,
+            col11 =self. col11,
+            col12 =self. col12,
+            col13 =self. col13,
+            col14 =self. col14,
+            col15 =self. col15,
+            col16 =self. col16,
+            col17 =self. col17,
+            col18 =self. col18,
+            col19 =self. col19,
+            col20 =self. col20,
+            col21 =self. col21,
+            col22 =self. col22,
+            col23 =self. col23,
+            col24 =self. col24,
+            col25 =self. col25,
+            col26 =self. col26,
+            col27 =self. col27,
             col28 =self. col28,
-            col29 =self. col29, 
+            col29 =self. col29,
             col30 =self. col30
         ).json
-
-    
