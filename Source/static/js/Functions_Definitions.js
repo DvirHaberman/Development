@@ -24,9 +24,76 @@ var form_controls = {
   location: $("input[name='location']")[0],
   description: $("input[name='description']")[0],
   changed_date: $("input[name='changed_date']")[0],
+  description: $("input[name='description']")[0],
+  is_class_method: $("input[name='isOutputIsAClass']")[0],
+  class_name: $("input[name='outputClassName']")[0],
   function_parameters: $("table[name='function_parameters']")[0]
 
 };
+
+document.querySelector('.custom-file-input').addEventListener('change',function(e){
+  var fileName = document.getElementById("functionLocation").files[0].name;
+  var nextSibling = e.target.nextElementSibling
+  nextSibling.innerText = $('#functionLocation').val()
+})
+
+function CreateOperLineString(){
+  var fileName = document.getElementById("functionCallback").value;
+  // var filename = "ilanFun";
+  var OperLineString = fileName + "(conn, RunID";
+  var tableRowsLength = $("table[name='function_parameters']")[0].rows.length;
+  tableData = [];
+  if (tableRowsLength==1){
+    OperLineString = OperLineString + ")";
+  } else {
+      for (i=1 ; i<tableRowsLength  ; i++) {
+        var currParam = ""
+        var currRow = $("table[name='function_parameters']")[0].rows[i]
+
+        // kind
+        var selectObj = currRow.cells[1].children[0];
+        var kind = selectObj.options[selectObj.selectedIndex].text;
+        if (kind=="text"){
+          // value
+          if (currRow.cells[2].childElementCount >0){
+            currParam = currRow.cells[2].children[0].value;
+          }else{
+            currParam = currRow.cells[2].innerHTML;
+          }
+        } else {
+            currParam = kind;
+        }
+
+        if (i==tableRowsLength - 1){
+          OperLineString = OperLineString + ", " + currParam + ")";
+        } else {
+          OperLineString = OperLineString + ", " + currParam ;
+        }
+    }
+}
+return OperLineString;
+}
+
+function setOperLineString(){
+  var OperString = CreateOperLineString();
+  var objOperLine = document.getElementsByName("funcOperLine");
+  objOperLine[0].innerHTML = OperString;
+}
+
+
+
+function calc (){
+var className = document.getElementById('className') ;
+
+  if (document.getElementById('isOutputIsAClass').checked)
+  {
+    className.disabled = false;
+
+  } else {
+    className.disabled = true
+    className.value ="";
+  }
+}
 
 
 // Definition and Assignment TableHeaderNodes //
@@ -46,6 +113,7 @@ function RemoveTblRow(){
   for (i=1 ; i< table.rows.length; i++){
       table.rows[i].cells[0].innerHTML = i;
   }
+  setOperLineString()
 }
 
 function setParamTblValueField(){
@@ -56,11 +124,10 @@ function setParamTblValueField(){
      let newElement = document.createElement('input');
      newElement.classList.add("form-control");
      currCell.appendChild(newElement);
-   }
-   else {
+   } else {
+     setOperLineString();
      currCell.innerHTML = "--";
    }
-
 }
 
 function TableHeaderNodes(key, handleFunction, isByValue){
@@ -246,6 +313,12 @@ function fill_object(obj, value, header) {
     option.text = value;
     obj.add(option);
     //   }
+  } else if (obj.type==="checkbox"){
+    obj.checked = value;
+
+  } else if ( (obj.type==="file")){
+    obj.innerText = value;
+
   } else {
     obj.value = value;
   }
@@ -336,7 +409,7 @@ function form_controls_handler() {
         }else{
           var value = currRow.cells[2].innerHTML;
         }
-        
+
 
         // type
         var selectObj = currRow.cells[3].children[0];
@@ -352,6 +425,7 @@ function form_controls_handler() {
         tableData.push(paramRowData)
     }
 
+
     var function_data = {
       owner: current_user,
       version: current_version,
@@ -362,8 +436,10 @@ function form_controls_handler() {
       callback: $("input[name='callback']")[0].value,
       location: $("input[name='location']")[0].value,
       description: $("input[name='description']")[0].value,
+      is_class_method: $("input[name='isOutputIsAClass']")[0].checked,
+      class_name: $("input[name='outputClassName']")[0].value,
       // changed_date: $("input[name='changed_date']")[0],
-      // function_parameters: $("table[name='function_parameters']")[0]
+
       function_parameters: tableData
     }
 
@@ -402,6 +478,7 @@ $("button[name='plus_param_row_button']")[0].addEventListener("click", function(
   cell2.appendChild(newElement); // SelectKindCell
 
   cell3.innerHTML = "--";
+  cell3.addEventListener('change', setOperLineString);
   cell4.appendChild(CreateParamSelectElement(paramsTblType, 0)); // SelectTypeCell
 
   newElement = document.createElement('button');
@@ -410,7 +487,11 @@ $("button[name='plus_param_row_button']")[0].addEventListener("click", function(
 
   cell5.appendChild(newElement);
 
+  setOperLineString();
+});
 
+$("input[name='callback']")[0].addEventListener("change", function() {
+  setOperLineString();
 });
 
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
