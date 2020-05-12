@@ -403,7 +403,7 @@ class User(db.Model):
     @staticmethod
     def delete_user_by_id(user_id):
         try:
-            user = User.query.get(user_id)
+            user = User.query.get(int(user_id))
             db.session.delete(user)
             db.session.commit()
             return jsonify(status=1,msg='User succefully deleted')
@@ -415,7 +415,7 @@ class User(db.Model):
         try:
             user = User.query.filter_by(name=name).first()
             if len(user)>0:
-                user.password = '123456'
+                user.password_sha = '123456'
                 db.session.add(user)
                 db.session.commit()
                 return jsonify(status=1,msg='Pasword resetted')
@@ -427,7 +427,9 @@ class User(db.Model):
     @staticmethod
     def reset_password_by_id(user_id):
         try:
-            user = User.query.get(user_id).update({'password':'123456'})
+            user = User.query.get(int(user_id))
+            user.password_sha = '123456'
+            db.session.add(user)
             db.session.commit()
             return jsonify(status=1,msg='Pasword resetted')
         except:

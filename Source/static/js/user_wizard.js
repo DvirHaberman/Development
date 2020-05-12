@@ -141,7 +141,8 @@ function save_user(){
         data: JSON.stringify(data),
         contentType: 'application/json',
         success: function(message) {
-            alert(message.msg);
+            $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+            $('.alert')[0].hidden = false;
             if (message.status == 1){
                 update_user_names(-1);
             }
@@ -168,7 +169,8 @@ function update_user(){
         data: JSON.stringify(data),
         contentType: 'application/json',
         success: function(message) {
-            alert(message.msg);
+            $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+            $('.alert')[0].hidden = false;
             if (message.status == 1){
                 update_user_names(-1);
             }
@@ -181,7 +183,8 @@ function reset_password(){
         type: "POST",
         url: "/api/User/reset_password_by_id/"+users_ids[user_select.selectedIndex],
         success: function(message) {
-            alert(message.msg);
+            $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+            $('.alert')[0].hidden = false;
             if (message.status == 1){
                 update_user_names(-1);
             }
@@ -194,7 +197,8 @@ function delete_user(){
         type: "POST",
         url: "/api/User/delete_user_by_id/"+users_ids[user_select.selectedIndex],
         success: function(message) {
-            alert(message.msg);
+            $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+            $('.alert')[0].hidden = false;
             if (message.status == 1){
                 update_user_names(-1);
             }
@@ -202,10 +206,17 @@ function delete_user(){
     });
 }
 
+function update_modal_text(){
+    user_name = user_select.options[user_select.selectedIndex].text;
+    $('#delete_user_modal_body')[0].innerHTML = 'Delete ' + user_name + ' user?';
+}
+
 save_button.addEventListener('click', save_user);
 save_changes_button.addEventListener('click', update_user);
 reset_password_button.addEventListener('click', reset_password);
-delete_user_button.addEventListener('click', delete_user);
+delete_user_button.addEventListener('click', update_modal_text);
+$('#confirm_delete_button')[0].addEventListener('click', delete_user);
+$('.alert button')[0].addEventListener('click', function(){$('.alert')[0].hidden = true;})
 user_select.addEventListener('change',function(){
     update_user_data(this.selectedIndex);
 });

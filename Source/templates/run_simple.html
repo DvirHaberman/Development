@@ -1,6 +1,10 @@
-{% extends "layout.html" %} {% block css %}
+{% extends "layout.html" %} 
+
+{% block css %}
 <link rel="stylesheet" href="../static/css/simple_run.css" />
-{% endblock %} {% block content %}
+{% endblock %} 
+
+{% block content %}
 <br />
 <br />
 <br />
@@ -26,10 +30,10 @@
                     <div class="row">
                         <div>
                             <select class ="form-control" name="run_ids" id="run_ids_select">
-                                <option value="">12121</option>
+                                <!-- <option value="">12121</option>
                                 <option value="">31313</option>
                                 <option value="">33333</option>
-                                <option value="">44444</option>
+                                <option value="">44444</option> -->
                             </select>
                         </div>
                         <div>
@@ -93,8 +97,10 @@
 </div>
 <br>
 <br>
-<div id="drill_down_div" class="container results_divs">
-    <h1 id="drill_down_header"></h1>
+<div id="drill_down_div" class="container results_divs row">
+    <div class="col-4"> 
+
+   <h1 id="drill_down_header"></h1>
     <h2 id="drill_down_db_name"></h2>
     
     <div class="row col-10">
@@ -113,16 +119,19 @@
             <h2 id="result_text"></h2>
         </div>
     </div>
-    <table id="drill_down_table">
-    
-    </table>
+    </div> 
+    <div class="col-8" id="drill_down_table_div">
+        <table id="drill_down_table">
+        
+        </table>
+    </div>
 </div>
 <br>
 <br>
 <br>
 <br>
 {% endblock %} {% block scripts %}
-<script src="../static//js/jquery_3_4_1_min.js"></script>
+<!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
 <script src="../static/js/run_simple.js"></script>
 <script src="../static/js/display_results.js"></script>
 

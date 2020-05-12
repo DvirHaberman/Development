@@ -3,6 +3,7 @@ var results_table_div = $('#results_table_div')[0];
 var results_table = $('#results_table')[0];
 var results_header = document.createElement('h1');
 var drill_down_result = null;
+var drill_down_table_div = $('#drill_down_table_div')[0];
 var drill_down_table = $('#drill_down_table')[0];
 var drill_down_div = $('#drill_down_div')[0];
 var drill_down_header = $('#drill_down_header')[0];
@@ -52,14 +53,14 @@ function drill_down(){
       drill_down_db_name.innerHTML = 'DB name: '+ drill_down_result[0].db_conn;
       result_status.innerHTML = 'Result Status: '+ drill_down_result[0].result_status;
       result_text.innerHTML = 'Result Text: '+ drill_down_result[0].result_text;
-      drill_down_div.removeChild(drill_down_table)
+      drill_down_table_div.removeChild(drill_down_table)
       drill_down_table = document.createElement('table');
       drill_down_table.id = 'drill_down_table';
       drill_down_table.classList.add(["table"]);
       drill_down_table.classList.add(["table-hover"]);
       drill_down_table.classList.add(["col-10"]);
       drill_down_table.classList.add(["m-auto"]);
-      drill_down_div.appendChild(drill_down_table);
+      drill_down_table_div.appendChild(drill_down_table);
       num_of_cols = result_array.schema.fields.length;
       num_of_rows = result_array.data.length;
       newRow = drill_down_table.insertRow(-1);

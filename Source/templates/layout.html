@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Function Definition</title>
+    <title>{{session['current_window_name']}}</title>
     <!-- <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
@@ -28,6 +28,9 @@
     ></script> -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/layout_style.css">
+    <script src="../static/js/jquery_3_4_1_min.js"></script>
+    <!-- <script src="../static/js/popper.min.js"></script> -->
+    <script src="../static/js/bootstrap.min.js"></script>
     {% block css %}
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <link rel="stylesheet" href="../static/css/styles.css" /> -->
@@ -39,18 +42,20 @@
       <div class="container-fluid fixed-top">
         <!-- Nav Bar -->
         <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
-          <div>
+          <div class="col-4">
           <a class="navbar-brand" href="/welcome"
             ><img
               class="octopus-img"
-              src="{{url_for('static',filename='images/Octopus-Green.png')}}"
+              src="../static/images/octopus-gentelman-1.png"
               alt=""
             />
             <h6 class="user-name">{{session['username']}}</h6>
           </a>
           <a href="/logout" class="text-primary"><h6>logout</h6></a>
         </div>
-            <a class="navbar-brand" id="window-title" href="">Function Definition Window</a>
+        <div id="window-title-div" class="mx-auto">
+            <a class="navbar-brand mx-auto" id="window-title" href="">{{session['current_window_name']}}</a>
+          </div>
           <button
             class="navbar-toggler"
             type="button"
@@ -62,13 +67,35 @@
           >
             <span class="navbar-toggler-icon"></span>
           </button>
-          <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
+          <div class="collapse navbar-collapse col-4" id="navbarTogglerDemo2">
             <ul class="navbar-nav ml-auto">
+            {% if session['current_window_name']=='Define Functions' %}
               <li class="nav-item active">
+            {% else %}
+              <li class="nav-item">
+            {%endif%}
                 <a class="nav-link" href="Function_Definition">Define</a>
               </li>
+            {% if session['current_window_name']=='Run Functions' %}
+              <li class="nav-item active">
+            {% else %}
               <li class="nav-item">
+            {%endif%}
                 <a class="nav-link" href="run_simple">Run</a>
+              </li>
+            {% if session['current_window_name']=='Define Users' %}
+              <li class="nav-item active">
+            {% else %}
+              <li class="nav-item">
+            {%endif%}
+                <a class="nav-link" href="user_wizard">Users</a>
+              </li>
+            {% if session['current_window_name']=='Define Connections' %}
+              <li class="nav-item active">
+            {% else %}
+              <li class="nav-item">
+            {%endif%}
+                <a class="nav-link" href="db_conn_wizard">Connections</a>
               </li>
             </ul>
           </div>
@@ -78,11 +105,13 @@
     <div class="container-fluid"></div>
     {%block content%}
     {% endblock %}
-    </div>
-    <script src="../static/js/bootstrap.min.js"></script>
-    {%block scripts%}
-    {% endblock %}
-    {%block footer%}
-    {% endblock %}
+  </div>
+
+ 
+
+  {%block scripts%}
+  {% endblock %}
+  {%block footer%}
+  {% endblock %}
   </body>
   </html>

@@ -69,6 +69,7 @@ def user_wizard():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Define Users'
         return render_template('user_wizard.html')
 
 @app.route('/display_results')
@@ -182,11 +183,13 @@ def index():
 
 @app.route('/login_first')
 def login_first():
+    session['current_window_name'] = 'Login First'
     return render_template('login_first.html')
 
 @app.route('/login')
 def login():
     if session.get('username', None) is None:
+        session['current_window_name'] = 'Login'
         return render_template('login.html')
     else:
         return redirect('/welcome')
@@ -196,6 +199,7 @@ def run_function():
     if session.get('username', None) is None:
         return redirect('/login')
     else:
+        session['current_window_name'] = 'Run Functions'
         return render_template('run_function.html')
 
 @app.route('/welcome')
@@ -203,6 +207,7 @@ def welcome():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Welcome'
         return render_template('welcome.html')
 
 
@@ -235,6 +240,7 @@ def run_simple():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Run Functions'
         return render_template('run_simple.html')
 
 
@@ -258,6 +264,7 @@ def db_conn_wizard():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Define Connections'
         return render_template('db_conn_wizard.html')
 
 @app.route('/api/get_conn_data')
@@ -295,6 +302,7 @@ def Function_Definition():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Define Functions'
         return render_template('Function_Definition.html')
 
     # return jsonify(data = [num for num in range(10)])
@@ -304,6 +312,7 @@ def Function_Analysis():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Analysis Results'
         return render_template('Function_Analysis.html')
 
 
