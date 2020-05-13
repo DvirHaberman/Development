@@ -21,7 +21,7 @@ var form_controls = {
   kind: $("input[name='kind']")[0],
   tags: $("input[name='tags']")[0],
   callback: $("input[name='callback']")[0],
-  location: $("input[name='location']")[0],
+  location: $("input[name='Location']")[0],
   description: $("input[name='description']")[0],
   changed_date: $("input[name='changed_date']")[0],
   description: $("input[name='description']")[0],
@@ -31,11 +31,11 @@ var form_controls = {
 
 };
 
-document.querySelector('.custom-file-input').addEventListener('change',function(e){
-  var fileName = document.getElementById("functionLocation").files[0].name;
-  var nextSibling = e.target.nextElementSibling
-  nextSibling.innerText = $('#functionLocation').val()
-})
+// document.querySelector('.custom-file-input').addEventListener('change',function(e){
+//   var fileName = document.getElementById("functionLocation").files[0].name;
+//   var nextSibling = e.target.nextElementSibling
+//   nextSibling.innerText = $('#functionLocation').val()
+// })
 
 function CreateOperLineString(){
   var fileName = document.getElementById("functionCallback").value;
@@ -249,9 +249,6 @@ function clear_object(obj) {
     for (i = 0; i < num_of_options; i++) {
       obj.remove(0);
     }
-  } else if (obj.type === "file") {
-    $("#functionLocationLabel")[0].innerHTML = "";
-
   } else if (obj.type==="checkbox"){
     obj.checked = 0;
     calc ();
@@ -284,10 +281,6 @@ function fill_object(obj, value, header) {
   } else if (obj.type==="checkbox"){
     obj.checked = value;
     calc ();
-
-  } else if ( (obj.type==="file")){
-    // obj.value = value;
-    $("#functionLocationLabel")[0].innerHTML = value;
 
   } else {
     obj.value = value;
@@ -408,7 +401,7 @@ function form_controls_handler() {
       kind: $("input[name='kind']")[0].value,
       tags: $("input[name='tags']")[0].value,
       callback: $("input[name='callback']")[0].value,
-      location: $("input[name='location']")[0].value,
+      location: $("input[name='Location']")[0].value,
       description: $("input[name='description']")[0].value,
       is_class_method: $("input[name='isOutputIsAClass']")[0].checked,
       class_name: $("input[name='outputClassName']")[0].value,
