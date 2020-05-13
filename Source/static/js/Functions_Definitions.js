@@ -188,97 +188,54 @@ function CreateParamSelectElement(paramsTblArray, currValueIndex) {
 }
 
 
-function fill_row(row_obj, values, header){
-  // header === ParamTableArrayNodes
+function Create_New_Tbl_Row(table, rowNum){
+  var newRow = table.insertRow(rowNum);
+  var cell1 = newRow.insertCell(0);
+  var cell2 = newRow.insertCell(1); //kind
+  var cell3 = newRow.insertCell(2); //value
+  var cell4 = newRow.insertCell(3); //type
+  var cell5 = newRow.insertCell(4); // remove Img
 
-    var num_of_values = header.length;
-    var value_to_put = '';
-    var currField = '';
-    var rowNums = form_controls.function_parameters.rows.length;
+  cell1.innerHTML = rowNum;
+  let newElement = CreateParamSelectElement(paramsTblKinds, 0)
+  newElement.addEventListener('change', setParamTblValueField);
+  cell2.appendChild(newElement); // SelectKindCell
 
-    for(k=0;k<num_of_values;k++){
-      newCell = row_obj.insertCell(-1);
+  cell3.innerHTML = "--";
+  cell3.addEventListener('change', setOperLineString);
+  cell4.appendChild(CreateParamSelectElement(paramsTblType, 0)); // SelectTypeCell
 
-      if (header[k].isByValue){
-        if (header[k].Header === 'value') {
-          var currKindValue =  values[rowNums-2][header[1].Header];
-          if (currKindValue === 'text') {
-            let newElement = document.createElement('input');
-            newElement.value = values[rowNums-2][header[k].Header];
-            newElement.classList.add("form-control");
-            newCell.appendChild(newElement);
-            // <td><select name="" id="" class="form-control table-select">
-            //     <option selected class="table-option">BM-Params</option>
+  newElement = document.createElement('button');
+  newElement.innerHTML = PlaceRemoveImg();
+  newElement.addEventListener('click', RemoveTblRow);
 
-          } else {
-            let newElement = document.createElement('text');
-            newElement.innerHTML = '--';
-            newCell.appendChild(newElement);
-          }
+  cell5.appendChild(newElement);
+}
 
-        } else {
-          var currValue = values[rowNums-2][header[k].Header];
+function fill_row_data(row_obj, values, header){
+  var num_of_values = header.length;
 
-          if (k===1){ // kind
-            var textArray = paramsTblKinds;
-            var currValueIndex = FindParamsTblKindsIndex (textArray, currValue);
-            let newElement = document.createElement('select');
+  for(k=0;k<num_of_values;k++){
+    if (k===1){ // kind
+      var currKindValueIndex = FindParamsTblKindsIndex (paramsTblKinds, values.kind);
+      row_obj.cells[1].children[0].selectedIndex = currKindValueIndex;
 
-              for (m = 0; m < paramsTblKinds.length; m++) {
-                  var currKind =  paramsTblKinds[m];
-                  // newElement.setAttribute("id", "MykindsDown");
-                  var option = document.createElement("option");
-                  option.value = m;
-                  option.text = currKind;
-                  option.classList.add("table-option");
-                  newElement.add(option);
-              }
-
-              newElement.classList.add("form-control");
-              newElement.classList.add("table-select");
-              newElement.selectedIndex =  currValueIndex;
-              newCell.appendChild(newElement)
-
-          }
-          else if (k===3){  // Type
-
-            var textArray = paramsTblType;
-            var currValueIndex = FindParamsTblTypeIndex (textArray, currValue);
-            let newElement = document.createElement('select');
-
-              for (m = 0; m < paramsTblType.length; m++) {
-                  var currType =  paramsTblType[m];
-                  // newElement.setAttribute("id", "MykindsDown");
-                  var option = document.createElement("option");
-                  option.value = m;
-                  option.text = currType;
-                  option.classList.add("table-option");
-                  newElement.add(option);
-              }
-
-              newElement.classList.add("form-control");
-              newElement.classList.add("table-select");
-              newElement.selectedIndex =  currValueIndex;
-              newCell.appendChild(newElement)
-          }
-
-        }
-      } else if(header[k].Header === 'ID') {
-       let newText = document.createTextNode('');
-       newText.data = rowNums - 1;
-       newCell.appendChild(newText);
-      } else{
-        newElement = document.createElement('button');
-        newElement.innerHTML = PlaceRemoveImg();
-        newElement.addEventListener('click', RemoveTblRow);
-        // newCell.innerHTML = header[k].handle();
-        newCell.appendChild(newElement);
-      }
-
-
-
+    }
+      else if (k===2 && currKindValueIndex===2){ // value
+        currCell = row_obj.cells[2]
+        currCell.innerHTML = [];
+        let newElement = document.createElement('input');
+        newElement.classList.add("form-control");
+        newElement.value = values.value;
+        currCell.appendChild(newElement);
+    }
+      else if (k===3){ // type
+        var currValueIndex = FindParamsTblTypeIndex (paramsTblType, values.type);
+        row_obj.cells[3].children[0].selectedIndex = currValueIndex;
+    }
   }
 }
+
 
 function clear_object(obj) {
   if (obj.tagName === 'TABLE'){
@@ -292,6 +249,13 @@ function clear_object(obj) {
     for (i = 0; i < num_of_options; i++) {
       obj.remove(0);
     }
+  } else if (obj.type === "file") {
+    $("#functionLocationLabel")[0].innerHTML = "";
+
+  } else if (obj.type==="checkbox"){
+    obj.checked = 0;
+    calc ();
+
   } else {
     obj.value = "";
   }
@@ -300,11 +264,15 @@ function clear_object(obj) {
 function fill_object(obj, value, header) {
   if (obj.tagName === 'TABLE'){
     var num_of_rows = value.length;
-    var param_keys = Object.keys(value[0]);
-    for (i = 0; i < num_of_rows; i++) {
-      newRow = obj.insertRow(-1);
-      fill_row(newRow, value, header);
-    }
+        if (num_of_rows>0){
+          // var table = document.getElementsByName("function_parameters")[0];
+          var param_keys = Object.keys(value[0]);
+          for (i = 0; i < num_of_rows; i++) {
+            Create_New_Tbl_Row(obj, i+1);
+            var currRow = $("table[name='function_parameters']")[0].rows[i+1]
+            fill_row_data(currRow, value[i], header);
+          }
+        }
   }
   else if (obj.type === "select-one") {
     // var num_of_options = value.options.length;
@@ -315,9 +283,11 @@ function fill_object(obj, value, header) {
     //   }
   } else if (obj.type==="checkbox"){
     obj.checked = value;
+    calc ();
 
   } else if ( (obj.type==="file")){
-    obj.innerText = value;
+    // obj.value = value;
+    $("#functionLocationLabel")[0].innerHTML = value;
 
   } else {
     obj.value = value;
@@ -370,6 +340,8 @@ function form_controls_handler() {
   },
 
   this.fill_form = function(index, exclude) {
+    var funcSelectedIndex  = index;
+
     this.clear_form(exclude);
 
     curr_function = functions[index];
@@ -383,11 +355,13 @@ function form_controls_handler() {
             option.text = functions[i].name;
             this.form_controls.function_select.add(option);
           }
+          this.form_controls.function_select.selectedIndex = funcSelectedIndex;
         } else if (value) {
           fill_object(this.form_controls[key], value, ParamTableArrayNodes);
         }
       }
     });
+    setOperLineString();
   },
   this.get_form_data = function() {
 
@@ -445,12 +419,17 @@ function form_controls_handler() {
 
     return function_data;
   },
-  this.get_all_functions = function() {
+  this.get_all_functions = function(mode) {
     $.ajax({
       url: "/api/OctopusFunction/jsonify_all",
       success: function(result) {
         functions = result;
-        form_handler.fill_form(0, [""]);
+        if (mode==='onReset') {
+          functoinIndex = 0;
+        } else {
+          functoinIndex = result.length-1;
+        }
+        form_handler.fill_form(functoinIndex, [""]);
       }
     });
   }
@@ -464,29 +443,7 @@ form_handler = new form_controls_handler();
 $("button[name='plus_param_row_button']")[0].addEventListener("click", function() {
   var table = document.getElementsByName("function_parameters")[0];
   var numOfRows = table.rows.length;
-  var newRow = table.insertRow(numOfRows);
-  // fill_row(newRow, [], ParamTableArrayNodes)
-  var cell1 = newRow.insertCell(0);
-  var cell2 = newRow.insertCell(1); //kind
-  var cell3 = newRow.insertCell(2); //value
-  var cell4 = newRow.insertCell(3); //type
-  var cell5 = newRow.insertCell(4); // remove Img
-
-  cell1.innerHTML = numOfRows;
-  let newElement = CreateParamSelectElement(paramsTblKinds, 0)
-  newElement.addEventListener('change', setParamTblValueField);
-  cell2.appendChild(newElement); // SelectKindCell
-
-  cell3.innerHTML = "--";
-  cell3.addEventListener('change', setOperLineString);
-  cell4.appendChild(CreateParamSelectElement(paramsTblType, 0)); // SelectTypeCell
-
-  newElement = document.createElement('button');
-  newElement.innerHTML = PlaceRemoveImg();
-  newElement.addEventListener('click', RemoveTblRow);
-
-  cell5.appendChild(newElement);
-
+  Create_New_Tbl_Row(table, numOfRows);
   setOperLineString();
 });
 
@@ -508,7 +465,7 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
     contentType: 'application/json',
     success: function(msg) {
       alert(msg)
-      form_handler.get_all_functions();
+      form_handler.get_all_functions('save');
     }
   });
 
@@ -516,7 +473,8 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
 
 form_controls.function_select.addEventListener("change", function() {
   form_handler.fill_form(this.selectedIndex, ["function_select"]);
+
 });
 
 
-form_handler.get_all_functions();
+form_handler.get_all_functions('onReset');

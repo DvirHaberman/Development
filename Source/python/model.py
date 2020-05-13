@@ -617,12 +617,20 @@ class OctopusFunction(db.Model):
         try:
             if data['name'] in [func.name for func in OctopusFunction.query.all()]:
                 return jsonify(f"Couldn't save function - already exist")
+
+            if data['is_class_method']:
+                is_class_method=1
+            else:
+                is_class_method=0
+
             func = OctopusFunction(
                 name=data['name'],
                 callback=data['callback'],
                 location=data['location'],
                 owner=User.query.filter_by(name=session['username'])[0].id,
                 file_name = data['location'].split('\\')[-1],
+                class_name = data['class_name'],
+                is_class_method = is_class_method,
                 # status=data.status,
                 # tree=row.tree,
                 kind=data['kind'],
@@ -639,7 +647,7 @@ class OctopusFunction(db.Model):
             db.session.commit()
         except Exception as error:
             return jsonify("Not Saved! Something went wrong while saving the functions")
-        
+
         try:
             function_id = func.id
             for param in data['function_parameters']:
@@ -691,11 +699,11 @@ class OctopusFunction(db.Model):
         #check if path is in os.path
         try:
             # if not self.location in sys.path:
-            #     return {   
+            #     return {
             #         'run_id': run_id,
             #         'db_conn': db_conn.name,
-            #         'result_status':1, 
-            #         'result_text':'Error! Function file is not included in Octopus Path', 
+            #         'result_status':1,
+            #         'result_text':'Error! Function file is not included in Octopus Path',
             #         'result_arr' : None
             #     }
 
@@ -1146,7 +1154,7 @@ class AnalyseResult(db.Model):
             message = 'something went wrong while logging the result array'
             error_log = ErrorLog(task_id = self.task_id, stage='logging result array', error_string=message)
             error_log.push(error_queue)
-        
+
         db.session.add(self)
         db.session.commit()
         return message
@@ -1167,11 +1175,11 @@ class AnalyseResult(db.Model):
             result_array_types = self.result_array_types,
             result_array=result_array
         )
-    
+
     def tablify_results_arrays(self):
         res_arr = pd.DataFrame([{col:val for col, val in result.self_jsonify().items() if val}
                     for result in self.result_array])
-        column_names = {'col'+str(num+1):header 
+        column_names = {'col'+str(num+1):header
                         for num, header in enumerate(self.result_array_header.split(','))}
         res_arr = res_arr.rename(columns=column_names)
         return jsonify(json.loads(res_arr.to_json(orient='table'))).json
@@ -1202,7 +1210,7 @@ class AnalyseResult(db.Model):
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
                                             'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
                                         }
-                            } 
+                            }
 
                             if task.status == 4
                             else
@@ -1214,7 +1222,7 @@ class AnalyseResult(db.Model):
         return jsonify(json.loads(res_df.to_json(orient='table')))
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
 
- 
+
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
     id = db.Column(db.Integer, primary_key=True)
