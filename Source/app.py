@@ -11,7 +11,7 @@ app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1

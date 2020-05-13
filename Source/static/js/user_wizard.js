@@ -13,7 +13,7 @@ var project_select = $('#project')[0];
 var max_priority = $('#max_priority')[0];
 var user_select = $('#user_select')[0];
 
-var disp_nick_name = $('#disp_nick_name')[0];
+// var disp_nick_name = $('#disp_nick_name')[0];
 var disp_first_name = $('#disp_first_name')[0];
 var disp_last_name = $('#disp_last_name')[0];
 var disp_team_select = $('#disp_team')[0];
@@ -22,6 +22,8 @@ var disp_project_select = $('#disp_project')[0];
 var disp_max_priority = $('#disp_max_priority')[0];
 var save_button = $('#save_button')[0];
 var save_changes_button = $('#save_changes_button')[0];
+var reset_password_button = $('#reset_password_button')[0];
+var delete_user_button = $('#delete_user_button')[0];
 
 function update_select_obj(select_obj, data_array, selected_index){
     var data_array_length = data_array.length;
@@ -90,7 +92,7 @@ function update_all(index){
         url: "/api/User/get_user_by_id/" + String(users_ids[index]),
         success: function(user) {
             user_data = user;
-            disp_nick_name.innerHTML = user_data.name;
+            // disp_nick_name.innerHTML = user_data.name;
             disp_first_name.innerHTML = user_data.first_name;
             disp_last_name.innerHTML = user_data.last_name;
             disp_max_priority.value = user_data.max_priority;
@@ -106,7 +108,7 @@ function update_user_data(index){
         url: "/api/User/get_user_by_id/" + String(users_ids[index]),
         success: function(user) {
             user_data = user;
-            disp_nick_name.innerHTML = user_data.name;
+            // disp_nick_name.innerHTML = user_data.name;
             disp_first_name.innerHTML = user_data.first_name;
             disp_last_name.innerHTML = user_data.last_name;
             disp_max_priority.value = user_data.max_priority;
@@ -148,10 +150,10 @@ function save_user(){
 }
 
 function update_user(){
-    var send_team = team_select.options[team_select.selectedIndex].text;
-    var send_role = role_select.options[role_select.selectedIndex].text;
-    var send_project = project_select.options[project_select.selectedIndex].text;
-    var send_max_priority = max_priority.value;
+    var send_team = disp_team_select.options[disp_team_select.selectedIndex].text;
+    var send_role = disp_role_select.options[disp_role_select.selectedIndex].text;
+    var send_project = disp_project_select.options[disp_project_select.selectedIndex].text;
+    var send_max_priority = disp_max_priority.value;
     var data = {
         id: users_ids[user_select.selectedIndex],
         team: send_team,
@@ -174,8 +176,36 @@ function update_user(){
     });
 }
 
+function reset_password(){
+    $.ajax({
+        type: "POST",
+        url: "/api/User/reset_password_by_id/"+users_ids[user_select.selectedIndex],
+        success: function(message) {
+            alert(message.msg);
+            if (message.status == 1){
+                update_user_names(-1);
+            }
+        }
+    });
+}
+
+function delete_user(){
+    $.ajax({
+        type: "POST",
+        url: "/api/User/delete_user_by_id/"+users_ids[user_select.selectedIndex],
+        success: function(message) {
+            alert(message.msg);
+            if (message.status == 1){
+                update_user_names(-1);
+            }
+        }
+    });
+}
+
 save_button.addEventListener('click', save_user);
 save_changes_button.addEventListener('click', update_user);
+reset_password_button.addEventListener('click', reset_password);
+delete_user_button.addEventListener('click', delete_user);
 user_select.addEventListener('change',function(){
     update_user_data(this.selectedIndex);
 });
