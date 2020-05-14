@@ -6,6 +6,15 @@
 
 .octopus-img {
     width: 50px;
+    border-radius: 100%;
+    border-color: blueviolet;
+    border-style: dashed;
+    /* object-fit: scale-down; */
+  }
+
+  .octopus-img:hover{
+    border-color: goldenrod;
+    border-style: dashed 5px;
     /* object-fit: scale-down; */
   }
 

@@ -12,7 +12,15 @@ var drill_down_function_name = $('#drill_down_function_name')[0];
 var drill_down_db_name = $('#drill_down_db_name')[0];
 var result_status = $('#result_status')[0];
 var result_text = $('#result_text')[0];
+var statistics = {
+  success:0,
+  warning:0,
+  fail:0,
+  error:0,
+  nodata:0
+};
 results_table_div.appendChild(results_header);
+
 // drill_down_div.appendChild(drill_down_header);
 // drill_down_div.appendChild(drill_down_function_name);
 // drill_down_div.appendChild(drill_down_run_id);
@@ -152,6 +160,11 @@ function load_results(){
             th.innerHTML = result.schema.fields[i].name;
             newRow.appendChild(th);
           }
+          statistics.success = 0;
+          statistics.warning = 0;
+          statistics.fail = 0;
+          statistics.error = 0;
+          statistics.nodata = 0;
           for(i=0;i<num_of_rows;i++){
             newRow = results_table.insertRow(-1);
             for (j=0; j<num_of_cols; j++){
@@ -163,27 +176,34 @@ function load_results(){
               else{
                 var status = result.data[i][result.schema.fields[j].name].status;
                 // var status_text = '';
+                
+
                 if(j>0){
                   switch (status) {
                     case 0:
                       status = 'No Data';
                       td.bgColor = 'blue';
+                      statistics.nodata += 1;
                       break;
                     case 1:
                       status = 'Error';
                       td.bgColor = 'gray';
+                      statistics.error += 1;
                       break;
                     case 2:
                       status = 'Fail';
                       td.bgColor = 'red';
+                      statistics.fail += 1;
                       break;
                     case 3:
                       status = 'Warning';
                       td.bgColor = 'orange';
+                      statistics.warning += 1;
                       break;
                     case 4:
                       status = 'Success';
                       td.bgColor = 'green';
+                      statistics.success += 1;
                       break;
                     default:
                       status = 'in process';
@@ -196,7 +216,11 @@ function load_results(){
               newRow.appendChild(td);
             }
           }
-          
+          ctx.hidden = false;
+          myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail
+                        ,statistics.error, statistics.nodata];
+  
+          myChart.update();
         }
       });
 }

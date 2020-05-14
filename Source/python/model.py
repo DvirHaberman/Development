@@ -170,6 +170,20 @@ class DbConnector:
         conn = DbConnector.load_conn_by_name(db_name)
         run_ids = conn.run_sql('select run_id from run_ids')
         return jsonify([int(x) for x in list(run_ids['run_id'].values)])
+
+    @staticmethod
+    def delete_conn_by_name(name):
+        try:
+            conn = DbConnections.query.filter_by(name=name).first()
+            if conn:
+                db.session.delete(conn)
+                db.session.commit()
+                return jsonify(status=1,msg='Connection ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No connection with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+    
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -391,7 +405,7 @@ class User(db.Model):
     def delete_user_by_name(name):
         try:
             user = User.query.filter_by(name=name).first()
-            if len(user)>0:
+            if user:
                 db.session.delete(user)
                 db.session.commit()
                 return jsonify(status=1,msg='User succefully deleted')
@@ -414,7 +428,7 @@ class User(db.Model):
     def reset_password_by_name(user_id):
         try:
             user = User.query.filter_by(name=name).first()
-            if len(user)>0:
+            if user:
                 user.password_sha = '123456'
                 db.session.add(user)
                 db.session.commit()
@@ -716,7 +730,7 @@ class OctopusFunction(db.Model):
     def delete_by_name(name):
         try:
             func = OctopusFunction.query.filter_by(name=name).first()
-            if len(func)>0:
+            if func:
                 db.session.delete(func)
                 db.session.commit()
                 return jsonify('Function succefully deleted')

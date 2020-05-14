@@ -2,6 +2,7 @@
 
 {% block css %}
 <link rel="stylesheet" href="../static/css/simple_run.css" />
+<link rel="stylesheet" href="../static/css/draggable_list.css">
 {% endblock %} 
 
 {% block content %}
@@ -12,35 +13,52 @@
 <br />
 <br />
 <!-- <center> -->
-    <div class="row col-10 mx-4">
+    <div dir="ltr" class="row col-10 mx-4">
         <div class="col-5 mr-auto jumbotron">
             <div class="row">
 
                 <div class="col-6">
                     <label for="database_select">select a db</label>
                     <select class ="form-control" name="databases" id="database_select">
-                        <option value="">POSTGRESQL</option>
-                        <option value="">MYSQL</option>
-                        <option value="">SQLITE</option>
-                        <option value="">ORACLE</option>
+
                     </select>
                 </div>
                 <div class="col-6">
                     <label for="run_ids_select">select a run id</label>
                     <div class="row">
                         <div>
-                            <select class ="form-control" name="run_ids" id="run_ids_select">
-                                <!-- <option value="">12121</option>
-                                <option value="">31313</option>
-                                <option value="">33333</option>
-                                <option value="">44444</option> -->
-                            </select>
+                            <input list="run_ids_datalist" class ="form-control" name="run_ids" id="run_ids_select">
+
+                            <datalist id="run_ids_datalist">
+
+                            </datalist>
                         </div>
                         <div>
                             <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_run_id_button" />
                         </div>
+                        
                     </div>
                 </div>
+                <!-- <div>
+                    <h1>DRAG AND DROP</h1>
+                    <div class="list">
+                        <input list='some_datalist' type="text" class="input" placeholder="Add items in your list"/>
+                        <span class="add"><input class="btn btn-sm btn-primary" type="button" value="add"></span>
+                        <datalist id='some_datalist'>
+                            <option value="data1"></option>
+                            <option value="data3"></option>
+                            <option value="data4"></option>
+                            <option value="data2"></option>
+                        </datalist>
+                    </div>
+                    <ul class='draggble_ul'>
+                        <li class="draggable" draggable="true">HTML</li>
+                        <li class="draggable" draggable="true">CSS</li>
+                        <li class="draggable" draggable="true">JavaScript</li>
+                        <li class="draggable" draggable="true">PHP</li>
+                        <li class="draggable" draggable="true">MySQL</li>
+                    </ul>
+                </div> -->
             </div>
             <div class="my-2">
                 <label for="run_ids_list">selected run ids:</label>   
@@ -52,7 +70,10 @@
             <label for="functions_select">select a function</label>
             <div class="row">
                 <div class="col-5">
-                    <select class ="form-control" name="functions" id="functions_select"></select>
+                    <input list="function_datalist" class ="form-control" name="functions" id="functions_select">
+                    <datalist id=function_datalist>
+
+                    </datalist>
                 </div>
                 <div>
                     <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_function_button" />
@@ -86,45 +107,53 @@
         </div>
     </div>
 </div>
-<table id="res_table"></table>
 <br />
 <br />
 <hr />
-
-<div id="results_table_div" class="ml-4">
-  <table id="results_table">
-  </table>
+<div class="row container-fluid mx-auto">
+    <div id="results_table_div" class="mr-auto col-6">
+        <table id="results_table">
+        </table>
+    </div>
+    <div class="container-fluid col-6 ml-auto mt-auto">
+        <canvas hidden="hidden" id="results_statistics_chart"></canvas>
+    </div>
 </div>
 <br>
 <br>
-<div id="drill_down_div" class="container results_divs row">
-    <div class="col-4"> 
+<div id="drill_down_div" class="container results_divs">
+    <div class="row">
+        <div class="col-6"> 
 
-   <h1 id="drill_down_header"></h1>
-    <h2 id="drill_down_db_name"></h2>
-    
-    <div class="row col-10">
-        <div class="results_divs col-5 m-2">
-            <h2 id="drill_down_function_name"></h2>
-        </div>
-        <div class="results_divs col-5 m-2">
-            <h2 id="drill_down_run_id"></h2>
-        </div>
+            <h1 id="drill_down_header"></h1>
+            <h2 id="drill_down_db_name"></h2>
+            
+            <div class="row col-10">
+                <div class="results_divs col-5 m-2">
+                    <h2 id="drill_down_function_name"></h2>
+                </div>
+                <div class="results_divs col-5 m-2">
+                    <h2 id="drill_down_run_id"></h2>
+                </div>
+            </div>
+            <div class="row col-10">
+                <div class="results_divs col-5 m-2">
+                    <h2 id="result_status"></h2>
+                </div>
+                <div class="results_divs col-5 m-2">
+                    <h2 id="result_text"></h2>
+                </div>
+            </div>
+            
+        </div> 
+        
     </div>
-    <div class="row col-10">
-        <div class="results_divs col-5 m-2">
-            <h2 id="result_status"></h2>
-        </div>
-        <div class="results_divs col-5 m-2">
-            <h2 id="result_text"></h2>
-        </div>
-    </div>
-    </div> 
     <div class="col-8" id="drill_down_table_div">
         <table id="drill_down_table">
         
         </table>
     </div>
+    
 </div>
 <br>
 <br>
@@ -134,5 +163,6 @@
 <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
 <script src="../static/js/run_simple.js"></script>
 <script src="../static/js/display_results.js"></script>
+<!-- <script src="../static/js/draggble_list.js"></script> -->
 
 {% endblock %}

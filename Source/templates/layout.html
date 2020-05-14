@@ -28,9 +28,11 @@
     ></script> -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/layout_style.css">
+    <link rel="stylesheet" href="../static/css/charts.min.css">
+    <script src="../static/js/popper.min.js"></script>
     <script src="../static/js/jquery_3_4_1_min.js"></script>
-    <!-- <script src="../static/js/popper.min.js"></script> -->
     <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/charts.bundle.js"></script>
     {% block css %}
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <link rel="stylesheet" href="../static/css/styles.css" /> -->
@@ -44,7 +46,7 @@
         <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
           <div class="col-4">
           <a class="navbar-brand" href="/welcome"
-            ><img
+            ><img data-toggle="tooltip" data-placement="left" title="Tooltip on left"
               class="octopus-img"
               src="../static/images/octopus-gentelman-1.png"
               alt=""
@@ -83,6 +85,7 @@
             {%endif%}
                 <a class="nav-link" href="run_simple">Run</a>
               </li>
+            {% if session['userrole'] =='Admin' %}
             {% if session['current_window_name']=='Define Users' %}
               <li class="nav-item active">
             {% else %}
@@ -97,6 +100,7 @@
             {%endif%}
                 <a class="nav-link" href="db_conn_wizard">Connections</a>
               </li>
+            {%endif%}
             </ul>
           </div>
         </nav>
@@ -113,5 +117,7 @@
   {% endblock %}
   {%block footer%}
   {% endblock %}
+  <script src="../static/js/layout.js"></script>
+  <script src="../static/js/run_results_charts.js"></script>
   </body>
   </html>

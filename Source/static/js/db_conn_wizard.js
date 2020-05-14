@@ -19,7 +19,9 @@ var display_controls = {
     disp_hostname : $('#disp_hostname')[0],
     disp_port : $('#disp_port')[0],
     disp_schema : $('#disp_schema')[0],
-    disp_name : $('#disp_name')[0]
+    disp_name : $('#disp_name')[0],
+    delete_connection_button : $('#delete_connection_button')[0],
+    confirm_delete_button : $('#confirm_delete_button')[0]
 }
 
 function display_conn(selected_index){
@@ -113,12 +115,41 @@ form_controls.save_button.addEventListener('click',function (){
         dataType: "json",
         data: JSON.stringify(data),
         contentType: 'application/json',
-        success: function(result) {
-          alert(result.message);
+        success: function(message) {
+        $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+        $('.alert')[0].hidden = false;
           get_conn_data();
           form_controls.save_button.disabled=false;
         }
       });
 })
+
+function delete_conn(){
+    $.ajax({
+        type: "POST",
+        url: "/api/DbConnector/delete_conn_by_name/"+ display_controls.disp_connections[display_controls.disp_connections.selectedIndex].text,
+        success: function(message) {
+            $('#dissmisable_alert_text')[0].innerHTML = message.msg;
+            $('.alert')[0].hidden = false;
+            if (message.status == 1){
+                get_conn_data();
+            }
+        }
+    });
+}
+display_controls.confirm_delete_button.addEventListener('click',delete_conn);
+
+function update_modal_text(){
+    if (display_controls.disp_connections.options.length){
+        conn_name = display_controls.disp_connections.options[display_controls.disp_connections.selectedIndex].text;
+        $('#delete_connection_modal_body')[0].innerHTML = 'Delete ' + conn_name + '?';
+    }else{
+        $('#delete_connection_modal_body')[0].innerHTML = 'Nothing to delete';
+    }
+}
+
+display_controls.delete_connection_button.addEventListener('click', update_modal_text);
+$('.alert button')[0].addEventListener('click', function(){$('.alert')[0].hidden = true;})
+
 
 get_conn_data();
