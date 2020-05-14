@@ -1,6 +1,19 @@
-{% extends "layout.html"%} {%block content%}
+{% extends "layout.html"%} 
+
+{% block css %}
+<link rel="stylesheet" href="../static/css/user_wizard.css" />
+{% endblock %} 
+
+{%block content%}
 <br />
 <br />
+<br />
+<div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+    <strong id="dissmisable_alert_text"></strong>
+    <button type="button" class="close" data-hide="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
 <div class="row mx-4 my-1">
   <div class = "col-6 mr-auto jumbotron">
     <h1>Define a New User</h1>
@@ -91,11 +104,36 @@
     </div>
     <input class="btn btn-lg btn-success mt-4" type="button" value="Save Changes" id="save_changes_button" />
     <input class="btn btn-lg btn-warning mt-4 mr-auto" type="button" value="Reset Password" id="reset_password_button" />
-    <input class="btn btn-lg btn-danger mt-4 mr-auto" type="button" value="Delete" id="delete_user_button" />
-
+    <input class="btn btn-lg btn-danger mt-4 mr-auto" type="button" value="Delete" id="delete_user_button" data-toggle="modal" data-target="#exampleModalCenter"/>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLongTitle">Confirm Delete</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" id=delete_user_modal_body>
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" id=confirm_delete_button>Confirm Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </div>
+<!-- Button trigger modal -->
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+    Launch demo modal
+  </button> -->
+  
+  <!-- Modal -->
+  
 {% endblock %} {% block scripts%}
-<script src="../static/js/jquery_3_4_1_min.js"></script>
+<!-- <script src="../static/js/jquery_3_4_1_min.js"></script> -->
 <script src="../static/js/user_wizard.js"></script>
 {% endblock %}

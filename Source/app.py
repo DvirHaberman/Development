@@ -68,8 +68,19 @@ def create_tables():
 def user_wizard():
     if session.get('username', None) is None:
         return redirect('/login_first')
+    elif not session['userrole'] == 'Admin':
+        return redirect('/whoops')
     else:
+        session['current_window_name'] = 'Define Users'
         return render_template('user_wizard.html')
+
+@app.route('/whoops')
+def whoops():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        return render_template('whoops.html')
+
 
 @app.route('/display_results')
 def display_results():
@@ -182,11 +193,13 @@ def index():
 
 @app.route('/login_first')
 def login_first():
+    session['current_window_name'] = 'Login First'
     return render_template('login_first.html')
 
 @app.route('/login')
 def login():
     if session.get('username', None) is None:
+        session['current_window_name'] = 'Login'
         return render_template('login.html')
     else:
         return redirect('/welcome')
@@ -196,6 +209,7 @@ def run_function():
     if session.get('username', None) is None:
         return redirect('/login')
     else:
+        session['current_window_name'] = 'Run Functions'
         return render_template('run_function.html')
 
 @app.route('/welcome')
@@ -203,6 +217,7 @@ def welcome():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Welcome'
         return render_template('welcome.html')
 
 
@@ -223,6 +238,7 @@ def validate_user():
         user = User.query.filter_by(name=username, password_sha=password).first()
         if user:
             session['username'] = username
+            session['userrole'] = Role.query.get(user.role).name
             return redirect('/welcome')
         else:
             flash('Invalid username or password!')
@@ -235,6 +251,7 @@ def run_simple():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Run Functions'
         return render_template('run_simple.html')
 
 
@@ -257,7 +274,10 @@ def db_conn_wizard():
     # session['password'] = 'dvirh'
     if session.get('username', None) is None:
         return redirect('/login_first')
+    elif not session['userrole'] == 'Admin':
+        return redirect('/whoops')
     else:
+        session['current_window_name'] = 'Define Connections'
         return render_template('db_conn_wizard.html')
 
 @app.route('/api/get_conn_data')
@@ -265,17 +285,17 @@ def get_conn_data():
     connections = DbConnections.query.all()
     return jsonify([conn.self_jsonify() for conn in connections])
 
-@app.route('/api/delete_connection/<string:conn_name>', methods=["POST"])
+@app.route('/api/delete_conn_by_name/<string:conn_name>', methods=["POST"])
 def delete_connection(conn_name):
     conn_to_delete = DbConnections.query.filter_by(name=conn_name).first()
     if conn_to_delete:
         try:
-            # db.session.delete(conn_to_delete)
-            # db.session.commit()
-            return jsonify(message=conn_name +' was deleted')
+            db.session.delete(conn_to_delete)
+            db.session.commit()
+            return jsonify(status=1,msg=conn_name +' was deleted')
         except Exception as error:
-            return jsonify(message='something went wrong while deleting ' +conn_name)
-    return jsonify(message='connectiong name not found')
+            return jsonify(status=0,msg='something went wrong while deleting ' +conn_name)
+    return jsonify(status=0,msg='connectiong name not found')
 
 @app.route('/api/save_connection', methods = ['POST'])
 def save_connection():
@@ -286,15 +306,16 @@ def save_connection():
     if conn.status == 'valid':
         connections = DbConnections.query.all()
         conn_data = [conn.self_jsonify() for conn in connections]
-        return jsonify(status = 1, message='connection successfuly saved!', connections=conn_data)
+        return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
     else:
-        return jsonify(status=0, message='Failed saving the connection!\n' + conn.message)
+        return jsonify(status=0, msg='Failed saving the connection!\n' + conn.message)
 
 @app.route('/Function_Definition')
 def Function_Definition():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Define Functions'
         return render_template('Function_Definition.html')
 
     # return jsonify(data = [num for num in range(10)])
@@ -304,6 +325,7 @@ def Function_Analysis():
     if session.get('username', None) is None:
         return redirect('/login_first')
     else:
+        session['current_window_name'] = 'Analysis Results'
         return render_template('Function_Analysis.html')
 
 

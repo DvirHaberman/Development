@@ -41,3 +41,12 @@ td:hover{
 .results_divs {
     text-align: center;
 }
+
+#results_table_div {
+    overflow: scroll;
+}
+
+
+#drill_down_table_div {
+    overflow: scroll;
+}

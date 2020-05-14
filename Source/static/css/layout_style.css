@@ -5,7 +5,17 @@
 }
 
 .octopus-img {
-    width: 8%;
+    width: 50px;
+    border-radius: 100%;
+    border-color: blueviolet;
+    border-style: dashed;
+    /* object-fit: scale-down; */
+  }
+
+  .octopus-img:hover{
+    border-color: goldenrod;
+    border-style: dashed 5px;
+    /* object-fit: scale-down; */
   }
 
 h6 {
@@ -17,7 +27,7 @@ h6 {
   margin: 0 10px 0;
 }
 
-#brand-image {
-  max-width:10%;
-}
+/* #window-title-div{
+  margin: auto;
+} */
 

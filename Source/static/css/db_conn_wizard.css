@@ -1,0 +1,9 @@
+.alert {
+    position: absolute;
+    left: 24px;
+    top: 76px;
+    z-index: 1;
+}
+body {
+    height: 70%;
+}
