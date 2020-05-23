@@ -1,12 +1,12 @@
 # Byte-compiled / optimized / DLL files
-Source/__pycache__/
+# Source/__pycache__/
 *.py[cod]
 *$py.class
 *.pyc
 # C extensions
 *.so
 *.cpython-37.pyc
-
+Source/python/__pycache__/model.cpython-37.pyc
 Source/python/__pycache__/
 *.py[cod]
 *$py.class
@@ -157,3 +157,4 @@ cython_debug/
 
 # static files generated from Django application using `collectstatic`
 media
+Source/python/__pycache__/model.cpython-37.pyc
