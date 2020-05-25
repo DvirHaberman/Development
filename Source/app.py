@@ -254,6 +254,22 @@ def run_simple():
         session['current_window_name'] = 'Run Functions'
         return render_template('run_simple.html')
 
+@app.route('/define_process')
+def define_process():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'Define Process'
+        return render_template('define_process.html')
+
+@app.route('/run_stage_define')
+def run_stage_define():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'Define Stage'
+        return render_template('run_stage_definition.html')
+
 
 @app.route('/api/run_queue_test')
 def run_queue_test():
