@@ -1,0 +1,120 @@
+.stage-li{
+    border-radius: 3%;
+    border: solid gray;
+    padding: 3px 4px 3px 20px;
+    font-size: 1.6rem;
+    background-color: white;
+}
+ul{
+    list-style-type: none;
+    margin: 0 16px 0 16px;
+    padding: 0;
+}
+
+.to-do-header{
+    margin: 20px 0 0 16px;
+    display: inline-block;
+    padding: 15px 0 0 0;
+}
+
+.draggable{
+    margin: 20px;
+    background-color: white;
+}
+
+.remove-stage-button{
+    background-color: white;
+}
+
+.add-stage-button{
+    background-color: whitesmoke;
+    padding: 0 10px 0 10px;
+    /* display: inline-block; */
+}
+
+.inline-div-right{
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 2.5rem;
+}
+.inline-div-left{
+    display: inline-block;
+}
+
+.to-do-row{
+    padding: 0 40px 0 16px;
+}
+
+.stage-button{
+    border-radius: 100%;
+    border: none;
+    /* color: #007bff; */
+    color: dark;
+}
+
+i{
+    margin: 0 3px 0 3px;
+}
+
+.remove-stage-button:hover{
+    background-color: #f0f0f0;
+    /* background-color: #e4e4e4; */
+    /* color: #0056b3; */
+}
+.add-stage-button:hover{
+    /* background-color: #f0f0f0; */
+    background-color: #e4e4e4;
+    /* color: #0056b3; */   
+}
+
+.stage-datalist-div{
+    border: 2px dashed #e4e4e4;
+}
+
+.new-stage-input{
+    border: none;
+    width: 95%;
+    /* max-width: 90%; */
+    /* line-height: 3rem; */
+    font-size: 1.6rem;
+    display: inline-block;
+}
+
+.serach-stage-div{
+    background-color: white;
+    border-radius: 2%;
+    border-style: dashed;
+    border-width: 3px;
+    border-color: gray;
+    margin: 0 6px 0 6px;
+    padding: 8px 0 8px 0;
+}
+.serach-stage-div:hover{
+    border-color: #0005f0;
+}
+.new-stage-input:focus {
+    outline-width: 0;
+}
+/* .new-stage-input:hover{
+    border-color: blue;
+   
+} */
+
+.buttons-div{
+    margin: 20px 16px;
+}
+
+.fa-chart-line{
+    font-size: 1.2rem;
+}
+
+.fa-search{
+    font-size: 1.6rem;
+    display: inline-block;
+    width: 5%;
+    color: dark;
+    margin-right: 0;
+}
+input::-webkit-calendar-picker-indicator {
+    display: none;
+  }

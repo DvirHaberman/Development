@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block css %}
+    <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+    <link rel="stylesheet" href="../static/css/metadata_layout.css" />
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    {% block main_form_css %}
+    {% endblock %}
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+{% endblock %}
+
+{%block content%}
+    <div class="row mx-auto layout-buttons-div">
+        <input type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
+        <a href="" role="button"><i class="far fa-save normal-size"></i></a>
+        <a href="" role="button"><i class="far fa-file-alt adapt-icon-size"></i></a>
+        <a href="" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
+    </div>
+    <div class="row mx-auto">
+        
+        <div class="meta_data card border-secondary">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-8">
+                        <label for="meta_name"><h5>Name</h5></label>
+                        <input type="text" class="form-control" id="meta_name"> 
+                    </div>
+                    <div class="col-4">
+                        <label for="meta_id"><h5>Id</h5></label>
+                        <input type="text" class="form-control" id="meta_id">
+                    </div>
+                </div>
+                {% if session['current_window_name']=='Define Stage' %}
+                <label for="meta_concequences"><h5>Concequences</h5></label>
+                <input type="text" class="form-control" id="meta_concequences">
+                {% endif %}
+                <label for="meta_owner"><h5>Owner</h5></label>
+                <input type="text" class="form-control" id="meta_owner">
+                <label for="meta_tags"><h5>Tags</h5></label>
+                <input type="text" class="form-control" id="meta_tags">
+                <label for="meta_description"><h5>Description</h5></label>
+                <textarea class="form-control" name="" id="meta_description" cols="10" rows="2"></textarea>
+            </div>
+            
+        </div>
+        <div class="main_form card border-secondary">
+            {% block main_form %}
+            {% endblock %}
+        </div>
+    </div>
+    
+  </div>
+{% endblock %}
+{%block scripts%}
+{% endblock %}
