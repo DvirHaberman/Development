@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -183,7 +183,7 @@ class DbConnector:
                 return jsonify(status=0,msg='Not deleted! No connection with this name')
         except:
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
-    
+
 ###########################################
 ########### OCTOPUSUTILS CLASS ############
 ###########################################
@@ -437,7 +437,7 @@ class User(db.Model):
                 return jsonify(status=0,msg='Not resetted! No user with this name')
         except:
             return jsonify(status=0,msg='Not resetted! Something went wrong in the reset process')
-    
+
     @staticmethod
     def reset_password_by_id(user_id):
         try:
@@ -448,7 +448,7 @@ class User(db.Model):
             return jsonify(status=1,msg='Pasword resetted')
         except:
             return jsonify(status=0,msg='Not resetted! Something went wrong in the reset process')
-    
+
     @staticmethod
     def jsonify_all():
         table = User.query.all()

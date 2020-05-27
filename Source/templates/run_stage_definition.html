@@ -14,7 +14,7 @@
                 <option value="Site3"></option>
             </select>
         </div>
-        <div class="col-2">
+        <div class="col-1">
             <label for="site_net"><h5>Net</h5></label>
             <select name="" id="site_net" class="form-control">
                 <option value="Site1"></option>
@@ -30,45 +30,131 @@
                 <option value="Site3"></option>
             </select>
         </div>
-    </div>
-    <label for="ovr_file" class="stage-def-inputs">ovr File</label>
-    <input type="text" name="" id="ovr_file" class="form-control stage-def-inputs">
-    <label for="scenario_folder" class="stage-def-inputs">Scenario Folder</label>
-    <input type="text" name="" id="scenario_folder" class="form-control stage-def-inputs">
-    <div class="row stage-def-inputs">
-        <div class="col-4">
-            <label for="secnario_file_name">Scenario File</label>
-            <input list="secnario_file_dl" type="text" name="" id="secnario_file_name">
-            <datalist id="secnario_file_dl">
+        <a href="" role="button" class = "displayInline" ><i class="fas fa-network-wired"></i></a>
+</div>
+
+<div class="row stage-def-inputs marginCard">
+
+        <div class = "col-5">
+          <label for="scenario_folder"><h5>Scenario Folder</h5></label>
+          <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control">
+          <datalist id="scenario_folder_dl">
+              <option value="scenarioFolder1"></option>
+              <option value="scenarioFolder2"></option>
+              <option value="scenarioFolder3"></option>
+          </datalist>
+
+        </div>
+
+        <div class="col-3">
+            <label for="scenario_file_name"><h5>Scenario File</h5></label>
+            <input list="scenario_file_dl" type="text" name="" id="scenario_file_name" class="form-control">
+            <datalist id="scenario_file_dl">
                 <option value="scenario1"></option>
                 <option value="scenario2"></option>
                 <option value="scenario3"></option>
             </datalist>
         </div>
+
         <div class="col-3 form-check">
+            <label><h5></h5></label>
             <input type="checkbox" class="form-check-input" id="run_all_cb">
-            <label class="form-check-label" for="run_all_cb">Run all scenarios in folder</label>
+            <label class="form-check-label" for="run_all_cb"><h6>Run All Scenarios</h6></label>
         </div>
-    </div>
-    <label for="DP_file" class="stage-def-inputs">DP File</label>
-    <input type="text" name="" id="DP_file" class="form-control stage-def-inputs">
-    <div class="row stage-def-inputs">
-        <label for="">Run time&nbsp;</label>
-        <input type="text" class="form-control">
-        <label for="">&nbsp;(min)</label>
-    </div>
-    <button class="btn btn-secondary"  data-toggle="modal" data-target="#Adnvaced_defintions_modal">Advanced...</button>
+</div>
+
+<div class="row stage-def-inputs marginCard">
+
+        <div class = "col-5">
+          <label for="dp_folder"><h5>DP Folder</h5></label>
+          <input list="dp_folder_dl" type="text" name="" id="dp_folder" class="form-control">
+          <datalist id="dp_folder_dl">
+              <option value="dpFolder1"></option>
+              <option value="dpFolder2"></option>
+              <option value="dpFolder3"></option>
+          </datalist>
+        </div>
+
+        <div class="col-3">
+          <label for="DP_file"><h5>DP File</h5></label>
+          <input list="dp_file_dl" type="text" name="" id="DP_file" class="form-control">
+          <datalist id="dp_file_dl">
+              <option value="dp1"></option>
+              <option value="dp2"></option>
+              <option value="dp3"></option>
+          </datalist>
+        </div>
+
+</div>
+
+<div class="row stage-def-inputs marginCard">
+
+        <div class = "col-5">
+          <label for="ovr_file"><h5>ovr File</h5></label>
+            <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control">
+            <datalist id="ovr_file_dl">
+                <option value="ovr_file1"></option>
+                <option value="ovr_file2"></option>
+                <option value="ovr_file3"></option>
+            </datalist>
+
+            <a href="" role="button" class = "displayInline" ><i class="far fa-eye"></i></a>
+        </div>
+
+        <!-- <div class="row stage-def-inputs"> -->
+        <div class="col-3">
+            <label for=""><h5>Run time [min]</h5></label>
+            <input type="text" class="form-control">
+        </div>
+
+        <div class="col-2" dir="ltr">
+          <button class="btn btn-secondary btn-block"  data-toggle="modal" data-target="#Adnvaced_defintions_modal">
+          <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
+
+        </div>
+
+</div>
+
+<!-- <div class="row buttons-div marginCard" dir="rtl">
+
+</div> -->
+
     <div class="modal fade" id="Adnvaced_defintions_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLongTitle">Advanced</h5>
+              <h5 class="modal-title" id="exampleModalLongTitle">Advanced Run Setting</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body" id=delete_user_modal_body>
-              
+                <div class="col-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="userAutoCmd_cb">
+                    <label class="form-check-label" for="userAutoCmd_cb"><h6>Auto User Cmd</h6></label>
+                    <input list="autoUserCmd_File_dl" type="text" name="" id="DP_file" class="form-control displayInline">
+                    <datalist id="autoUserCmd_File_dl">
+                        <option value="AutoUserCmd_File1"></option>
+                        <option value="AutoUserCmd_File2"></option>
+                        <option value="AutoUserCmd_File3"></option>
+                    </datalist>
+                    <a href="" role="button"><i class="far fa-eye"></i></a>
+                </div>
+
+                <div class="col-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="useFMC_cb">
+                    <label class="form-check-label" for="useFMC_cb"><h6>use FMC</h6></label>
+                </div>
+
+                <div class="col-10 form-check">
+                    <input type="checkbox" class="form-check-input" id="turnDownEnv_cb">
+                    <label class="form-check-label" for="turnDownEnv_cb"><h6>Turn Down Env After: </h6></label>
+                    <input type="text" class="form-control displayInline">
+
+                </div>
+
+
+
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

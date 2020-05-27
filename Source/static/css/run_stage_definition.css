@@ -1,9 +1,17 @@
 .main-selectors-div{
     margin-top: 35px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
+    /* margin-bottom: 10px; */
+    /* padding-bottom: 20px; */
 }
 
 .stage-def-inputs{
     margin-left: 10px;
+}
+
+.marginCard{
+  margin-top: 10px;
+}
+
+.displayInline{
+  display: inline-block;
 }
