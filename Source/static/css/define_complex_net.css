@@ -1,0 +1,58 @@
+.external_simulators_div, .sensors_div_line1, .sensors_div_line2{
+    margin: 20px;
+}
+
+.external_simulators_div .card-body .form-inline select{
+    margin-left: 16px;
+}
+
+.external_simulators_div .card-body .form-inline label{
+    margin-left: 16px;
+    /* width: 120px; */
+}
+
+.external_simulators_div .card-body .form-check-inline label{
+    margin-top: 5px;
+}
+
+.external_simulators_div .card-body .form-check-inline input{
+    margin-left: 16px;
+}
+
+.external_simulators_div .card-body .form-inline{
+    margin-bottom: 16px;
+}
+
+.sensors_div_line1 .card-body .form-inline select{
+    margin-left: 16px;
+}
+
+.sensors_div_line1 .card-body .form-inline label{
+    margin-left: 16px;
+    width: 30px;
+}
+
+.sensors_div_line1 .card-body .form-inline{
+    margin-bottom: 16px;
+}
+
+.card-header{
+    background-color: rgb(11, 58, 212);
+    color: white;
+}
+
+.seperator{
+    margin-top: 50px;
+    margin-bottom: 50px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.seperator .fas{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.nested-card{
+    margin-top: 16px;
+}

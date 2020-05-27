@@ -4,6 +4,11 @@
     margin-right: 10px;
     background-color: whitesmoke;
     width: 25%;
+    height: 700px;
+}
+
+.margins-bottom-medium{
+    margin-bottom: 20px;
 }
 .meta_data label{
     margin-top: 10px;

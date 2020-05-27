@@ -1,11 +1,44 @@
 .main-selectors-div{
-    margin-top: 35px;
+    margin-top: 15px;
     /* margin-bottom: 10px; */
     /* padding-bottom: 20px; */
 }
 
 .stage-def-inputs{
-    margin-left: 10px;
+    margin-left: 30px;
+    margin-bottom: 30px;
+}
+
+.extra-margin{
+  margin-left: 26px;
+}
+
+.medium-icon{
+  font-size: 3rem;
+}
+
+.samll-margin{
+  margin-left: 16px;
+}
+
+.medium-margin-right{
+  margin-right: 26px;
+}
+
+.rightmost-control{
+  margin-left: auto;
+}
+
+.green-control{
+  color: greenyellow;
+}
+
+.red-control{
+  color: red;
+}
+
+.stage-headline{
+  padding-top: 16px;
 }
 
 .marginCard{
@@ -14,4 +47,13 @@
 
 .displayInline{
   display: inline-block;
+}
+
+.align-form-label{
+  margin-top: 5px;
+  margin-right: 10px;
+}
+
+.modal-body input{
+  margin-bottom: 10px;
 }
