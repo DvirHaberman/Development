@@ -4,6 +4,9 @@
     /* padding-bottom: 20px; */
 }
 
+.add{
+  display: inline-block;
+}
 .stage-def-inputs{
     margin-left: 30px;
     margin-bottom: 30px;
@@ -56,4 +59,67 @@
 
 .modal-body input{
   margin-bottom: 10px;
+}
+
+.seperator{
+  margin-top: 20px;
+    /* margin-bottom: 20px; */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    color: chocolate;
+}
+
+/* .seperators-div{
+  margin-top: 100px;
+  /* margin-bottom: auto; */
+
+/* } */
+
+.toggle.ios, .toggle-on.ios, .toggle-off.ios { 
+  border-radius: 20px; 
+  display: block;
+  margin-bottom: 15px;
+  margin-left: 25px;
+  margin-top: 20px;
+}
+
+.toggle-off { 
+  background-color: gainsboro; 
+}
+.toggle.ios .toggle-handle { 
+  border-radius: 20px; 
+  display: block;
+  margin-bottom: 15px;
+  /* margin-top: 25px; */
+  /* margin-left: 15px; */
+}
+
+.display-block{
+  display: block;
+}
+
+.drag_to_remove{
+  font-size: 2rem;
+  margin-top: 25px;
+  margin-left: 30px;
+  /* padding: 0 ; */
+}
+
+.drag_to_remove:hover{
+  scale: 1.1;
+  border: 1px dashed dark;
+}
+
+.draagable-ul-title{
+  margin-top: 25px;
+}
+
+.main-form-small{
+  height: 500px;
+}
+
+.list-div{
+  overflow-y: scroll;
+  height: 300px;
 }

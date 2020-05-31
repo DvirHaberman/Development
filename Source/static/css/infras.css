@@ -1,0 +1,93 @@
+
+.main_form{
+    padding: 20px 0;
+}
+
+.layout-buttons-div{
+    margin-bottom: 20px;
+}
+
+.normal-size{
+    font-size: 2.5rem;
+    margin-left: 20px;
+    color: black;
+}
+
+.adapt-icon-size{
+    font-size: 2.2rem;
+    margin-left: 20px;
+    color: black;
+    margin-top: 2px;
+}
+
+.main_form{
+    background-color: whitesmoke;
+    /* width: 73%; */
+    margin-left: auto;
+}
+
+span.toggle-handle.btn.btn-default {
+    background-color: whitesmoke;
+}
+
+hr{
+    width: 70%;
+    height: 5px;
+    background-color: whitesmoke;
+    border-style: dashed;
+    border-color: gray;
+    box-sizing: 10px 0 0 0 ;
+    margin: 50px auto;
+}
+
+.form-inline{
+    margin-left: 40px;
+    margin-top: 20px;
+}
+
+.medium-margin{
+    margin-left: 20px;
+}
+
+#output-dir{
+    width: 40%;
+}
+
+.layout-buttons-div{
+    margin-left: 40px;
+    margin-top: 20px;
+}
+
+.seperator{
+margin-top: 20px;
+    /* margin-bottom: 20px; */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    color: chocolate;
+}
+
+.seperators-div{
+margin-top: 100px;
+width: 50px;
+}
+
+.site-data-div .first-column h3{
+    width: 140px;
+}
+
+.site-data-div .first-column h5{
+    width: 140px;
+}
+
+.site-data-div .second-column h3{
+    width: 180px;
+}
+
+.site-data-div .second-column h5{
+    width: 180px;
+}
+
+.site-data-div .second-column input[type=text]{
+    width: 120px;
+}

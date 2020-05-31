@@ -279,6 +279,14 @@ def define_complex_net():
         session['current_window_name'] = 'Define Complex Net'
         return render_template('define_complex_net.html')
 
+@app.route('/infras')
+def infras():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'Infras'
+        return render_template('infras.html')
+
 
 @app.route('/api/run_queue_test')
 def run_queue_test():

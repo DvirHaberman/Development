@@ -1,0 +1,44 @@
+<div  id="analyse_stage_div">
+    <div class="form-inline">
+      <h2 class="mx-auto stage-headline displayInline">Analyse Stage</h2>
+      <!-- <a href="" role="button" class = "displayInline medium-margin-right medium-icon" ><i class="fas fa-check-circle green-control"></i></a> -->
+    </div>
+    <hr>
+    <div class="row mr-3">
+      <div class="col-5">
+        <input class="display-block" type="checkbox" checked data-toggle="toggle" data-on="Group" data-off="Function" data-style="ios">
+        <!-- <h1>Select a group</h1> -->
+        <div class="list" >
+          <div>
+            <input list='some_datalist' type="text" class="input" placeholder="Add a group to your list"/>
+            <div class="add"><input class="btn btn-sm btn-primary" type="button" value="add"></div>
+          </div>
+            <datalist id='some_datalist'>
+                <option value="data1"></option>
+                <option value="data3"></option>
+                <option value="data4"></option>
+                <option value="data2"></option>
+            </datalist>
+        </div>
+      </div>
+      <div class="col-1 seperators-div">
+        <i class="fas fa-circle seperator"></i>
+        <i class="fas fa-circle seperator"></i>
+        <i class="fas fa-circle seperator"></i>
+      </div>
+      <div class="col-5 mx-auto">
+        <label for="chosen_list" class="draagable-ul-title"><h5>Chosen list:</h5></label>
+        <ul class='draggble_ul list-div' id="chosen_list">
+            <li class="draggable" draggable="true">HTML</li>
+            <li class="draggable" draggable="true">CSS</li>
+            <li class="draggable" draggable="true">JavaScript</li>
+            <li class="draggable" draggable="true">PHP</li>
+            <li class="draggable" draggable="true">MySQL</li>
+        </ul>
+      </div>
+      <div class="col-1">
+        <a href="" role="button" class="drag_to_remove"><i class="far fa-trash-alt"></i></a>
+      </div>
+    </div>
+  </div>
+  

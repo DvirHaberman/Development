@@ -2,9 +2,11 @@
 
 {% block main_form_css %}
 <link rel="stylesheet" href="../static/css/run_stage_definition.css">
+<link rel="stylesheet" href="../static/css/draggable_list.css">
 {% endblock %}
 
 {% block main_form %}
+<div id="run_stage_div" hidden="hidden">
     <div class="form-inline">
       <h2 class="mx-auto stage-headline displayInline"> Run System Stage</h2>
       <a href="" role="button" class = "displayInline medium-margin-right medium-icon" ><i class="fas fa-check-circle green-control"></i></a>
@@ -42,99 +44,140 @@
         
     </div>
 
-<div class="row stage-def-inputs marginCard">
+    <div class="row stage-def-inputs marginCard">
 
-        <div class = "col-5">
-          <label for="scenario_folder"><h5>Scenario Folder</h5></label>
-          <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control">
-          <datalist id="scenario_folder_dl">
-              <option value="scenarioFolder1"></option>
-              <option value="scenarioFolder2"></option>
-              <option value="scenarioFolder3"></option>
-          </datalist>
-
-        </div>
-
-        <div class="col-7">
-          <label for="scenario_file_name"><h5>Scenario File</h5></label>
-          <div class="form-inline">
-            <input list="scenario_file_dl" type="text" name="" id="scenario_file_name" class="form-control">
-            <div class="form-check-inline extra-margin">
-                <label><h5></h5></label>
-                <input type="checkbox" class="form-check-input" id="run_all_cb">
-                <label class="form-check-label" for="run_all_cb"><h5>Run All Scenarios</h5></label>
-            </div>
-          </div>
-          <datalist id="scenario_file_dl">
-              <option value="scenario1"></option>
-              <option value="scenario2"></option>
-              <option value="scenario3"></option>
-          </datalist>
-        </div>
-
-        <!-- <div class="col-3 form-check">
-            <label><h5></h5></label>
-            <input type="checkbox" class="form-check-input" id="run_all_cb">
-            <label class="form-check-label" for="run_all_cb"><h6>Run All Scenarios</h6></label>
-        </div> -->
-</div>
-
-<div class="row stage-def-inputs marginCard">
-
-        <div class = "col-5">
-          <label for="dp_folder"><h5>DP Folder</h5></label>
-          <input list="dp_folder_dl" type="text" name="" id="dp_folder" class="form-control">
-          <datalist id="dp_folder_dl">
-              <option value="dpFolder1"></option>
-              <option value="dpFolder2"></option>
-              <option value="dpFolder3"></option>
-          </datalist>
-        </div>
-
-        <div class="col-5">
-          <label for="DP_file"><h5>DP File</h5></label>
-          <div class="form-inline">
-            <input list="dp_file_dl" type="text" name="" id="DP_file" class="form-control">
-            <button hidden="hidden"></button>
-          </div>
-          <datalist id="dp_file_dl">
-              <option value="dp1"></option>
-              <option value="dp2"></option>
-              <option value="dp3"></option>
-          </datalist>
-        </div>
-
-</div>
-
-<div class="row stage-def-inputs marginCard">
-        <div class = "col-5">
-          <label for="ovr_file"><h5>ovr File</h5></label>
-            <div class="form-inline">
-              <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control col-10">
-              <datalist id="ovr_file_dl">
-                  <option value="ovr_file1"></option>
-                  <option value="ovr_file2"></option>
-                  <option value="ovr_file3"></option>
+            <div class = "col-5">
+              <label for="scenario_folder"><h5>Scenario Folder</h5></label>
+              <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control">
+              <datalist id="scenario_folder_dl">
+                  <option value="scenarioFolder1"></option>
+                  <option value="scenarioFolder2"></option>
+                  <option value="scenarioFolder3"></option>
               </datalist>
 
-              <a href="" role="button" class = "displayInline samll-margin" ><i class="far fa-eye"></i></a>
             </div>
-        </div>
-        <!-- <div class="row stage-def-inputs"> -->
-        <div class="col-5">
-            <label for=""><h5>Run time [min]</h5></label>
-            <div class = "form-inline">
-              <input type="text" class="form-control">
-              <button class="btn btn-secondary btn-sm rightmost-control"  data-toggle="modal" data-target="#Adnvaced_defintions_modal">
-              <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
-            </div>
-        </div>
 
+            <div class="col-7">
+              <label for="scenario_file_name"><h5>Scenario File</h5></label>
+              <div class="form-inline">
+                <input list="scenario_file_dl" type="text" name="" id="scenario_file_name" class="form-control">
+                <div class="form-check-inline extra-margin">
+                    <label><h5></h5></label>
+                    <input type="checkbox" class="form-check-input" id="run_all_cb">
+                    <label class="form-check-label" for="run_all_cb"><h5>Run All Scenarios</h5></label>
+                </div>
+              </div>
+              <datalist id="scenario_file_dl">
+                  <option value="scenario1"></option>
+                  <option value="scenario2"></option>
+                  <option value="scenario3"></option>
+              </datalist>
+            </div>
+
+            <!-- <div class="col-3 form-check">
+                <label><h5></h5></label>
+                <input type="checkbox" class="form-check-input" id="run_all_cb">
+                <label class="form-check-label" for="run_all_cb"><h6>Run All Scenarios</h6></label>
+            </div> -->
+    </div>
+
+    <div class="row stage-def-inputs marginCard">
+
+            <div class = "col-5">
+              <label for="dp_folder"><h5>DP Folder</h5></label>
+              <input list="dp_folder_dl" type="text" name="" id="dp_folder" class="form-control">
+              <datalist id="dp_folder_dl">
+                  <option value="dpFolder1"></option>
+                  <option value="dpFolder2"></option>
+                  <option value="dpFolder3"></option>
+              </datalist>
+            </div>
+
+            <div class="col-5">
+              <label for="DP_file"><h5>DP File</h5></label>
+              <div class="form-inline">
+                <input list="dp_file_dl" type="text" name="" id="DP_file" class="form-control">
+                <button hidden="hidden"></button>
+              </div>
+              <datalist id="dp_file_dl">
+                  <option value="dp1"></option>
+                  <option value="dp2"></option>
+                  <option value="dp3"></option>
+              </datalist>
+            </div>
+
+    </div>
+
+    <div class="row stage-def-inputs marginCard">
+            <div class = "col-5">
+              <label for="ovr_file"><h5>ovr File</h5></label>
+                <div class="form-inline">
+                  <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control col-10">
+                  <datalist id="ovr_file_dl">
+                      <option value="ovr_file1"></option>
+                      <option value="ovr_file2"></option>
+                      <option value="ovr_file3"></option>
+                  </datalist>
+
+                  <a href="" role="button" class = "displayInline samll-margin" ><i class="far fa-eye"></i></a>
+                </div>
+            </div>
+            <!-- <div class="row stage-def-inputs"> -->
+            <div class="col-5">
+                <label for=""><h5>Run time [min]</h5></label>
+                <div class = "form-inline">
+                  <input type="text" class="form-control">
+                  <button class="btn btn-secondary btn-sm rightmost-control"  data-toggle="modal" data-target="#Adnvaced_defintions_modal">
+                  <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
+                </div>
+            </div>
+
+    </div>
 </div>
 
-<!-- <div class="row buttons-div marginCard" dir="rtl">
-
-</div> -->
+<div  id="analyse_stage_div">
+  <div class="form-inline">
+    <h2 class="mx-auto stage-headline displayInline">Analyse Stage</h2>
+    <!-- <a href="" role="button" class = "displayInline medium-margin-right medium-icon" ><i class="fas fa-check-circle green-control"></i></a> -->
+  </div>
+  <hr>
+  <div class="row mr-3">
+    <div class="col-5">
+      <input class="display-block" type="checkbox" checked data-toggle="toggle" data-on="Group" data-off="Function" data-style="ios">
+      <!-- <h1>Select a group</h1> -->
+      <div class="list" >
+        <div>
+          <input list='some_datalist' type="text" class="input" placeholder="Add a group to your list"/>
+          <div class="add"><input class="btn btn-sm btn-primary" type="button" value="add"></div>
+        </div>
+          <datalist id='some_datalist'>
+              <option value="data1"></option>
+              <option value="data3"></option>
+              <option value="data4"></option>
+              <option value="data2"></option>
+          </datalist>
+      </div>
+    </div>
+    <div class="col-1 seperators-div">
+      <i class="fas fa-circle seperator"></i>
+      <i class="fas fa-circle seperator"></i>
+      <i class="fas fa-circle seperator"></i>
+    </div>
+    <div class="col-5 mx-auto">
+      <label for="chosen_list" class="draagable-ul-title"><h5>Chosen list:</h5></label>
+      <ul class='draggble_ul list-div' id="chosen_list">
+          <li class="draggable" draggable="true">HTML</li>
+          <li class="draggable" draggable="true">CSS</li>
+          <li class="draggable" draggable="true">JavaScript</li>
+          <li class="draggable" draggable="true">PHP</li>
+          <li class="draggable" draggable="true">MySQL</li>
+      </ul>
+    </div>
+    <div class="col-1">
+      <a href="" role="button" class="drag_to_remove"><i class="far fa-trash-alt"></i></a>
+    </div>
+  </div>
+</div>
 
     <div class="modal fade" id="Adnvaced_defintions_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -188,4 +231,8 @@
           </div>
         </div>
       </div>
+    {% endblock %}
+
+    {% block main_form_scripts%}
+      <script src="../static/js/draggble_list.js"></script>
     {% endblock %}
