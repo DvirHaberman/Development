@@ -24,6 +24,10 @@
     background-color: whitesmoke;
     /* width: 73%; */
     margin-left: auto;
+    background-clip: border-box;
+    border: 2px solid rgba(0,0,0,.125);
+    border-radius: .25rem;
+    margin-bottom: 40px;
 }
 
 span.toggle-handle.btn.btn-default {
