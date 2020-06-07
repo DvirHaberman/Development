@@ -11,8 +11,9 @@ app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1
@@ -136,16 +137,16 @@ def collect_data():
     collector.get_groups()
     return 'done'
 
-@app.route('/init_workers', methods=['GET','POST'])
-def init_workers():
-    processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, update_event, pipes_dict)
-    # t=Thread(target=threaded_app)
-    # t.start()
-    # threaded_app(db)
-        # p=Process(target=init_proccesses)
-        # p.start()
-    return 'done'
+# @app.route('/init_workers', methods=['GET','POST'])
+# def init_workers():
+#     processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+#                  tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, update_event, pipes_dict)
+#     # t=Thread(target=threaded_app)
+#     # t.start()
+#     # threaded_app(db)
+#         # p=Process(target=init_proccesses)
+#         # p.start()
+#     return 'done'
 
 @app.route('/api/update_tests_params', methods=['GET','POST'])
 def update_tests_params():
@@ -365,14 +366,24 @@ def Function_Analysis():
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])
 def api_methods_with_args(class_name,class_method,args):
+    try:
+        data = request.get_json()
+    except:
+        data = None
     module = importlib.import_module('python.model')
     req_class = getattr(module,class_name)
     class_method = getattr(req_class, class_method)
     method_args = [arg for arg in args.split(',')]
     if type(method_args) == type([1]):
-        return class_method(*method_args)
+        if data:
+            return class_method(*method_args, data)
+        else:
+            return class_method(*method_args)
     else:
-        return class_method(method_args)
+        if data:
+            return class_method(method_args, data)
+        else:
+            return class_method(method_args)
 
 
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])
@@ -383,14 +394,17 @@ def api_methods_no_args(class_name,class_method):
     except:
         data = None
     # print(data)
-    module = importlib.import_module('python.model')
-    req_class = getattr(module,class_name)
-    class_method = getattr(req_class, class_method)
-    if data:
-        return class_method(data)
-    else:
-        return class_method()
-
+    try:
+        module = importlib.import_module('python.model')
+        req_class = getattr(module,class_name)
+        class_method = getattr(req_class, class_method)
+        if data:
+            return class_method(data)
+        else:
+            return class_method()
+    except:
+        db.session.close()
+        return jsonify(status=0, message='something went wrong')
 
 @app.route('/api', methods = ['GET','POST'])
 def api():

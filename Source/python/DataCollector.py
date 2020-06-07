@@ -60,10 +60,12 @@ class DataCollector():
                 )
                 db.session.add(func)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the functions table')
-
+        finally:
+            db.session.close()
+        
     def get_function_params(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'function_parameters')
         try:
@@ -77,25 +79,28 @@ class DataCollector():
                 )
                 db.session.add(param)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the function param table')
-
+        finally:
+            db.session.close()
 
     def get_projects(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Projects')
         try:
             for index, row in df.iterrows():
                 project = Project(
-                    name=row.project_name,
-                    version=row.version
+                    name=row.project_name
+                    # version=row.version
                 )
                 db.session.add(project)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the projects table')
-
+        finally:
+            db.session.close()
+        
     def get_users(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Users')
         try:
@@ -113,53 +118,59 @@ class DataCollector():
                 )
                 db.session.add(user)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the users table')
-
+        finally:
+            db.session.close()
 
     def get_teams(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Teams')
         try:
             for index, row in df.iterrows():
                 team = Team(
-                    name=row.team_name,
+                    name=row.team_name
                 )
                 db.session.add(team)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the team table')
-
+        finally:
+            db.session.close()
 
     def get_roles(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Roles')
         try:
             for index, row in df.iterrows():
                 role = Role(
-                    name=row.role_name,
+                    name=row.role_name
                 )
                 db.session.add(role)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the role table')
-    
+        finally:
+            db.session.close()
+        
     def get_tree_names(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Trees')
         try:
             for index, row in df.iterrows():
                 tree = Trees(
                     name = row.name,
-                    function = row.function,
+                    function = row.function
                     # nodes = row.nodes
                 )
                 db.session.add(tree)
             db.session.commit()
-        except():
+        except:
             print(
                 'problem in DataCollector - something went wrong with creating the Trees table')
-    
+        finally:
+            db.session.close()
+        
     def get_trees_structures(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'TreeStructre')
         try:
@@ -176,7 +187,9 @@ class DataCollector():
         except():
             print(
                 'problem in DataCollector - something went wrong with creating the TreeStructure table')
-
+        finally:
+            db.session.close()
+            
     def get_groups(self):
         df = pd.read_excel(self.mockup_db_file_handler, 'Groups')
         try:
@@ -200,3 +213,5 @@ class DataCollector():
         except():
             print(
                 'problem in DataCollector - something went wrong with creating the Trees table')
+        finally:
+            db.session.close()

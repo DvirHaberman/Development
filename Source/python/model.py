@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -364,7 +364,7 @@ class User(db.Model):
             functions=jsonify([func.self_jsonify()
                                for func in self.functions]).json,
             max_priority=self.max_priority,
-            project=Project.query.get(self.project).name +' - ' + Project.query.get(self.project).version
+            project=Project.query.get(self.project).name
         ).json
 
     @staticmethod
@@ -384,7 +384,7 @@ class User(db.Model):
             k+=1
         team_id = Team.query.filter_by(name=data['team']).first().id
         role_id = Role.query.filter_by(name=data['role']).first().id
-        project_id = Project.query.filter_by(name=data['project'].split(' - ')[0], version = data['project'].split(' - ')[1]).first().id
+        project_id = Project.query.filter_by(name=data['project']).first().id
         user = User(name=data['first_name']+data['last_name'][:k+1], first_name=data['first_name'], last_name=data['last_name'], password_sha='123456', state=0,
                  role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), project=project_id)
         db.session.add(user)
@@ -397,7 +397,7 @@ class User(db.Model):
         user.max_priority = data['max_priority']
         user.team = Team.query.filter_by(name=data['team']).first().id
         user.role = Role.query.filter_by(name=data['role']).first().id
-        user.project = Project.query.filter_by(name=data['project'].split(' - ')[0], version = data['project'].split(' - ')[1]).first().id
+        user.project = Project.query.filter_by(name=data['project']).first().id
         db.session.add(user)
         db.session.commit()
         return jsonify(status=1,msg='user updated!')
@@ -492,25 +492,28 @@ class Project(db.Model):
     __tablename__ = 'Project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    version = db.Column(db.Text)
+    outpud_dir = db.Column(db.Text)
     users = db.relationship('User', backref='Project', lazy=True)
+    sites = db.relationship('Site', backref='Project', lazy=True)
 
-    def __init__(self, name=None, version=None, users=[]):
+    def __init__(self, name=None, version=None, users=[], sites=[]):
         self.name = name
-        self.version = version
+        # self.version = version
         self.users = users
+        self.sites = sites
 
     def self_jsonify(self):
         return jsonify(
             name=self.name,
-            version=self.version,
-            users=jsonify([user.self_jsonify() for user in self.users]).json
+            # version=self.version,
+            users=jsonify([user.self_jsonify() for user in self.users]).json,
+            sites=jsonify([site.self_jsonify() for site in self.sites]).json
         ).json
 
     @staticmethod
     def get_names():
-        projects = Project.query.with_entities(Project.name, Project.version).all()
-        names = [proj.name+' - '+proj.version for proj in projects]
+        projects = Project.query.with_entities(Project.name).all()
+        names = [proj.name for proj in projects]
         return jsonify(names)
 #####################################################
 ######### FunctionParameters MODEL CLASS ############
@@ -1419,3 +1422,222 @@ class ResultArray(db.Model):
             col29 =self.col29,
             col30 =self.col30
         ).json
+
+
+class Site(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    name = db.Column(db.Text)
+    version = db.Column(db.Text)
+    is_active = db.Column(db.Integer)
+    site_ip = db.Column(db.Text)
+    site_db_ip = db.Column(db.Text)
+    execrsice_site_ip = db.Column(db.Text)
+    execrsice_db_ip = db.Column(db.Text)
+    auto_data_site_ip = db.Column(db.Text)
+    auto_data_db_ip = db.Column(db.Text)
+    nets =db.Column(db.Text)
+    stations = db.Column(db.Text)
+    changed_date = db.Column(db.DateTime)
+    changed_by = db.Column(db.Integer)
+
+    def __init__(self, project_id, name, version, is_active, site_ip, site_db_ip,
+                 execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
+                 auto_data_db_ip, nets, stations, changed_by):
+        self.project_id = project_id
+        self.name = name
+        self.version = version
+        self.is_active = is_active
+        self.site_ip = site_ip
+        self.site_db_ip = site_db_ip
+        self.execrsice_site_ip = execrsice_site_ip
+        self.execrsice_db_ip = execrsice_db_ip
+        self.auto_data_site_ip = auto_data_site_ip
+        self.auto_data_db_ip = auto_data_db_ip
+        self.nets = nets
+        self.stations = stations
+        self.changed_date = datetime.utcnow()
+        self.changed_by = changed_by
+    
+    def self_jsonify(self):
+        return jsonify(
+                project_id = self.project_id,
+                name = self.name,
+                version = self.version,
+                is_active = self.is_active,
+                site_ip = self.site_ip,
+                site_db_ip = self.site_db_ip,
+                execrsice_site_ip = self.execrsice_site_ip,
+                execrsice_db_ip = self.execrsice_db_ip,
+                auto_data_site_ip = self.auto_data_site_ip,
+                auto_data_db_ip = self.auto_data_db_ip,
+                nets = self.nets,
+                stations = self.stations,
+                changed_date = self.changed_date,
+                changed_by = self.changed_by
+            ).json
+    
+    @staticmethod
+    def get_names():
+        try:
+            names = Site.query.with_entities(Site.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def get_by_id(site_id):
+        try:
+            site = Site.query.get(int(site_id))
+            return jsonify(status=1, message=None, data=site.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def get_by_name(site_name):
+        try:
+            site = Site.query.filter_by(name=site_name).first()
+            return jsonify(status=1, message=None, data=site.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+    
+    @staticmethod
+    def save(json_data):
+        try:
+            if json_data['name'] in [site.name for site in Site.query.all()]:
+                return jsonify(status=0, message='Not saved! a site with this name already exist')
+            project_id = json_data['project_id'] 
+            name = json_data['name']
+            version = json_data['version']
+            is_active = json_data['is_active']
+            site_ip = json_data['site_ip']
+            site_db_ip = json_data['site_db_ip']
+            execrsice_site_ip = json_data['execrsice_site_ip']
+            execrsice_db_ip = json_data['execrsice_db_ip']
+            auto_data_site_ip = json_data['auto_data_site_ip']
+            auto_data_db_ip = json_data['auto_data_db_ip']
+            nets = json_data['nets']
+            stations = json_data['stations']
+            changed_date = datetime.utcnow()
+            changed_by = User.query.filter_by(name=json_data['changed_by']).first().id
+            
+            site = Site(project_id, name, version, is_active, site_ip, site_db_ip,
+                    execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
+                    auto_data_db_ip, nets, stations, changed_by)
+            
+            db.session.add(site)
+            db.session.commit()
+            
+            return jsonify(status= 1, message='site '  + site.name + ' succesfully saved')
+        except Exception as error:
+            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            site = Site.query.filter_by(name=name).first()
+            if site:
+                db.session.delete(site)
+                db.session.commit()
+                return jsonify(status=1,msg='site ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No site with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def delete_by_id(site_id):
+        try:
+            site = Site.query.get(int(site_id))
+            if site:
+                db.session.delete(site)
+                db.session.commit()
+                return jsonify(status=1,msg='site ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No site with this id')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            site = Site.query.filter_by(name=name).first()
+            if site:
+                site.project_id = json_data['project_id'] 
+                site.name = json_data['name']
+                site.version = json_data['version']
+                site.is_active = json_data['is_active']
+                site.site_ip = json_data['site_ip']
+                site.site_db_ip = json_data['site_db_ip']
+                site.execrsice_site_ip = json_data['execrsice_site_ip']
+                site.execrsice_db_ip = json_data['execrsice_db_ip']
+                site.auto_data_site_ip = json_data['auto_data_site_ip']
+                site.auto_data_db_ip = json_data['auto_data_db_ip']
+                site.nets = json_data['nets']
+                site.stations = json_data['stations']
+                site.changed_date = datetime.utcnow()
+                
+                user_id = User.query.filter_by(name=json_data['changed_by']).first().id
+                if user_id:
+                    site.changed_by = user_id 
+                else:
+                    return jsonify(status=0,msg='Not updated! No user with given name')
+                db.session.add(site)
+                db.session.commit()
+                return jsonify(status=1,msg='site ' + site.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No site with this name')
+            
+            
+            return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def update_by_id(site_id, json_data):
+        try:
+            site = Site.query.get(int(site_id))
+            if site:
+                site.project_id = json_data['project_id'] 
+                site.name = json_data['name']
+                site.version = json_data['version']
+                site.is_active = json_data['is_active']
+                site.site_ip = json_data['site_ip']
+                site.site_db_ip = json_data['site_db_ip']
+                site.execrsice_site_ip = json_data['execrsice_site_ip']
+                site.execrsice_db_ip = json_data['execrsice_db_ip']
+                site.auto_data_site_ip = json_data['auto_data_site_ip']
+                site.auto_data_db_ip = json_data['auto_data_db_ip']
+                site.nets = json_data['nets']
+                site.stations = json_data['stations']
+                site.changed_date = datetime.utcnow()
+                
+                user_id = User.query.filter_by(name=json_data['changed_by']).first().id
+                if user_id:
+                    site.changed_by = user_id 
+                else:
+                    return jsonify(status=0,msg='Not updated! No user with given name')
+                db.session.add(site)
+                db.session.commit()
+                return jsonify(status=1,msg='site ' + site.name + ' succefully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No site with this name')
+            return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
+        except Exception as error:
+            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
