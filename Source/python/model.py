@@ -492,29 +492,143 @@ class Project(db.Model):
     __tablename__ = 'Project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    outpud_dir = db.Column(db.Text)
+    output_dir = db.Column(db.Text)
     users = db.relationship('User', backref='Project', lazy=True)
     sites = db.relationship('Site', backref='Project', lazy=True)
 
-    def __init__(self, name=None, version=None, users=[], sites=[]):
+    def __init__(self, name, output_dir, users=[], sites=[]):
         self.name = name
         # self.version = version
+        self.output_dir = output_dir
         self.users = users
         self.sites = sites
 
     def self_jsonify(self):
         return jsonify(
+            id=self.id,
             name=self.name,
-            # version=self.version,
-            users=jsonify([user.self_jsonify() for user in self.users]).json,
+            output_dir=self.output_dir,
+            users=jsonify([user.name for user in self.users]).json,
             sites=jsonify([site.self_jsonify() for site in self.sites]).json
         ).json
 
     @staticmethod
     def get_names():
-        projects = Project.query.with_entities(Project.name).all()
-        names = [proj.name for proj in projects]
-        return jsonify(names)
+        try:
+            names = Project.query.with_entities(Project.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def get_by_id(project_id):
+        try:
+            project = Project.query.get(int(project_id))
+            return jsonify(status=1, message=None, data=project.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def get_by_name(project_id):
+        try:
+            project = Project.query.filter_by(name=project_id).first()
+            return jsonify(status=1, message=None, data=project.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+    
+    @staticmethod
+    def save(json_data):
+        try:
+            if json_data['name'] in [project.name for project in Project.query.all()]:
+                return jsonify(status=0, message='Not saved! a project with this name already exist')
+            name = json_data['name']
+            output_dir = json_data['output_dir']
+            project = Project(name, output_dir)
+            
+            db.session.add(project)
+            db.session.commit()
+            
+            return jsonify(status= 1, message='project '  + project.name + ' succesfully saved')
+        except Exception as error:
+            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            project = Project.query.filter_by(name=name).first()
+            if project:
+                db.session.delete(project)
+                db.session.commit()
+                return jsonify(status=1,msg='project ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No project with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def delete_by_id(project_id):
+        try:
+            project = Project.query.get(int(project_id))
+            if site:
+                db.session.delete(project)
+                db.session.commit()
+                return jsonify(status=1,msg='project ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No project with this id')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            project = Project.query.filter_by(name=name).first()
+            if project:
+                project.output_dir = json_data['output_dir'] 
+                project.name = json_data['name']
+                
+                db.session.add(project)
+                db.session.commit()
+                return jsonify(status=1,msg='project ' + project.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No project with this name')
+            
+            
+            return jsonify(status= 1, message='project '  + project.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+            
+    @staticmethod
+    def update_by_id(project_id, json_data):
+        try:
+            project = Site.query.get(int(project_id))
+            if project:
+                project.output_dir = json_data['output_dir'] 
+                project.name = json_data['name']
+                
+                db.session.add(project)
+                db.session.commit()
+                return jsonify(status=1,msg='project ' + project.name + ' succefully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No project with this name')
+            return jsonify(status= 1, message='project '  + project.name + ' succesfully updated')
+        except Exception as error:
+            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
 #####################################################
 ######### FunctionParameters MODEL CLASS ############
 #####################################################
@@ -1460,6 +1574,14 @@ class Site(db.Model):
         self.changed_by = changed_by
     
     def self_jsonify(self):
+        if self.changed_by:
+            user = User.query.get(self.changed_by)
+            if user:
+                user_name = user.name
+            else:
+                user_name = None
+        else:
+            user_name = None
         return jsonify(
                 project_id = self.project_id,
                 name = self.name,
@@ -1474,7 +1596,7 @@ class Site(db.Model):
                 nets = self.nets,
                 stations = self.stations,
                 changed_date = self.changed_date,
-                changed_by = self.changed_by
+                changed_by = user_name
             ).json
     
     @staticmethod
