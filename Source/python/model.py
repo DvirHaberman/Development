@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -1458,7 +1458,7 @@ class Site(db.Model):
         self.stations = stations
         self.changed_date = datetime.utcnow()
         self.changed_by = changed_by
-    
+
     def self_jsonify(self):
         return jsonify(
                 project_id = self.project_id,
@@ -1476,7 +1476,7 @@ class Site(db.Model):
                 changed_date = self.changed_date,
                 changed_by = self.changed_by
             ).json
-    
+
     @staticmethod
     def get_names():
         try:
@@ -1486,7 +1486,7 @@ class Site(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-            
+
     @staticmethod
     def get_by_id(site_id):
         try:
@@ -1496,7 +1496,7 @@ class Site(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-            
+
     @staticmethod
     def get_by_name(site_name):
         try:
@@ -1506,13 +1506,13 @@ class Site(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-    
+
     @staticmethod
     def save(json_data):
         try:
             if json_data['name'] in [site.name for site in Site.query.all()]:
                 return jsonify(status=0, message='Not saved! a site with this name already exist')
-            project_id = json_data['project_id'] 
+            project_id = json_data['project_id']
             name = json_data['name']
             version = json_data['version']
             is_active = json_data['is_active']
@@ -1526,20 +1526,20 @@ class Site(db.Model):
             stations = json_data['stations']
             changed_date = datetime.utcnow()
             changed_by = User.query.filter_by(name=json_data['changed_by']).first().id
-            
+
             site = Site(project_id, name, version, is_active, site_ip, site_db_ip,
                     execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
                     auto_data_db_ip, nets, stations, changed_by)
-            
+
             db.session.add(site)
             db.session.commit()
-            
+
             return jsonify(status= 1, message='site '  + site.name + ' succesfully saved')
         except Exception as error:
             return jsonify(status=0, message='Not saved! something went wrong - please try again later')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def delete_by_name(name):
         try:
@@ -1554,7 +1554,7 @@ class Site(db.Model):
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def delete_by_id(site_id):
         try:
@@ -1569,13 +1569,13 @@ class Site(db.Model):
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def update_by_name(name, json_data):
         try:
             site = Site.query.filter_by(name=name).first()
             if site:
-                site.project_id = json_data['project_id'] 
+                site.project_id = json_data['project_id']
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
@@ -1588,10 +1588,10 @@ class Site(db.Model):
                 site.nets = json_data['nets']
                 site.stations = json_data['stations']
                 site.changed_date = datetime.utcnow()
-                
+
                 user_id = User.query.filter_by(name=json_data['changed_by']).first().id
                 if user_id:
-                    site.changed_by = user_id 
+                    site.changed_by = user_id
                 else:
                     return jsonify(status=0,msg='Not updated! No user with given name')
                 db.session.add(site)
@@ -1599,20 +1599,20 @@ class Site(db.Model):
                 return jsonify(status=1,msg='site ' + site.name + ' succesfully updated')
             else:
                 return jsonify(status=0,msg='Not deleted! No site with this name')
-            
-            
+
+
             return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
         except Exception as error:
             jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def update_by_id(site_id, json_data):
         try:
             site = Site.query.get(int(site_id))
             if site:
-                site.project_id = json_data['project_id'] 
+                site.project_id = json_data['project_id']
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
@@ -1625,10 +1625,10 @@ class Site(db.Model):
                 site.nets = json_data['nets']
                 site.stations = json_data['stations']
                 site.changed_date = datetime.utcnow()
-                
+
                 user_id = User.query.filter_by(name=json_data['changed_by']).first().id
                 if user_id:
-                    site.changed_by = user_id 
+                    site.changed_by = user_id
                 else:
                     return jsonify(status=0,msg='Not updated! No user with given name')
                 db.session.add(site)

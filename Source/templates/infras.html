@@ -16,8 +16,8 @@
 <div class="main_form">
     <div class="row layout-buttons-div">
         <input id = "project_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
-        <a href="" role="button" aria-label="Save"><i class="far fa-save normal-size" ></i></a>
-        <a href="" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
+        <a href="" id = "Save_Project" role="button" aria-label="Save"><i class="far fa-save normal-size" ></i></a>
+        <a href="" id = "Delete_Project" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
     </div>
     <div class="form-inline">
         <label for="project_select"><h3>Project</h3></label>
@@ -35,10 +35,10 @@
     <hr>
 
     <div class="row layout-buttons-div">
-        <input type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
-        <a href="" role="button" aria-label="Save"><i class="far fa-save normal-size" ></i></a>
-        <a href="" role="button"><i class="far fa-file-alt adapt-icon-size"></i></a>
-        <a href="" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
+        <input type="checkbox" id = "site_toggle" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
+        <a href=""  id="Save_Site" role="button" aria-label="Save"><i class="far fa-save normal-size" ></i></a>
+        <a href=""  id="Duplicate_Site" role="button"><i class="far fa-file-alt adapt-icon-size"></i></a>
+        <a href=""  id="Delete_Site" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
     </div>
     <div class="row site-data-div">
         <div class="col-5 mb-auto first-column">
@@ -80,40 +80,47 @@
             <i class="fas fa-circle seperator"></i>
             <i class="fas fa-circle seperator"></i>
         </div>
-        <div class="col-5 mb-auto second-column">
+        <div class="col-6 mb-auto second-column">
             <div class="form-inline">
                 <label for="version_input"><h5>Version</h5></label>
                 <input type="text" id="version_input" class="form-control medium-margin">
             </div>
             <div class="form-inline">
                 <label for="recording_db_ip"><h5>Recording DB IP</h5></label>
-                <select name="" id="recording_db_ip" class="form-control medium-margin input-medium-size">
+                <input type="text" id="recording_db_ip" class="form-control medium-margin">
+
+                <!-- <select name="" id="recording_db_ip" class="form-control medium-margin input-medium-size">
                     <option value="Site1">IP1</option>
                     <option value="Site2">IP2</option>
                     <option value="Site3">IP3</option>
-                </select>
-                <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a>
-                <a href="" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
+                </select> -->
+                <!-- <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a> -->
+                <a href="" id = "check_Recording_DB_IP" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
             </div>
             <div class="form-inline">
                 <label for="excersice_db_ip"><h5>Excersice DB IP</h5></label>
-                <select name="" id="excersice_db_ip" class="form-control medium-margin input-medium-size">
+                <input type="text" id="excersice_db_ip" class="form-control medium-margin">
+
+                <!-- <select name="" id="excersice_db_ip" class="form-control medium-margin input-medium-size">
                     <option value="Site1">IP1</option>
                     <option value="Site2">IP2</option>
                     <option value="Site3">IP3</option>
                 </select>
-                <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a>
-                <a href="" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
+                <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a> -->
+                <a href="" id="check_excersice_db_ip" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
             </div>
             <div class="form-inline">
-                <label for="auto_run_DB_IP"><h5>Auto run DB IP</h5></label>
-                <select name="" id="auto_run_DB_IP" class="form-control medium-margin input-medium-size">
-                    <option value="Site1">IP1</option>
-                    <option value="Site2">IP2</option>
-                    <option value="Site3">IP3</option>
-                </select>
-                <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a>
-                <a href="" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
+
+               <label for="auto_run_DB_IP"><h5>Auto run DB IP</h5> </ label>
+               <input type="text" id="auto_run_DB_IP" class="form-control medium-margin">
+
+                <!-- <select name="" id="auto_run_DB_IP" class="form-control medium-margin input-medium-size">
+                    <option value="Site1"> IP1 </ option>
+                    <option value="Site2"> IP2 </ option>
+                    <option value="Site3"> IP3 </ option>
+                </ select>
+                <a href="" class="medium-margin" role="button"><i class="far fa-edit"></i></a> -->
+                <a href="" id="check_Auto_Run_DB_IP" class="medium-margin" role="button"><i class="far fa-check-square"></i></a>
             </div>
         </div>
     </div>
@@ -121,6 +128,7 @@
 {% endblock %}
 {%block scripts%}
 
+<script src="../static/js/OctoUtils.js"></script>
 <script src="../static/js/infras.js"></script>
 
 {% endblock %}
