@@ -115,6 +115,21 @@ function get_names(form_name, Class_Name, Method, obj){
     }
   });
 }
+
+function get_names_with_args(form_name, Class_Name, Method, arg, obj){
+  $.ajax({
+    url: "/api/" + Class_Name + "/" + Method + "/" + arg,
+    success: function(msg) {
+      // alert(msg.message)
+      clear_object(obj);
+      fill_object(obj, msg.data);
+      fill_form(form_name, Class_Name, "get_by_name" ,msg.data[0])
+
+    }
+  });
+}
+
+
 // 127.0.0.1:5000/api/Site/get_by_name/siteA
 
 function fill_form(form_name, Class_Name, Method,  SelectedName){

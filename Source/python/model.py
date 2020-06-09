@@ -1611,6 +1611,17 @@ class Site(db.Model):
         finally:
             db.session.close()
 
+
+    def get_names_by_project_name(project_name):
+        try:
+            project_id = Project.query.filter_by(name=project_name).first().id
+            names = Site.query.filter_by(project_id=project_id).with_entities(Site.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
     @staticmethod
     def get_by_id(site_id):
         try:
@@ -1831,6 +1842,7 @@ class Process(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
+
 
     @staticmethod
     def save(json_data):

@@ -64,7 +64,7 @@ $('#project_toggle').change(function() {
     });
 
     get_names("ProjectInfras", "Project", "get_names", Project_form_controls.project_name)
-
+    setToggle("site_toggle", "off");
   }
 
 });
@@ -94,7 +94,8 @@ $('#site_toggle').change(function() {
     infras.exist(Site_form_controls, "site_name","select", "select-one");
     // select Site
     AddSiteEventListener();
-    get_names("SiteInfras", "Site", "get_names", Site_form_controls.site_name)
+    var Selected_Project = Project_form_controls.project_name.options[Project_form_controls.project_name.selectedIndex].text;
+    get_names_with_args("SiteInfras", "Site", "get_names_by_project_name",Selected_Project,  Site_form_controls.site_name)
     // infras.exist(Site_form_controls, "site_name");
   }
 
