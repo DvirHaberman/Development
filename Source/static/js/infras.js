@@ -1,7 +1,6 @@
 var Project_form_controls = {
     project_name: $('#project_select')[0],
     project_output_dir: $('#output-dir')[0],
-
 }
 
 var Site_form_controls = {
@@ -16,23 +15,31 @@ var Site_form_controls = {
   recording_db_ip: $('#recording_db_ip')[0],
   excersice_db_ip: $('#excersice_db_ip')[0],
   auto_run_DB_IP: $('#auto_run_DB_IP')[0],
-
-};
-
-fill_form_Site_Infras(data) {
-  Site_form_controls.is_site_active.value = data
-  Site_form_controls.site_IP.value = data
-  Site_form_controls.excersice_site_ip.value = data
-  Site_form_controls.auto_data_IP.value = data
-  Site_form_controls.nets.value = data
-  Site_form_controls.stations.value = data
-  Site_form_controls.version_input.value = data
-  Site_form_controls.recording_db_ip.value = data
-  Site_form_controls.excersice_db_ip.value = data
-  Site_form_controls.auto_run_DB_IP.value = data
 }
 
+function fill_form_Project_Infras(data){
+  Project_form_controls.project_output_dir.value = data.output_dir;
+}
 
+function fill_form_Site_Infras(data) {
+  Site_form_controls.is_site_active.checked = data.is_active;
+  Site_form_controls.site_IP.value = data.site_ip;
+  Site_form_controls.excersice_site_ip.value = data.execrsice_site_ip;
+  Site_form_controls.auto_data_IP.value = data.auto_data_site_ip;
+  Site_form_controls.nets.value = data.nets;
+  Site_form_controls.stations.value = data.stations;
+  Site_form_controls.version_input.value = data.version;
+  Site_form_controls.recording_db_ip.value = data.recording_db_ip;
+  Site_form_controls.excersice_db_ip.value = data.execrsice_db_ip;
+  Site_form_controls.auto_run_DB_IP.value = data.auto_data_db_ip;
+}
+
+function AddSiteEventListener(){
+  document.getElementById("site_select").addEventListener("change", function() {
+     var selectedSiteName = Site_form_controls.site_name.options[Site_form_controls.site_name.selectedIndex].text;
+     fill_form("SiteInfras", "Site", "get_by_name" ,selectedSiteName)
+  });
+}
 
 var newele = null;
 infras = new form_controls_handler();
@@ -43,16 +50,20 @@ $('#project_toggle').change(function() {
   if ($('#project_toggle')[0].checked){ //new
     // alert("New Project");
     infras.new(Project_form_controls, "project_name");
-    infras.new(Site_form_controls, "site_name");
+    // infras.new(Site_form_controls, "site_name");
+    setToggle("site_toggle", "on");
 
   } else {
     // alert("Exist");
     infras.exist(Project_form_controls, "project_name","select", "select-one");
-    // projects.get_names();   // get project_names from DB
-    // // Show Project1 Database
-    // // exist Site
+    // select Site
+    document.getElementById("project_select").addEventListener("change", function() {
+      var selectedProjectName = Project_form_controls.project_name.options[Project_form_controls.project_name.selectedIndex].text;
+      fill_form("ProjectInfras", "Project", "get_by_name" ,selectedProjectName);
+      setToggle("site_toggle", "off");
+    });
 
-
+    get_names("ProjectInfras", "Project", "get_names", Project_form_controls.project_name)
 
   }
 
@@ -81,6 +92,8 @@ $('#site_toggle').change(function() {
 
   } else {
     infras.exist(Site_form_controls, "site_name","select", "select-one");
+    // select Site
+    AddSiteEventListener();
     get_names("SiteInfras", "Site", "get_names", Site_form_controls.site_name)
     // infras.exist(Site_form_controls, "site_name");
   }
@@ -123,3 +136,19 @@ document.getElementById("check_excersice_db_ip").addEventListener("click", funct
 document.getElementById("check_Auto_Run_DB_IP").addEventListener("click", function() {
    alert("checking Auto_Run DB IP");
 });
+
+// select Project
+document.getElementById("project_select").addEventListener("change", function() {
+   alert("Seleted project");
+});
+
+// select Site
+// document.getElementById("site_select").addEventListener("change", function() {
+//    var selectedSiteName = Site_form_controls.site_name.options[Site_form_controls.site_name.selectedIndex].text;
+//    fill_form(form_name, "Site", "get_by_name" ,selectedSiteName)
+// });
+AddSiteEventListener();
+
+function setToggle(toggleID, state) {
+  $('#'+ toggleID).bootstrapToggle(state)
+}

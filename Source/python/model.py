@@ -509,7 +509,8 @@ class Project(db.Model):
             name=self.name,
             output_dir=self.output_dir,
             users=jsonify([user.name for user in self.users]).json,
-            sites=jsonify([site.self_jsonify() for site in self.sites]).json
+            sites=jsonify([site.self_jsonify() for site in self.sites]).json,
+            sites_names=jsonify([site.name for site in self.sites]).json
         ).json
 
     @staticmethod
@@ -521,7 +522,7 @@ class Project(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-            
+
     @staticmethod
     def get_by_id(project_id):
         try:
@@ -531,7 +532,7 @@ class Project(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-            
+
     @staticmethod
     def get_by_name(project_id):
         try:
@@ -541,7 +542,7 @@ class Project(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-    
+
     @staticmethod
     def save(json_data):
         try:
@@ -550,16 +551,16 @@ class Project(db.Model):
             name = json_data['name']
             output_dir = json_data['output_dir']
             project = Project(name, output_dir)
-            
+
             db.session.add(project)
             db.session.commit()
-            
+
             return jsonify(status= 1, message='project '  + project.name + ' succesfully saved')
         except Exception as error:
             return jsonify(status=0, message='Not saved! something went wrong - please try again later')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def delete_by_name(name):
         try:
@@ -574,7 +575,7 @@ class Project(db.Model):
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def delete_by_id(project_id):
         try:
@@ -589,36 +590,36 @@ class Project(db.Model):
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def update_by_name(name, json_data):
         try:
             project = Project.query.filter_by(name=name).first()
             if project:
-                project.output_dir = json_data['output_dir'] 
+                project.output_dir = json_data['output_dir']
                 project.name = json_data['name']
-                
+
                 db.session.add(project)
                 db.session.commit()
                 return jsonify(status=1,msg='project ' + project.name + ' succesfully updated')
             else:
                 return jsonify(status=0,msg='Not deleted! No project with this name')
-            
-            
+
+
             return jsonify(status= 1, message='project '  + project.name + ' succesfully updated')
         except Exception as error:
             jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
-            
+
     @staticmethod
     def update_by_id(project_id, json_data):
         try:
             project = Site.query.get(int(project_id))
             if project:
-                project.output_dir = json_data['output_dir'] 
+                project.output_dir = json_data['output_dir']
                 project.name = json_data['name']
-                
+
                 db.session.add(project)
                 db.session.commit()
                 return jsonify(status=1,msg='project ' + project.name + ' succefully updated')
@@ -1546,7 +1547,7 @@ class Site(db.Model):
     version = db.Column(db.Text)
     is_active = db.Column(db.Integer)
     site_ip = db.Column(db.Text)
-    site_db_ip = db.Column(db.Text)
+    recording_db_ip = db.Column(db.Text)
     execrsice_site_ip = db.Column(db.Text)
     execrsice_db_ip = db.Column(db.Text)
     auto_data_site_ip = db.Column(db.Text)
@@ -1556,7 +1557,7 @@ class Site(db.Model):
     changed_date = db.Column(db.DateTime)
     changed_by = db.Column(db.Integer)
 
-    def __init__(self, project_id, name, version, is_active, site_ip, site_db_ip,
+    def __init__(self, project_id, name, version, is_active, site_ip, recording_db_ip,
                  execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
                  auto_data_db_ip, nets, stations, changed_by):
         self.project_id = project_id
@@ -1564,7 +1565,7 @@ class Site(db.Model):
         self.version = version
         self.is_active = is_active
         self.site_ip = site_ip
-        self.site_db_ip = site_db_ip
+        self.recording_db_ip = recording_db_ip
         self.execrsice_site_ip = execrsice_site_ip
         self.execrsice_db_ip = execrsice_db_ip
         self.auto_data_site_ip = auto_data_site_ip
@@ -1589,7 +1590,7 @@ class Site(db.Model):
                 version = self.version,
                 is_active = self.is_active,
                 site_ip = self.site_ip,
-                site_db_ip = self.site_db_ip,
+                recording_db_ip = self.recording_db_ip,
                 execrsice_site_ip = self.execrsice_site_ip,
                 execrsice_db_ip = self.execrsice_db_ip,
                 auto_data_site_ip = self.auto_data_site_ip,
@@ -1640,7 +1641,7 @@ class Site(db.Model):
             version = json_data['version']
             is_active = json_data['is_active']
             site_ip = json_data['site_ip']
-            site_db_ip = json_data['site_db_ip']
+            recording_db_ip = json_data['recording_db_ip']
             execrsice_site_ip = json_data['execrsice_site_ip']
             execrsice_db_ip = json_data['execrsice_db_ip']
             auto_data_site_ip = json_data['auto_data_site_ip']
@@ -1650,7 +1651,7 @@ class Site(db.Model):
             changed_date = datetime.utcnow()
             changed_by = User.query.filter_by(name=json_data['changed_by']).first().id
 
-            site = Site(project_id, name, version, is_active, site_ip, site_db_ip,
+            site = Site(project_id, name, version, is_active, site_ip, recording_db_ip,
                     execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
                     auto_data_db_ip, nets, stations, changed_by)
 
@@ -1703,7 +1704,7 @@ class Site(db.Model):
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
                 site.site_ip = json_data['site_ip']
-                site.site_db_ip = json_data['site_db_ip']
+                site.recording_db_ip = json_data['recording_db_ip']
                 site.execrsice_site_ip = json_data['execrsice_site_ip']
                 site.execrsice_db_ip = json_data['execrsice_db_ip']
                 site.auto_data_site_ip = json_data['auto_data_site_ip']
@@ -1740,7 +1741,7 @@ class Site(db.Model):
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
                 site.site_ip = json_data['site_ip']
-                site.site_db_ip = json_data['site_db_ip']
+                site.recording_db_ip = json_data['recording_db_ip']
                 site.execrsice_site_ip = json_data['execrsice_site_ip']
                 site.execrsice_db_ip = json_data['execrsice_db_ip']
                 site.auto_data_site_ip = json_data['auto_data_site_ip']
@@ -1766,7 +1767,7 @@ class Site(db.Model):
             db.session.close()
 
 class Process(db.Model):
-    __tablename__ = 'site'
+    __tablename__ = 'process'
     id = db.Column(db.Integer, primary_key=True)
     # project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
     name = db.Column(db.Text)
@@ -1777,7 +1778,7 @@ class Process(db.Model):
     stage_type = db.Column(db.Text)
     order = db.Column(db.Integer)
     changed_date = db.Column(db.DateTime)
-    
+
     def __init__(self,name, owner_id, tags, description, stage_id, stage_type, order):
         self.name = name
         self.owner_id = owner_id
@@ -1789,7 +1790,7 @@ class Process(db.Model):
         self.changed_date = datetime.utcnow()
 
     def self_jsonify(self):
-       
+
         return jsonify(
                 name = self.name,
                 owner_id = self.owner_id,
@@ -1845,8 +1846,8 @@ class Process(db.Model):
             order = int(json_data['order']),
             changed_date = datetime.utcnow()
 
-            
-            
+
+
             process = Process(self,name, owner_id, tags, description, stage_id, stage_type, order)
 
             db.session.add(process)

@@ -110,24 +110,25 @@ function get_names(form_name, Class_Name, Method, obj){
       // alert(msg.message)
       clear_object(obj);
       fill_object(obj, msg.data);
-      fill_form_by_name(form_name, Class_Name, msg.data[0], obj)
+      fill_form(form_name, Class_Name, "get_by_name" ,msg.data[0])
 
     }
   });
 }
 // 127.0.0.1:5000/api/Site/get_by_name/siteA
 
-function fill_form_by_name(form_name, Class_Name, Method, obj){
+function fill_form(form_name, Class_Name, Method,  SelectedName){
   $.ajax({
-    url: "/api/" + Class_Name + "/" + Method,
+    url: "/api/" + Class_Name + "/" + Method + "/" + SelectedName,
     success: function(msg) {
       // alert(msg.message)
-      clear_object(obj);
       if (form_name=="SiteInfras"){
         fill_form_Site_Infras(msg.data);
       }
-      // fill form  msg.data
-      // fill_object(obj, msg.data);
+
+      if (form_name=="ProjectInfras"){
+        fill_form_Project_Infras(msg.data);
+      }
     }
   });
 }
