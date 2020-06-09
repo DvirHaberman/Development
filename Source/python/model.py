@@ -1539,6 +1539,7 @@ class ResultArray(db.Model):
 
 
 class Site(db.Model):
+    __tablename__ = 'site'
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
     name = db.Column(db.Text)
@@ -1761,5 +1762,192 @@ class Site(db.Model):
             return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
         except Exception as error:
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+class Process(db.Model):
+    __tablename__ = 'site'
+    id = db.Column(db.Integer, primary_key=True)
+    # project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    name = db.Column(db.Text)
+    owner_id = db.Column(db.Integer)
+    tags = db.Column(db.Text)
+    description = db.Column(db.Text)
+    stage_id = db.Column(db.Integer)
+    stage_type = db.Column(db.Text)
+    order = db.Column(db.Integer)
+    changed_date = db.Column(db.DateTime)
+    
+    def __init__(self,name, owner_id, tags, description, stage_id, stage_type, order):
+        self.name = name
+        self.owner_id = owner_id
+        self.tags = tags
+        self.description = description
+        self.stage_id = stage_id
+        self.stage_type = stage_type
+        self.order = order
+        self.changed_date = datetime.utcnow()
+
+    def self_jsonify(self):
+       
+        return jsonify(
+                name = self.name,
+                owner_id = self.owner_id,
+                tags = self.tags,
+                description = self.description,
+                stage_id = self.stage_id,
+                stage_type = self.stage_type,
+                order = self.order,
+                changed_date = self.changed_date
+            ).json
+
+    @staticmethod
+    def get_names():
+        try:
+            names = Process.query.with_entities(Process.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_id(process_id):
+        try:
+            process = Process.query.get(int(process_id))
+            return jsonify(status=1, message=None, data=process.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_name(process_name):
+        try:
+            process = Process.query.filter_by(name=process_name).first()
+            return jsonify(status=1, message=None, data=process.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def save(json_data):
+        try:
+            if json_data['name'] in [process_name.name for process_name in Process_name.query.all()]:
+                return jsonify(status=0, message='Not saved! a process_name with this name already exist')
+            name = json_data['name']
+            owner_id = int(json_data['owner_id']),
+            tags = json_data['tags'],
+            description = json_data['description'],
+            stage_id = int(json_data['stage_id']),
+            stage_type = json_data['stage_type'],
+            order = int(json_data['order']),
+            changed_date = datetime.utcnow()
+
+            
+            
+            process = Process(self,name, owner_id, tags, description, stage_id, stage_type, order)
+
+            db.session.add(process)
+            db.session.commit()
+
+            return jsonify(status= 1, message='process '  + process.name + ' succesfully saved')
+        except Exception as error:
+            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            process = Process.query.filter_by(name=name).first()
+            if process:
+                db.session.delete(process)
+                db.session.commit()
+                return jsonify(status=1,msg='process ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No process with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_id(process_id):
+        try:
+            process = Process.query.get(int(process_id))
+            if process:
+                db.session.delete(process)
+                db.session.commit()
+                return jsonify(status=1,msg='process ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No process with this id')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            process = Process.query.filter_by(name=name).first()
+            if process:
+                process.name = json_data['name']
+                process.owner_id = int(json_data['owner_id']),
+                process.tags = json_data['tags'],
+                process.description = json_data['description'],
+                process.stage_id = int(json_data['stage_id']),
+                process.stage_type = json_data['stage_type'],
+                process.order = int(json_data['order']),
+                process.changed_date = datetime.utcnow()
+
+                owner_id = User.query.get(int(process.owner_id)).id
+                if owner_id:
+                    process.changed_by = owner_id
+                else:
+                    return jsonify(status=0,msg='Not updated! No user with given name')
+                db.session.add(process)
+                db.session.commit()
+                return jsonify(status=1,msg='process ' + process.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No process with this name')
+
+
+            return jsonify(status= 1, message='process '  + process.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_id(process_id, json_data):
+        try:
+            process = Process.query.get(int(process_id))
+            if process:
+                process.name = json_data['name']
+                process.owner_id = int(json_data['owner_id']),
+                process.tags = json_data['tags'],
+                process.description = json_data['description'],
+                process.stage_id = int(json_data['stage_id']),
+                process.stage_type = json_data['stage_type'],
+                process.order = int(json_data['order']),
+                process.changed_date = datetime.utcnow()
+
+                owner_id = User.query.get(int(process.owner_id)).id
+                if owner_id:
+                    process.changed_by = owner_id
+                else:
+                    return jsonify(status=0,msg='Not updated! No user with given name')
+                db.session.add(process)
+                db.session.commit()
+                return jsonify(status=1,msg='process ' + process.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No process with this name')
+
+
+            return jsonify(status= 1, message='process '  + process.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
