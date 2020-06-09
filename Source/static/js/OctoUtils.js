@@ -106,6 +106,7 @@ function form_controls_handler() {
 function get_names(form_name, Class_Name, Method, obj){
   $.ajax({
     url: "/api/" + Class_Name + "/" + Method,
+    async: false,
     success: function(msg) {
       // alert(msg.message)
       clear_object(obj);
@@ -119,6 +120,7 @@ function get_names(form_name, Class_Name, Method, obj){
 function get_names_with_args(form_name, Class_Name, Method, arg, obj){
   $.ajax({
     url: "/api/" + Class_Name + "/" + Method + "/" + arg,
+    async: false,
     success: function(msg) {
       // alert(msg.message)
       clear_object(obj);
