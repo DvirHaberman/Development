@@ -2,7 +2,10 @@ var Project_form_controls = {
     project_name: $('#project_select')[0],
     project_output_dir: $('#output-dir')[0],
 }
-
+var project_data = {
+  name: null,
+  output_dir: null
+};
 var Site_form_controls = {
   site_name: $('#site_select')[0],
   is_site_active: $('#is_site_active_cb')[0],
@@ -22,16 +25,18 @@ function fill_form_Project_Infras(data){
 }
 
 function fill_form_Site_Infras(data) {
-  Site_form_controls.is_site_active.checked = data.is_active;
-  Site_form_controls.site_IP.value = data.site_ip;
-  Site_form_controls.excersice_site_ip.value = data.execrsice_site_ip;
-  Site_form_controls.auto_data_IP.value = data.auto_data_site_ip;
-  Site_form_controls.nets.value = data.nets;
-  Site_form_controls.stations.value = data.stations;
-  Site_form_controls.version_input.value = data.version;
-  Site_form_controls.recording_db_ip.value = data.recording_db_ip;
-  Site_form_controls.excersice_db_ip.value = data.execrsice_db_ip;
-  Site_form_controls.auto_run_DB_IP.value = data.auto_data_db_ip;
+  if(data){
+    Site_form_controls.is_site_active.checked = data.is_active;
+    Site_form_controls.site_IP.value = data.site_ip;
+    Site_form_controls.excersice_site_ip.value = data.execrsice_site_ip;
+    Site_form_controls.auto_data_IP.value = data.auto_data_site_ip;
+    Site_form_controls.nets.value = data.nets;
+    Site_form_controls.stations.value = data.stations;
+    Site_form_controls.version_input.value = data.version;
+    Site_form_controls.recording_db_ip.value = data.recording_db_ip;
+    Site_form_controls.excersice_db_ip.value = data.execrsice_db_ip;
+    Site_form_controls.auto_run_DB_IP.value = data.auto_data_db_ip;
+  }
 }
 
 function AddSiteEventListener(){
@@ -71,9 +76,20 @@ $('#project_toggle').change(function() {
 
 // Save Project
 document.getElementById("Save_Project").addEventListener("click", function() {
-  alert("Save Project");
-  // var id = form_controls_handler.create_id();
-  // alert('your id is ' + id);
+  var data = {};
+  data.name = Project_form_controls.project_name.value;
+  data.output_dir = Project_form_controls.project_output_dir.value;
+  if ($('#project_toggle')[0].checked) {
+    msg = save('Project', data, []);
+    if (msg.status === 1){
+      setToggle("project_toggle", "off");
+    }
+  }else{
+    msg = update('Project', data, []);
+  }
+  alert(msg.message);
+
+
 });
 
 // delete Project

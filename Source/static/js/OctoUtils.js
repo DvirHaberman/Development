@@ -1,11 +1,11 @@
-// form control hanndler can do the following functions:
+// form control handler can do the following functions:
 // New(class)
 // Save(api, data) -> return id
 // delete(api, id)
 // duplicate(id, class)
 // clear_form(form_field)
 // fill_form(form_field, Data) - i'm not shore may be should be specific
-// get_form_data  - i'm not shore may be should be specific
+// get_form_data  - i'm not sure may be should be specific
 // get_names(class)
 //
 
@@ -102,6 +102,47 @@ function form_controls_handler() {
   }
 }
 
+function save(Class_Name, obj, exclude){
+  if (!is_containing_null(obj,exclude)){
+    var server_msg={status:0, message: 'server error'}
+    $.ajax({
+      type: "POST",
+      url: "/api/" + Class_Name + "/save",
+      dataType: "json",
+      data: JSON.stringify(obj),
+      contentType: 'application/json',
+      async: false,
+      success: function(msg) {
+        server_msg=msg;
+      },
+      error: function(){
+        server_msg = {status:0, message: 'server error'};
+      }
+    });
+    return server_msg;
+  }
+}
+
+function update(Class_Name, obj, exclude){
+  if (!is_containing_null(obj,exclude)){
+    var server_msg={status:0, message: 'server error'}
+    $.ajax({
+      type: "POST",
+      url: "/api/" + Class_Name + "/update_by_name/" + obj.name,
+      dataType: "json",
+      data: JSON.stringify(obj),
+      contentType: 'application/json',
+      async: false,
+      success: function(msg) {
+        server_msg = msg;
+      },
+      error: function(){
+        server_msg = {status:0, message: 'server error'};
+      }
+    });
+    return server_msg;
+  }
+}
 
 function get_names(form_name, Class_Name, Method, obj){
   $.ajax({
@@ -117,6 +158,15 @@ function get_names(form_name, Class_Name, Method, obj){
   });
 }
 
+// function extract_content(obj, exclude){
+//   var data = {};
+//   Object.keys(obj).forEach(function(key, index) {
+//     if (!exclude.includes(key)) {
+//       data[key];
+//     }
+//   });
+// }
+
 function get_names_with_args(form_name, Class_Name, Method, arg, obj){
   $.ajax({
     url: "/api/" + Class_Name + "/" + Method + "/" + arg,
@@ -131,7 +181,14 @@ function get_names_with_args(form_name, Class_Name, Method, arg, obj){
   });
 }
 
-
+function is_containing_null(obj, exclude){
+  Object.keys(obj).forEach(function(key, index) {
+    if (!exclude.includes(key) && obj[key] === null) {
+      return true;
+    }
+  });
+  return false;
+}
 // 127.0.0.1:5000/api/Site/get_by_name/siteA
 
 function fill_form(form_name, Class_Name, Method,  SelectedName){

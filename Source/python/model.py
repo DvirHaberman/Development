@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -601,9 +601,9 @@ class Project(db.Model):
 
                 db.session.add(project)
                 db.session.commit()
-                return jsonify(status=1,msg='project ' + project.name + ' succesfully updated')
+                return jsonify(status=1,message='project ' + project.name + ' succesfully updated')
             else:
-                return jsonify(status=0,msg='Not deleted! No project with this name')
+                return jsonify(status=0,message='Not deleted! No project with this name')
 
 
             return jsonify(status= 1, message='project '  + project.name + ' succesfully updated')
@@ -622,9 +622,9 @@ class Project(db.Model):
 
                 db.session.add(project)
                 db.session.commit()
-                return jsonify(status=1,msg='project ' + project.name + ' succefully updated')
+                return jsonify(status=1,message='project ' + project.name + ' succefully updated')
             else:
-                return jsonify(status=0,msg='Not deleted! No project with this name')
+                return jsonify(status=0,message='Not deleted! No project with this name')
             return jsonify(status= 1, message='project '  + project.name + ' succesfully updated')
         except Exception as error:
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
@@ -1682,11 +1682,11 @@ class Site(db.Model):
             if site:
                 db.session.delete(site)
                 db.session.commit()
-                return jsonify(status=1,msg='site ' + name + ' succefully deleted')
+                return jsonify(status=1,message='site ' + name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No site with this name')
+                return jsonify(status=0,message='Not deleted! No site with this name')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1697,11 +1697,11 @@ class Site(db.Model):
             if site:
                 db.session.delete(site)
                 db.session.commit()
-                return jsonify(status=1,msg='site ' + name + ' succefully deleted')
+                return jsonify(status=1,message='site ' + name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No site with this id')
+                return jsonify(status=0,message='Not deleted! No site with this id')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1728,12 +1728,12 @@ class Site(db.Model):
                 if user_id:
                     site.changed_by = user_id
                 else:
-                    return jsonify(status=0,msg='Not updated! No user with given name')
+                    return jsonify(status=0,message='Not updated! No user with given name')
                 db.session.add(site)
                 db.session.commit()
-                return jsonify(status=1,msg='site ' + site.name + ' succesfully updated')
+                return jsonify(status=1,message='site ' + site.name + ' succesfully updated')
             else:
-                return jsonify(status=0,msg='Not deleted! No site with this name')
+                return jsonify(status=0,message='Not deleted! No site with this name')
 
 
             return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
@@ -1765,12 +1765,12 @@ class Site(db.Model):
                 if user_id:
                     site.changed_by = user_id
                 else:
-                    return jsonify(status=0,msg='Not updated! No user with given name')
+                    return jsonify(status=0,message='Not updated! No user with given name')
                 db.session.add(site)
                 db.session.commit()
-                return jsonify(status=1,msg='site ' + site.name + ' succefully updated')
+                return jsonify(status=1,message='site ' + site.name + ' succefully updated')
             else:
-                return jsonify(status=0,msg='Not deleted! No site with this name')
+                return jsonify(status=0,message='Not deleted! No site with this name')
             return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
         except Exception as error:
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
@@ -1878,11 +1878,11 @@ class Process(db.Model):
             if process:
                 db.session.delete(process)
                 db.session.commit()
-                return jsonify(status=1,msg='process ' + name + ' succefully deleted')
+                return jsonify(status=1,message='process ' + name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No process with this name')
+                return jsonify(status=0,message='Not deleted! No process with this name')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1893,11 +1893,11 @@ class Process(db.Model):
             if process:
                 db.session.delete(process)
                 db.session.commit()
-                return jsonify(status=1,msg='process ' + name + ' succefully deleted')
+                return jsonify(status=1,message='process ' + name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No process with this id')
+                return jsonify(status=0,message='Not deleted! No process with this id')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1919,12 +1919,12 @@ class Process(db.Model):
                 if owner_id:
                     process.changed_by = owner_id
                 else:
-                    return jsonify(status=0,msg='Not updated! No user with given name')
+                    return jsonify(status=0,message='Not updated! No user with given name')
                 db.session.add(process)
                 db.session.commit()
-                return jsonify(status=1,msg='process ' + process.name + ' succesfully updated')
+                return jsonify(status=1,message='process ' + process.name + ' succesfully updated')
             else:
-                return jsonify(status=0,msg='Not deleted! No process with this name')
+                return jsonify(status=0,message='Not deleted! No process with this name')
 
 
             return jsonify(status= 1, message='process '  + process.name + ' succesfully updated')
