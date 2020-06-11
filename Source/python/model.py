@@ -1710,7 +1710,7 @@ class Site(db.Model):
         try:
             site = Site.query.filter_by(name=name).first()
             if site:
-                site.project_id = json_data['project_id']
+                site.project_id = Project.query.filter_by(name=json_data['project_name']).first().id
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
@@ -1724,7 +1724,7 @@ class Site(db.Model):
                 site.stations = json_data['stations']
                 site.changed_date = datetime.utcnow()
 
-                user_id = User.query.filter_by(name=json_data['changed_by']).first().id
+                user_id = User.query.filter_by(name=session['username']).first().id
                 if user_id:
                     site.changed_by = user_id
                 else:

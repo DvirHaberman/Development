@@ -111,7 +111,7 @@ $('#project_toggle').change(function() {
       siteFormDisable(false);
       setToggle("site_toggle", "off");
     });
-
+    siteFormDisable(false);
     get_names("ProjectInfras", "Project", "get_names", Project_form_controls.project_name)
     setToggle("site_toggle", "off");
   }
@@ -192,14 +192,14 @@ document.getElementById("Save_Site").addEventListener("click", function() {
     var saved_name = data.name;
     msg = save('Site', data, []);
     if (msg.status === 1){
+      setToggle("site_toggle", "off");
       for(k=0;k<Site_form_controls.site_name.options.length;k++){
         if(Site_form_controls.site_name.options[k].text === saved_name){
           Site_form_controls.site_name.options.selectedIndex = k;
           break;
         }
       }
-      setToggle("site_toggle", "off");
-      fill_form("ProjectInfras", "Project", "get_by_name" ,saved_name);
+      fill_form("SiteInfras", "Site", "get_by_name" ,saved_name);
     }
   }else{
     msg = update('Site', data, []);
@@ -255,3 +255,5 @@ AddSiteEventListener();
 function setToggle(toggleID, state) {
   $('#'+ toggleID).bootstrapToggle(state)
 }
+
+setToggle("project_toggle", "on");

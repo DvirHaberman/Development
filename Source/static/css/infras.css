@@ -76,6 +76,10 @@ margin-top: 100px;
 width: 50px;
 }
 
+.project-label{
+    width: 160px;
+}
+
 .site-data-div .first-column h3{
     width: 140px;
 }
@@ -94,4 +98,9 @@ width: 50px;
 
 .site-data-div .second-column input[type=text]{
     width: 120px;
+}
+
+button {
+    background-color: whitesmoke;
+    border: none;
 }
