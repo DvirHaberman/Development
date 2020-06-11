@@ -144,6 +144,21 @@ function update(Class_Name, obj, exclude){
   }
 }
 
+function item_delete(Class_Name, item_name){
+  var server_msg={status:0, message: 'server error'}
+  $.ajax({
+    url: "/api/" + Class_Name + "/delete_by_name/" + item_name,
+    async: false,
+    success: function(msg) {
+      server_msg = msg;
+    },
+    error: function(){
+      server_msg = {status:0, message: 'server error'};
+    }
+  });
+  return server_msg;
+}
+
 function get_names(form_name, Class_Name, Method, obj){
   $.ajax({
     url: "/api/" + Class_Name + "/" + Method,

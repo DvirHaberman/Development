@@ -94,7 +94,14 @@ document.getElementById("Save_Project").addEventListener("click", function() {
 
 // delete Project
 document.getElementById("Delete_Project").addEventListener("click", function() {
-   alert("Delete Project");
+  if (!$('#project_toggle')[0].checked) {
+    project_name = Project_form_controls.project_name.value;
+    msg = item_delete('Project', project_name);
+    if (msg.status === 1){
+      setToggle("project_toggle", "off");
+    }
+    alert(msg.message);
+  }
 });
 
 // New/Existing Site
