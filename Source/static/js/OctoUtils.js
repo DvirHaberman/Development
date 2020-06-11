@@ -96,9 +96,6 @@ function form_controls_handler() {
   this.exist = function(form_controls, field_name_key, elementType, objectType){
     form_controls[field_name_key] = changeInputType(form_controls[field_name_key], elementType, objectType);
     this.clear_form(form_controls, []);
-  },
-
-  this.save = function(){
   }
 }
 
@@ -209,6 +206,7 @@ function is_containing_null(obj, exclude){
 function fill_form(form_name, Class_Name, Method,  SelectedName){
   $.ajax({
     url: "/api/" + Class_Name + "/" + Method + "/" + SelectedName,
+    async: false,
     success: function(msg) {
       // alert(msg.message)
       if (form_name=="SiteInfras"){

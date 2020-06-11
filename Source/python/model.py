@@ -26,8 +26,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
+    #process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -1647,7 +1647,7 @@ class Site(db.Model):
         try:
             if json_data['name'] in [site.name for site in Site.query.all()]:
                 return jsonify(status=0, message='Not saved! a site with this name already exist')
-            project_id = json_data['project_id']
+            project_id = Project.query.filter_by(name=json_data['project_name']).first().id
             name = json_data['name']
             version = json_data['version']
             is_active = json_data['is_active']
@@ -1660,7 +1660,7 @@ class Site(db.Model):
             nets = json_data['nets']
             stations = json_data['stations']
             changed_date = datetime.utcnow()
-            changed_by = User.query.filter_by(name=json_data['changed_by']).first().id
+            changed_by = User.query.filter_by(name=session['username']).first().id
 
             site = Site(project_id, name, version, is_active, site_ip, recording_db_ip,
                     execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
