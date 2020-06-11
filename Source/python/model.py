@@ -1847,7 +1847,7 @@ class Process(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            if json_data['name'] in [process_name.name for process_name in Process_name.query.all()]:
+            if json_data['name'] in [process.name for process in Process.query.all()]:
                 return jsonify(status=0, message='Not saved! a process_name with this name already exist')
             name = json_data['name']
             owner_id = int(json_data['owner_id']),
@@ -1960,6 +1960,185 @@ class Process(db.Model):
 
 
             return jsonify(status= 1, message='process '  + process.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+class ComplexNet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    Project_id = db.Column(db.Integer)
+    name = db.Column(db.Text)
+    owner_id = db.Column(db.Integer)
+    tags = db.Column(db.Text)
+    description = db.Column(db.Text)
+    config_id = db.Column(db.Integer)
+    systems_id = db.Column(db.Integer)
+    changed_date = db.Column(db.DateTime)
+
+    def __init__(self,name, owner_id, tags, description, config_id, systems_id):
+        self.name = name
+        self.owner_id = owner_id
+        self.tags = tags
+        self.description = description
+        self.config_id = config_id
+        self.systems_id = systems_id
+        self.changed_date = datetime.utcnow()
+    
+    def self_jsonify(self):
+
+        return jsonify(
+                name = self.name,
+                owner_id = self.owner_id,
+                tags = self.tags,
+                description = self.description,
+                config_id = self.config_id,
+                systems_id = self.systems_id,
+                changed_date = self.changed_date
+            ).json
+
+    @staticmethod
+    def get_names():
+        try:
+            names = ComplexNet.query.with_entities(ComplexNet.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_id(complex_net_id):
+        try:
+            complex_net = ComplexNet.query.get(int(complex_net_id))
+            return jsonify(status=1, message=None, data=complex_net.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_name(complex_net_name):
+        try:
+            complex_net = ComplexNet.query.filter_by(name=complex_net_name).first()
+            return jsonify(status=1, message=None, data=complex_net.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+
+    @staticmethod
+    def save(json_data):
+        try:
+            if json_data['name'] in [complex_net.name for complex_net in ComplexNet.query.all()]:
+                return jsonify(status=0, message='Not saved! a complex net with this name already exist')
+            name = json_data['name']
+            owner_id = int(json_data['owner_id']),
+            tags = json_data['tags'],
+            description = json_data['description'],
+            config_id = int(json_data['config_id']),
+            systems_id = json_data['systems_id'],
+            changed_date = datetime.utcnow()
+
+            complex_net = ComplexNet(self,name, owner_id, tags, description, config_id, systems_id)
+
+            db.session.add(complex_net)
+            db.session.commit()
+
+            return jsonify(status= 1, message='complex net '  + complex_net.name + ' succesfully saved')
+        except Exception as error:
+            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            complex_net = ComplexNet.query.filter_by(name=name).first()
+            if complex_net:
+                db.session.delete(complex_net)
+                db.session.commit()
+                return jsonify(status=1,message='complex net ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,message='Not deleted! No complex net with this name')
+        except:
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_id(complex_net_id):
+        try:
+            complex_net = ComplexNet.query.get(int(complex_net_id))
+            if complex_net:
+                db.session.delete(complex_net)
+                db.session.commit()
+                return jsonify(status=1,message='complex net ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,message='Not deleted! No complex net with this id')
+        except:
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            complex_net = ComplexNet.query.filter_by(name=name).first()
+            if complex_net:
+                complex_net.name = json_data['name']
+                complex_net.owner_id = int(json_data['owner_id']),
+                complex_net.tags = json_data['tags'],
+                complex_net.description = json_data['description'],
+                complex_net.config_id = int(json_data['stage_id']),
+                complex_net.system_id = json_data['stage_type'],
+                complex_net.changed_date = datetime.utcnow()
+
+                owner_id = User.query.get(int(ComplexNet.owner_id)).id
+                if owner_id:
+                    complex_net.changed_by = owner_id
+                else:
+                    return jsonify(status=0,message='Not updated! No user with given name')
+                db.session.add(complex_net)
+                db.session.commit()
+                return jsonify(status=1,message='complex net ' + complex_net.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,message='Not deleted! No complex net with this name')
+
+
+            return jsonify(status= 1, message='complex net '  + ComplexNet.name + ' succesfully updated')
+        except Exception as error:
+            jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_id(complex_net_id, json_data):
+        try:
+            complex_net = ComplexNet.query.get(int(complex_net_id))
+            if complex_net:
+                complex_net.name = json_data['name']
+                complex_net.owner_id = int(json_data['owner_id']),
+                complex_net.tags = json_data['tags'],
+                complex_net.description = json_data['description'],
+                complex_net.config_id = int(json_data['config_id']),
+                complex_net.system_id = json_data['system_id'],
+                complex_net.changed_date = datetime.utcnow()
+
+                owner_id = User.query.get(int(complex_net.owner_id)).id
+                if owner_id:
+                    complex_net.changed_by = owner_id
+                else:
+                    return jsonify(status=0,msg='Not updated! No user with given name')
+                db.session.add(complex_net)
+                db.session.commit()
+                return jsonify(status=1,msg='complex net ' + complex_net.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,msg='Not deleted! No complex net with this name')
+
+
+            return jsonify(status= 1, message='complex net '  + complex_net.name + ' succesfully updated')
         except Exception as error:
             jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
