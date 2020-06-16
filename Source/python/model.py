@@ -1555,6 +1555,8 @@ class Site(db.Model):
     nets =db.Column(db.Text)
     stations = db.Column(db.Text)
     changed_date = db.Column(db.DateTime)
+    # port = db.Column(db.Integer) new
+    # service_name = db.Column(db.Text) new
     changed_by = db.Column(db.Integer)
 
     def __init__(self, project_id, name, version, is_active, site_ip, recording_db_ip,
@@ -2395,7 +2397,7 @@ class StageRunMani(db.Model):
     fmc_scenario_file = db.Column(db.Text)
     is_env_shutdown = db.Column(db.Boolean)
     env_shutdown_time = db.Column(db.Integer)
-    changed_date = tags = db.Column(db.DateTime)
+    changed_date = db.Column(db.DateTime)
 
     def __init__(self,name, owner_id, tags, description, concequences, complex_net_id, site_id, net,
                  scenario_folder, scenario_file, is_run_all_scenarios, dp_folder, dp_file, ovr_file,
@@ -2463,6 +2465,7 @@ class StageRunMani(db.Model):
                 ovr_file = self.ovr_file,
                 run_time = self.run_time,
                 is_auto_user_cmd = self.is_auto_user_cmd,
+                user_cmd_file = self.user_cmd_file,
                 is_fmc = self.is_fmc,
                 fmc_config_file = self.fmc_config_file,
                 fmc_connection_file = self.fmc_connection_file,
@@ -2477,7 +2480,7 @@ class StageRunMani(db.Model):
         try:
             stage_run_mani = StageRunMani.query.get(int(stage_run_mani_id))
             return jsonify(status=1, message=None, data=stage_run_mani.self_jsonify())
-        except:
+        except Exception as error:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
@@ -2495,11 +2498,11 @@ class StageRunMani(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            owner = User.query.filter_by(name=session['username']).first()
+            owner = User.query.filter_by(name=json_data['changed_by']).first()
             if owner:
                 owner_id = owner.id
             else:
-                return jsonify(status= 0, message='Not saved! No user named ' + session['username'])
+                return jsonify(status= 0, message='Not saved! No user named ' + json_data['changed_by'])
 
             complex_net = ComplexNet.query.filter_by(name=json_data['complex_net_name']).first()
             if complex_net:
@@ -2526,6 +2529,7 @@ class StageRunMani(db.Model):
             ovr_file = json_data['ovr_file']
             run_time = int(json_data['run_time'])
             is_auto_user_cmd = json_data['is_auto_user_cmd']
+            user_cmd_file = json_data['user_cmd_file']
             is_fmc = json_data['is_fmc']
             fmc_config_file = json_data['fmc_config_file']
             fmc_connection_file = json_data['fmc_connection_file']
