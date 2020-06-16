@@ -10,22 +10,25 @@
 {% endblock %}
 
 {%block content%}
-    
+
     <div class="row mx-auto layout-buttons-div">
-        <input type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
-        <a href="" role="button" aria-label="Save"><i class="far fa-save normal-size" ></i></a>
-        <a href="" role="button"><i class="far fa-file-alt adapt-icon-size"></i></a>
-        <a href="" role="button"><i class="far fa-trash-alt adapt-icon-size"></i></a>
+        <input id = "NewExist_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
+        <button id = "meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
+        <button id = "meta_duplicate"><i class="far fa-file-alt adapt-icon-size"></i></button>
+        <button id = "meta_delete"><i class="far fa-trash-alt adapt-icon-size"></i></button>
     </div>
     <div class="row mx-auto">
-        
+
         <div class="meta_data card border-secondary">
             <div class="card-body">
-                
+
                 <div class="row margins-bottom-medium">
                     <div class="col-8">
                         <label for="meta_name"><h5>Name</h5></label>
-                        <input type="text" class="form-control" id="meta_name"> 
+                        <input list="meta_name_datalist" type="text" class="form-control" id="meta_name">
+                        <datalist id='meta_name_datalist'>
+                          <option value="global">kjsdhfskjdf</option>
+                        </datalist>
                     </div>
                     <div class="col-4">
                         <label for="meta_id"><h5>Id</h5></label>
@@ -58,16 +61,16 @@
                 <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
                 <label for="meta_description"><h5>Description</h5></label>
                 <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="10" rows="2"></textarea>
-                <h6><i>changed date : 16:00 27.5.2020</i></h6>
+                <h6><i id = "meta_date">changed date : 16:00 27.5.2020</i></h6>
             </div>
-            
+
         </div>
         <div class="main_form card border-secondary">
             {% block main_form %}
             {% endblock %}
         </div>
     </div>
-    
+
   </div>
 {% endblock %}
 {%block scripts%}

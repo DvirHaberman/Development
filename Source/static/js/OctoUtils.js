@@ -48,10 +48,10 @@ function fill_object(obj, values) {
       }
 
     } else if (obj.type === "checkbox") {
-      obj.checked = value;
+      obj.checked = values;
 
     } else {
-      obj.value = value;
+      obj.value = values;
     }
 }
 
@@ -86,9 +86,7 @@ function form_controls_handler() {
   },
 
   this.new = function(form_controls, field_name_key){
-
-    // name - > text
-    form_controls[field_name_key] = changeInputType(form_controls[field_name_key], "input", "text");
+    if (field_name_key!=="noChange") form_controls[field_name_key] = changeInputType(form_controls[field_name_key], "input", "text");
     // clear
     this.clear_form(form_controls, []);
   },
@@ -216,77 +214,10 @@ function fill_form(form_name, Class_Name, Method,  SelectedName){
       if (form_name=="ProjectInfras"){
         fill_form_Project_Infras(msg.data);
       }
+
+      if (form_name=="ComplexNet"){
+        fill_form_ComplexNet(msg.data);
+      }
     }
   });
 }
-
-
-// function form_controls_handler() {
-//   this.form_controls = form_controls;
-//   this.clear_form = function(exclude) {
-//     Object.keys(this.form_controls).forEach(function(key, index) {
-//       if (!exclude.includes(key)) {
-//         clear_object(this.form_controls[key]);
-//       }
-//     });
-//   },
-//
-//   this.fill_form = function(index, exclude) {
-//     var funcSelectedIndex  = index;
-//
-//     this.clear_form(exclude);
-//
-//     curr_function = functions[index];
-//     Object.keys(this.form_controls).forEach(function(key, index) {
-//       if (!exclude.includes(key)) {
-//         value = curr_function[key];
-//         if (key === "function_select") {
-//           var num_of_functions = functions.length;
-//           for (i = 0; i < num_of_functions; i++) {
-//             var option = document.createElement("option");
-//             option.text = functions[i].name;
-//             this.form_controls.function_select.add(option);
-//           }
-//           this.form_controls.function_select.selectedIndex = funcSelectedIndex;
-//         } else if (value) {
-//           fill_object(this.form_controls[key], value, ParamTableArrayNodes);
-//         }
-//       }
-//     });
-//     setOperLineString();
-//   },
-//   this.get_form_data = function() {
-//
-//     var tableRowsLength = $("table[name='function_parameters']")[0].rows.length;
-//     tableData = [];
-//     for (i=1 ; i<tableRowsLength  ; i++) {
-//       var currRow = $("table[name='function_parameters']")[0].rows[i]
-//
-//         // index
-//         var index = currRow.cells[0].innerHTML;
-//
-//         // kind
-//         var selectObj = currRow.cells[1].children[0];
-//         var kind = selectObj.options[selectObj.selectedIndex].text;
-//
-//         // value
-//         if (currRow.cells[2].childElementCount >0){
-//           var value = currRow.cells[2].children[0].value;
-//         }else{
-//           var value = currRow.cells[2].innerHTML;
-//         }
-//
-//
-//         // type
-//         var selectObj = currRow.cells[3].children[0];
-//         var type = selectObj.options[selectObj.selectedIndex].text;
-//
-//         var paramRowData = {
-//           index: index,
-//           kind: kind,
-//           value: value,
-//           type: type
-//         }
-//
-//         tableData.push(paramRowData)
-//     }
