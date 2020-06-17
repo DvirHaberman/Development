@@ -90,7 +90,8 @@ class DataCollector():
         try:
             for index, row in df.iterrows():
                 project = Project(
-                    name=row.project_name
+                    name=row.project_name,
+                    output_dir=row.output_dir
                     # version=row.version
                 )
                 db.session.add(project)

@@ -6,7 +6,7 @@ from python.processes_workers import Worker, init_processes, create_pipes, send_
 import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
+app.secret_key = "shhhh"#os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
@@ -126,15 +126,15 @@ def collect_data():
     else:
         collector = DataCollector(basedir + r"/../Data/DataToCollect.xlsx")
     # collector.CollectAll()
-    collector.get_projects()
+    # collector.get_projects()
     collector.get_teams()
     collector.get_roles()
     collector.get_users()
-    collector.get_functions()
-    collector.get_function_params()
-    collector.get_tree_names()
-    collector.get_trees_structures()
-    collector.get_groups()
+    # collector.get_functions()
+    # collector.get_function_params()
+    # collector.get_tree_names()
+    # collector.get_trees_structures()
+    # collector.get_groups()
     return 'done'
 
 # @app.route('/init_workers', methods=['GET','POST'])
@@ -405,7 +405,7 @@ def api_methods_no_args(class_name,class_method):
     except:
         db.session.close()
         return jsonify(status=0, message='something went wrong')
-
+    
 @app.route('/api', methods = ['GET','POST'])
 def api():
     return jsonify(data = [num for num in range(10)])
