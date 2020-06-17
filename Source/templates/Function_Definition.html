@@ -1,181 +1,176 @@
-{% extends "layout.html"%}
-
-{% block css %}
-  <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
-  <link rel="stylesheet" href="../static/css/styles.css" />
-{% endblock %}
-{%block content%}
+{% extends "layout.html"%} {% block css %}
+<link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+<link rel="stylesheet" href="../static/css/styles.css" /> {% endblock %} {%block content%}
 
 
 
-    <section id="fixed-menus">
-      <div class="row">
+<section id="fixed-menus">
+    <div class="row">
         <div class="fixed-buttons-div card bg-secondary shadow-lg">
-          <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/magic-wand.png')}}"
-            alt="Card image cap"
-          /></a>
-          <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/save.png')}}"
-            alt="Card image cap"
-          /></a>
-          <a role="button" href="#" class="fix-buttons-ancor"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/folder-13.png')}}"
-            alt="Card image cap"
-          /></a>
-          <a role="button" href="#" class="fix-buttons-ancor"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/edit.png')}}"
-            alt="Card image cap"
-          /></a>
-          <a role="button" href="#" class="fix-buttons-ancor"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/repeat.png')}}"
-            alt="Card image cap"
-          /></a>
-          <a role="button" href="#" class="fix-buttons-ancor"><img
-            class="card-img-top img-responsive"
-            src="{{url_for('static',filename='icons/play-button-1.png')}}"
-            alt="Card image cap"
-          /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/folder-13.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/repeat.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/play-button-1.png')}}" alt="Card image cap" /></a>
         </div>
-        <div
-          class="fixed-fields-div card shadow-lg bg-primary text-light rounded"
-        >
-          <label for="select_function">Search Function</label>
-          <select
-            class="form-control"
-            name="function_select"
-            id="select_function"
-          >
+        <div class="fixed-fields-div card shadow-lg bg-primary text-light rounded">
+            <label for="select_function">Search Function</label>
+            <select class="form-control" name="function_select" id="select_function">
             <option value="">a</option>
             <option value="">b</option>
             <option value="">C</option>
           </select>
-          <label for="select_user">User</label>
-          <div class="row row-fix-form">
-            <select
-              class="form-control user-select"
-              name="owner"
-              id="select_user"
-            >
+            <label for="select_user">User</label>
+            <div class="row row-fix-form">
+                <select class="form-control user-select" name="owner" id="select_user">
               <option value="">a</option>
               <option value="">b</option>
               <option value="">C</option>
             </select>
 
-            <i class="fas fa-user-astronaut fas-7x inline-icon"></i>
+                <i class="fas fa-user-astronaut fas-7x inline-icon"></i>
 
-          </div>
-          <label for="select_version">Version</label>
-          <div class = "row row-fix-form">
-            <select
-              class="form-control version-select"
-              name="version"
-              id="select_version"
-            >
+            </div>
+            <label for="select_version">Version</label>
+            <div class="row row-fix-form">
+                <select class="form-control version-select" name="version" id="select_version">
               <option value="">a</option>
               <option value="">b</option>
               <option value="">C</option>
             </select>
-            <i class="fas fa-check-circle inline-icon"></i>
-            <i class="fas fa-star inline-icon"></i>
-          </div>
-          <label>Changed Date</label>
-          <input class="form-control" name="changed_date" type="text" value="02/02/2020 15:20" disabled ></input>
-          <label>Function Checksum</label>
-          <input class="form-control" name='function_checksum' type="text" value="66e6s66q8s8ss" disabled></input>
-          <label for="">Version Comments</label>
-          <textarea class="form-control" name="version_comments" id="" cols="30" rows="7"></textarea>
+                <i class="fas fa-check-circle inline-icon"></i>
+                <i class="fas fa-star inline-icon"></i>
+            </div>
+            <label>Changed Date</label>
+            <input class="form-control" name="changed_date" type="text" value="02/02/2020 15:20" disabled></input>
+            <label>Function Checksum</label>
+            <input class="form-control" name='function_checksum' type="text" value="66e6s66q8s8ss" disabled></input>
+            <label for="">Version Comments</label>
+            <textarea class="form-control" name="version_comments" id="" cols="30" rows="7"></textarea>
         </div>
-      </div>
-    </section>
+    </div>
+</section>
 
-    <section id = "main-from">
+<section id="main-from">
 
-        <div class="card bg-light mb-3 main-form-card">
-            <div class="row card-body main-form-card-body">
-              <div class="input-function-data col-10">
+    <div class="card bg-light mb-3 main-form-card">
+        <div class="row card-body main-form-card-body">
+            <div class="input-function-data col-9">
 
-                  <div class="row">
-                      <div class="function-input-row col-5">
+                <div class="row">
+                    <div class="function-input-row col-5">
                         <label>Function Name</label>
                         <input class="form-control" type="text" name="name"></input>
-                      </div>
-                      <div class="function-input-row col-2">
-                        <label>Kind</label>
-                        <input class="form-control" type="text" name="kind"></input>
-                      </div>
-                      <div class="function-input-row col-3">
-                        <label>Tags</label>
-                        <input class="form-control" type="text" name="tags"></input>
-                      </div>
-                      <div class="function-input-row col-2">
+                    </div>
+                    <div class="function-input-row col-3">
+                        <label><strong>Status</strong></label>
+                        <select class="form-control" type="text" name="Status">
+                          <option value="Needed">Needed</option>
+                          <option value="In Dev">In Dev</option>
+                          <option value="Complete">Complete</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="function-input-row col-3">
                         <label>Feature</label>
                         <input class="form-control" type="text" name="features"></input>
-                      </div>
-                  </div>
-
-                  <div class="row">
-                      <div class="function-input-row col-8">
+                    </div>
+                    <div class="function-input-row col-3">
+                        <label>Requirement</label>
+                        <input class="form-control" type="text" name="requirement" value="some_link">
+                    </div>
+                    <div class="function-input-row col-2">
+                        <label>Kind</label>
+                        <input class="form-control" type="text" name="kind"></input>
+                    </div>
+                    <div class="function-input-row col-3">
+                        <label>Tags</label>
+                        <input class="form-control" type="text" name="tags"></input>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="function-input-row col-8">
                         <label>Function Callback</label>
                         <input class="form-control" type="text" id="functionCallback" name="callback"></input>
-                      </div>
-                  </div>
+                    </div>
+                </div>
 
 
-                  <div class="row">
+                <div class="row">
                     <div class="function-input-row col-10">
-                      <label>Function Location</label>
-                      <input class="form-control" type="text" id="functionLocation" name="Location"></input>
+                        <label>Function Location</label>
+                        <input class="form-control" type="text" id="functionLocation" name="Location"></input>
 
-                      <!-- 
+                        <!-- 
                       <div class="custom-file input-group">
                         <input class="custom-file-input" type="file" id="functionLocation" name="location" aria-describedby="myInput">
                         <label class="custom-file-label" id="functionLocationLabel" for="myInput">Choose file</label>
                       </div> -->
 
                     </div>
-                  </div>
+                </div>
 
-                  <!-- <div class="row">
+                <!-- <div class="row">
                         <div class="function-input-row col-10">
                             <label>Function Location</label>
                             <input class="form-control" type="text" name="location" id="functionLocation"></input>
                         </div>
                   </div> -->
 
-                  <div class="row">
-                        <div class="function-input-row col-10">
-                            <label>Description</label>
-                            <input class="form-control" type="text" name="description"></input>
-                        </div>
-                  </div>
+                <div class="row">
+                    <div class="function-input-row col-10">
+                        <label>Description</label>
+                        <input class="form-control" type="text" name="description"></input>
+                    </div>
+                </div>
 
-                  <div class = "function-input-row">
+                <div class="function-input-row">
                     <label> Output </label>
-                  </div>
+                </div>
 
-                  <div class = "row">
+                <div class="row">
                     <div class="function-input-row col-3">
                         <input type="checkbox" id="isOutputIsAClass" name="isOutputIsAClass" onclick="calc();">
                         <label for="isOutputIsAClass"> Is a class </label><br>
                     </div>
 
-                    <label> Class Name: </label>
-                    <input class="form-control col-4" type="text" id = "className" name="outputClassName"></input>
+                    <label class="mr-3"> Class Name: </label>
+                    <input class="form-control col-4" type="text" id="className" name="outputClassName"></input>
 
-                  </div>
+                </div>
 
             </div>
 
 
-              <div class="input-groups-data col-2">
-                    <label for="GroupsList">Groups</label>
-                    <ul id="GroupsList">
+            <div class="input-groups-data col-3">
+                <label for="group_input">Groups</label>
+                <div class="input-group">
+
+                    <input list="groups_datalist" id="group_input" type="text" class="form-control ml-2" aria-label="Text input with segmented dropdown button">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-dark btn-secondary">+</button>
+                        <button type="button" class="btn btn-outline-dark btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                            <div role="separator" class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Separated link</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- <input type="text" class="form-control ml-2"><span>+</span> -->
+                <datalist id="groups_datalist">
+                  <option value="group1">group1</option>
+                  <option value="group2">group2</option>
+                  <option value="group3">group3</option>
+                </datalist>
+                <ul id="GroupsList">
                     <!-- <li>group1</li>
                     <li>group2</li>
                     <li>group3</li>
@@ -200,52 +195,52 @@
                     <li>group2</li>
                     <li>group3</li>
                     <li>group4</li> -->
-                  </ul>
-              </div>
+                </ul>
             </div>
         </div>
+    </div>
 
 
-        <div class="card bg-light mb-3 main-form-card">
-            <div class="row card-body main-form-card-body">
-                <label>Inputs:</label>
-                <button name="plus_param_row_button" class = "ml-auto"> <i class="fas fa-plus-circle"></i></button>
-                 <!-- //plus_param_row_button -->
+    <div class="card bg-light mb-3 main-form-card">
+        <div class="row card-body main-form-card-body">
+            <label>Inputs:</label>
+            <button name="plus_param_row_button" class="ml-auto"> <i class="fas fa-plus-circle"></i></button>
+            <!-- //plus_param_row_button -->
 
-                <table  class="table table-hover" name="function_parameters">
-                    <thead>
-                      <tr>
+            <table class="table table-hover" name="function_parameters">
+                <thead>
+                    <tr>
                         <th scope="col">#</th>
                         <th scope="col">Kind</th>
                         <th scope="col">Val</th>
                         <th scope="col">Type</th>
                         <th scope="col">Remove</th>
 
-                      </tr>
-                    </thead>
-                    <tbody>
+                    </tr>
+                </thead>
+                <tbody>
 
 
-                    </tbody>
-                  </table>
+                </tbody>
+            </table>
 
-
-            </div>
 
         </div>
 
-        <div class="card bg-light mb-3 main-form-card">
-            <div class="row card-body main-form-card-body">
-                <div>
-                    <h5 class="mb-2">Function Oper Line:</h5>
-                        <h5 class="oper_line" name = "funcOperLine">your_function(param1, param2, ...., paramN)</h5>
-                    </div>
+    </div>
+
+    <div class="card bg-light mb-3 main-form-card">
+        <div class="row card-body main-form-card-body">
+            <div>
+                <h5 class="mb-2">Function Oper Line:</h5>
+                <h5 class="oper_line" name="funcOperLine">your_function(param1, param2, ...., paramN)</h5>
             </div>
         </div>
+    </div>
 
-    </section>
+</section>
 
-    <!-- <section id = "Tree">
+<!-- <section id = "Tree">
         <div class="card bg-light mb-3 main-form-card">
             <div class="row card-body main-form-card-body">
                 <h4>Tree</h4>
@@ -264,8 +259,7 @@
             </div>
         </div>
     </section> -->
-    {%endblock%}
-    {%block scripts%}
-    <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
-    <script src="../static//js/Functions_Definitions.js"></script>
-    {%endblock%}
+{%endblock%} {%block scripts%}
+<!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
+<script src="../static//js/Functions_Definitions.js"></script>
+{%endblock%}

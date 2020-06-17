@@ -1,10 +1,10 @@
 var Metadata_form_controls = {
-  Name: $('#meta_name')[0],
-  Id: $('#meta_id')[0],
-  Owner: $('#meta_owner')[0],
-  Tags: $('#meta_tags')[0],
-  Description: $('#meta_description')[0],
-  MetaDate: $('#meta_date')[0],
+    Name: $('#meta_name')[0],
+    Id: $('#meta_id')[0],
+    Owner: $('#meta_owner')[0],
+    Tags: $('#meta_tags')[0],
+    Description: $('#meta_description')[0],
+    MetaDate: $('#meta_date')[0],
 }
 
 var Config_form_controls = {
@@ -20,41 +20,41 @@ var Config_form_controls = {
 
 var Complex_Net_form_controls = {
     Sensors: {
-      Sensors1: $('#Sensors1')[0],
-      Sensors2: $('#Sensors2')[0],
-      Sensors3: $('#Sensors3')[0],
-      Sensors4: $('#Sensors4')[0]}
-    ,
+        Sensors1: $('#Sensors1')[0],
+        Sensors2: $('#Sensors2')[0],
+        Sensors3: $('#Sensors3')[0],
+        Sensors4: $('#Sensors4')[0]
+    },
     Sords: {
-      Sord1: $('#Sord1')[0],
-      Sord2: $('#Sord2')[0],
-      Sord3: $('#Sord3')[0],
-      Sord4: $('#Sord4')[0],
-      Sord5: $('#Sord5')[0],
-      Sord6: $('#Sord6')[0],
-      Sord7: $('#Sord7')[0],
-      Sord8: $('#Sord8')[0]
+        Sord1: $('#Sord1')[0],
+        Sord2: $('#Sord2')[0],
+        Sord3: $('#Sord3')[0],
+        Sord4: $('#Sord4')[0],
+        Sord5: $('#Sord5')[0],
+        Sord6: $('#Sord6')[0],
+        Sord7: $('#Sord7')[0],
+        Sord8: $('#Sord8')[0]
     },
     Looks: {
-      look1: $('#look1')[0],
-      look2: $('#look2')[0],
-      look3: $('#look3')[0],
-      look4: $('#look4')[0]
+        look1: $('#look1')[0],
+        look2: $('#look2')[0],
+        look3: $('#look3')[0],
+        look4: $('#look4')[0]
     },
     Hears: {
-      Hear1: $('#Hear1')[0],
-      Hear2: $('#Hear2')[0],
-      Hear3: $('#Hear3')[0],
-      Hear4: $('#Hear4')[0],
-      Hear5: $('#Hear5')[0],
-      Hear6: $('#Hear6')[0],
-      Hear7: $('#Hear7')[0],
-      Hear8: $('#Hear8')[0],
-      Hear9: $('#Hear9')[0],
-      Hear10: $('#Hear10')[0]
+        Hear1: $('#Hear1')[0],
+        Hear2: $('#Hear2')[0],
+        Hear3: $('#Hear3')[0],
+        Hear4: $('#Hear4')[0],
+        Hear5: $('#Hear5')[0],
+        Hear6: $('#Hear6')[0],
+        Hear7: $('#Hear7')[0],
+        Hear8: $('#Hear8')[0],
+        Hear9: $('#Hear9')[0],
+        Hear10: $('#Hear10')[0]
     },
     Glasses: {
-      Glasses1: $('#Glasses1')[0]
+        Glasses1: $('#Glasses1')[0]
     }
 }
 
@@ -62,27 +62,27 @@ var Complex_Net_form_controls = {
 
 
 function fill_form_ComplexNet(data) {
-  if(data){
-    //  Metadata
-    Metadata_form_controls.Name.value = data.is_active;
-    Metadata_form_controls.Id.value = data.site_ip;
-    Metadata_form_controls.Owner.value = data.execrsice_site_ip;
-    Metadata_form_controls.Tags.value = data.auto_data_site_ip;
-    Metadata_form_controls.Description.value = data.nets;
-    Metadata_form_controls.Date.value = data.stations;
+    if (data) {
+        //  Metadata
+        Metadata_form_controls.Name.value = data.is_active;
+        Metadata_form_controls.Id.value = data.site_ip;
+        Metadata_form_controls.Owner.value = data.execrsice_site_ip;
+        Metadata_form_controls.Tags.value = data.auto_data_site_ip;
+        Metadata_form_controls.Description.value = data.nets;
+        Metadata_form_controls.Date.value = data.stations;
 
-    // //  Config
-    // var Config_Obj_Names = Metadata_form_controls
-    // for (i=0; i<Config_Obj_Names.Length; i++){
-    //   fill_object(Config_form_controls.(Config_Obj_Names[i]), data.Config_Obj_Names[i])
-    // }
-    //
-    // //  ComplexNet
-    // for (i=0; i<Config_Obj_Names.Length; i++){
-    //   fill_object(Config_form_controls.(Config_Obj_Names[i]), data.Config_Obj_Names[i])
-    // }
+        // //  Config
+        // var Config_Obj_Names = Metadata_form_controls
+        // for (i=0; i<Config_Obj_Names.Length; i++){
+        //   fill_object(Config_form_controls.(Config_Obj_Names[i]), data.Config_Obj_Names[i])
+        // }
+        //
+        // //  ComplexNet
+        // for (i=0; i<Config_Obj_Names.Length; i++){
+        //   fill_object(Config_form_controls.(Config_Obj_Names[i]), data.Config_Obj_Names[i])
+        // }
 
-  }
+    }
 }
 
 // function get_form (){
@@ -112,22 +112,22 @@ complexNet = new form_controls_handler();
 
 // New/Existing ComplexNet
 $('#NewExist_toggle').change(function() {
-  if ($('#NewExist_toggle')[0].checked){ //new
-    alert("New ComplexNet");
-    complexNet.new(Metadata_form_controls, "noChange");
-    Metadata_form_controls.Name.setAttribute("list", null);
-    fillComplexNetDefaultCT();
-    // Should Be added: ComplexNetDefult.
-  } else {
-    complexNet.exist(Metadata_form_controls, "meta_name","select", "select-one"); //todo: to change to dataList
-    // select Site
-    Metadata_form_controls.Name.setAttribute("list", "meta_name_datalist");
-    document.getElementById("meta_name").addEventListener("change", function() {
-      var selectedComplexNetName = Metadata_form_controls.Name.text;
-      fill_form("ComplexNet", "ComplexNet", "get_by_name" ,selectedComplexNetName);
-    });
-    get_names("ComplexNet", "ComplexNet", "get_names", Metadata_form_controls.Name)
-  }
+    if ($('#NewExist_toggle')[0].checked) { //new
+        alert("New ComplexNet");
+        complexNet.new(Metadata_form_controls, "noChange");
+        Metadata_form_controls.Name.setAttribute("list", null);
+        fillComplexNetDefaultCT();
+        // Should Be added: ComplexNetDefult.
+    } else {
+        complexNet.exist(Metadata_form_controls, "meta_name", "select", "select-one"); //todo: to change to dataList
+        // select Site
+        Metadata_form_controls.Name.setAttribute("list", "meta_name_datalist");
+        document.getElementById("meta_name").addEventListener("change", function() {
+            var selectedComplexNetName = Metadata_form_controls.Name.text;
+            fill_form("ComplexNet", "ComplexNet", "get_by_name", selectedComplexNetName);
+        });
+        get_names("ComplexNet", "ComplexNet", "get_names", Metadata_form_controls.Name)
+    }
 
 });
 //
@@ -270,3 +270,5 @@ $('#NewExist_toggle').change(function() {
 // }
 //
 // setToggle("project_toggle", "on");
+fillComplexNetDefaultCT();
+ChangeComplexNetHeaders();

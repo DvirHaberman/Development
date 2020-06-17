@@ -2,19 +2,18 @@ body {
     background-color: #fcf8e8;
 }
 
-
 .user-name {
-  /* background-color: gray; */
-  /* border-radius: 100%; */
-  display: inline-block;
-  padding: 1%;
+    /* background-color: gray; */
+    /* border-radius: 100%; */
+    display: inline-block;
+    padding: 1%;
 }
 
 #fixed-menus {
-  /* margin-top: 10px; */
-  margin-left: 1%;
-  /* margin-top: 5%; */
-  position: fixed;
+    /* margin-top: 10px; */
+    margin-left: 1%;
+    /* margin-top: 5%; */
+    position: fixed;
 }
 
 #fixed-menus select {
@@ -22,12 +21,11 @@ body {
     /* margin-bottom: 10px; */
 }
 
+
 /* #fixed-menus  */
+
 select:hover {
-    box-shadow:
-       inset 0 -3rem 3rem rgba(0,0,0,0.1),
-             0 0  0 2px rgb(255,255,255),
-             0.3rem 0.3rem 1rem rgba(0,0,0,0.3);
+    box-shadow: inset 0 -3rem 3rem rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255), 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.3);
 }
 
 .function-definition-header {
@@ -38,13 +36,12 @@ select:hover {
     font-family: cursive;
 }
 
-
 .fixed-buttons-div {
-  margin: 0 0 0 2%;
-  padding: 0.41% 0.625%;
-  position: relative;
-  height: 60%;
-  width: 9%;
+    margin: 0 0 0 2%;
+    padding: 0.41% 0.625%;
+    position: relative;
+    height: 60%;
+    width: 9%;
 }
 
 #functions-and-groups-menus {
@@ -55,13 +52,13 @@ select:hover {
     width: 9%; */
 }
 
-.functions-and-groups-select-div{
+.functions-and-groups-select-div {
     padding: 2% 2%;
     margin: 2%;
     /* max-width: 20%; */
 }
 
-.functions-and-groups-select-div .form-control{
+.functions-and-groups-select-div .form-control {
     margin: 1% 0 2% 0;
     /* max-width: 20%; */
 }
@@ -83,25 +80,27 @@ select:hover {
     color: blue;
 }
 
-.functions-and-groups-selected-div{
+.functions-and-groups-selected-div {
     margin-left: auto;
 }
+
+
 /* #fixed-menus .fix-buttons-ancor:hover {
     background-color: gainsboro;
 } */
 
 .card-img-top {
-  margin: 25px 0px;
-  max-width: 100%;
-  display: block;
+    margin: 25px 0px;
+    max-width: 100%;
+    display: block;
 }
 
 .fixed-fields-div {
-  margin: 0 0 0 6%;
-  padding: 20px 20px;
-  position: relative;
-  height: 60%;
-  width: 300px;
+    margin: 0 0 0 6%;
+    padding: 20px 20px;
+    position: relative;
+    height: 60%;
+    width: 300px;
 }
 
 .user-select {
@@ -126,10 +125,11 @@ select:hover {
     display: inline-block;
 }
 
-.row-fix-form{
+.row-fix-form {
     text-align: center;
     margin: 0 0 0 0px;
 }
+
 
 /* section main-from*/
 
@@ -145,14 +145,12 @@ select:hover {
 .main-form-card-body {
     background-color: #e8f9e9;
     border-top: solid dimgray 1.5px;
-
 }
 
 .main-form-card-body button {
     background-color: #e8f9e9;
     border-style: none;
     border-radius: 50%;
-
 }
 
 .main-form-card-body button i:hover {
@@ -160,11 +158,9 @@ select:hover {
     /* background-color: #e7e7e7; */
 }
 
-.main-form-card-body button:active{
-  border-style: none;
+.main-form-card-body button:active {
+    border-style: none;
 }
-
-
 
 .main-form-card {
     max-width: 90%;
@@ -174,68 +170,70 @@ select:hover {
     border-left: dotted lightgreen 2px;
     padding-right: 20px;
     padding-left: 5px;
-
 }
 
 #GroupsList {
     position: relative;
     height: 300px;
     width: 150px;
-    overflow-y: scroll;
+    /* overflow-y: scroll; */
 }
 
 .input-groups-data label {
     margin-left: 7px;
-
 }
+
+
 /*
 .input-form {
     margin-left: 0px;
 }
  */
 
- .input-function-data{
-     padding-left: 0px;
- }
+.input-function-data {
+    padding-left: 0px;
+}
 
- /* .main-form-card table{
+
+/* .main-form-card table{
     text-align: center;
     margin-top: 2%;
 } */
 
-table{
+table {
     text-align: center;
     margin-top: 2%;
 }
- .table-select{
-     background-color: #e8f9e9;
-     position: relative;
-     width: 69%;
-     margin: auto;
-     padding-right: 10px;
- }
 
- td input {
-   width: 5%;
- }
+.table-select {
+    background-color: #e8f9e9;
+    position: relative;
+    width: 69%;
+    margin: auto;
+    padding-right: 10px;
+}
+
+td input {
+    width: 5%;
+}
 
 td button {
-  background-color:  #e8f9e9;
-  border-radius: 50%;
-  border-style: none;
-
+    background-color: #e8f9e9;
+    border-radius: 50%;
+    border-style: none;
 }
 
-td button:hover{
-   background-color: #e7e7e7;
+td button:hover {
+    background-color: #e7e7e7;
 }
 
- /* .table-option {
+
+/* .table-option {
     background-color: black;
  } */
 
 td option {
-  padding-left: 20px;
+    padding-left: 20px;
 }
 
 .oper_line {
