@@ -27,8 +27,8 @@ def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
     # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb2"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -581,7 +581,7 @@ class Project(db.Model):
     def delete_by_id(project_id):
         try:
             project = Project.query.get(int(project_id))
-            if site:
+            if project:
                 db.session.delete(project)
                 db.session.commit()
                 return jsonify(status=1,msg='project ' + name + ' succefully deleted')
@@ -616,7 +616,7 @@ class Project(db.Model):
     @staticmethod
     def update_by_id(project_id, json_data):
         try:
-            project = Site.query.get(int(project_id))
+            project = Project.query.get(int(project_id))
             if project:
                 project.output_dir = json_data['output_dir']
                 project.name = json_data['name']
@@ -730,10 +730,12 @@ class OctopusFunction(db.Model):
     is_locked = db.Column(db.Integer)
     function_parameters = db.relationship(
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
-
+    feature = db.Column(db.Text)
+    requirement = db.Column(db.Text)
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
                  kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
-                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(), is_locked=0):
+                 function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(),
+                 is_locked=0, feature=None, requirement=None):
         self.name = name
         self.callback = callback
         self.file_name = file_name
@@ -753,6 +755,8 @@ class OctopusFunction(db.Model):
         self.changed_date = changed_date
         self.is_locked = is_locked
         self.function_parameters = function_parameters
+        self.feature = feature
+        self.requirement = requirement
 
     def self_jsonify(self):
         try:
@@ -790,6 +794,8 @@ class OctopusFunction(db.Model):
             handler_checksum=self.handler_checksum,
             changed_date=self.changed_date,
             is_locked=self.is_locked,
+            feature = self.feature,
+            requirement = self.requirement,
             function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
 
@@ -804,6 +810,21 @@ class OctopusFunction(db.Model):
             else:
                 is_class_method=0
 
+            if 'status' in data:
+                status = data['status']
+            else:
+                status = 0
+
+            if 'feature' in data:
+                feature = data['feature']
+            else:
+                feature = None
+            
+            if 'requirement' in data:
+                requirement = data['requirement']
+            else:
+                requirement = None
+            
             func = OctopusFunction(
                 name=data['name'],
                 callback=data['callback'],
@@ -812,8 +833,10 @@ class OctopusFunction(db.Model):
                 file_name = data['location'].split('\\')[-1],
                 class_name = data['class_name'],
                 is_class_method = is_class_method,
-                # status=data.status,
+                status=status,
                 # tree=row.tree,
+                feature=feature,
+                requirement=requirement,
                 kind=data['kind'],
                 tags=data['tags'],
                 description=data['description'],
@@ -1079,6 +1102,186 @@ class FunctionsGroup(db.Model):
         table = FunctionsGroup.query.all()
         return jsonify([row.self_jsonify() for row in table])
 
+    def add_functions(self, functions_list):
+        messages = []
+        for index, func in enumerate(functions_list):
+            #stage 1 - resolve function identifier and exracet function object
+            identifier_resolved_flag=False
+            if type(func) == type('1'):
+                is_identifier_str_flag = True
+                is_identifier_number_flag = False
+                try:
+                    if func.isdigit():
+                        func_obj = OctopusFunction.query.get(int(func))
+                        if func_obj:
+                            identifier_resolved_flag=True
+                        else:
+                            messages.append('Error: No functions with id ' + func)
+                    else:
+                        func_obj = OctopusFunction.query.filter_by(name=func).first()
+                        if func_obj:
+                            func_obj = func_obj
+                            identifier_resolved_flag=True
+                        else:
+                            messages.append('Error: No functions with name ' + func)
+                except Exception as error:
+                    messages.append('Error: something went wrong while exracting the function object with' + 
+                                    'identifier of ' + func)
+            elif type(func) == type(int(1)):
+                is_identifier_str_flag = False
+                is_identifier_number_flag = True
+                try:
+                    func_obj = OctopusFunction.query.get(func)
+                    if func_obj:
+                        identifier_resolved_flag=True
+                    else:
+                        messages.append('Error: No functions with id ' + func)
+                except Exception as error:
+                    messages.append('Error: something went wrong while exracting the function object with' + 
+                                    'identifier of ' + str(func))
+            else:
+                messages.append('Error: unsupported function identifier in the ' + str(index) + 'th place. identifier must be id or name')
+            
+            #stage 2 - append the functions to the group
+            if identifier_resolved_flag:
+                identifier_resolved_flag=False
+                try:
+                    self.functions.append(func_obj)
+                except:
+                    if is_identifier_str_flag:
+                        messages.append('Error: something went wrong while adding the function with id or name ' + func)
+                    if is_identifier_number_flag:
+                        messages.append('Error: something went wrong while adding the function with id ' + func) 
+        #stage 3 - commit changes to db and return the messages
+        db.session.commit() 
+        return messages
+    @staticmethod
+    def save(json_data):
+        try:
+            messages = []
+            name = json_data['name']
+            if name in [group.name for func in FunctionsGroup.query.all()]:
+                return jsonify(status=0, messages=['cannot create - group with this name already exist'], data=None)
+            group = FunctionsGroup(name=name)
+            db.session.add(group)
+            db.session.commit()
+            functions = json_data['functions']
+            status=0
+            if functions:
+                if type(functions) == type([1]):
+                    messages = group.add_functions(functions)
+                    if not messages:
+                        status=1
+                else:
+                    messages.append('Error: functions identifiers must be contained in an array')
+            else:
+                status=1
+            return jsonify(status=status, messages=messages, data=None)
+        except Exception as error:
+            messages = messages.append('something went wrong in the saving process')
+            return jsonify(status=0, messages=messages, data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_names():
+        try:
+            names = FunctionsGroup.query.with_entities(FunctionsGroup.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_id(group_id):
+        try:
+            group = FunctionsGroup.query.get(int(group_id))
+            return jsonify(status=1, message=None, data=group.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_by_name(group_name):
+        try:
+            group = FunctionsGroup.query.filter_by(name=group_name).first()
+            return jsonify(status=1, message=None, data=group.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            group = FunctionsGroup.query.filter_by(name=name).first()
+            if group:
+                db.session.delete(group)
+                db.session.commit()
+                return jsonify(status=1,msg='group ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No group with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_id(group_id):
+        try:
+            group = FunctionsGroup.query.get(int(group_id))
+            if group:
+                db.session.delete(group)
+                db.session.commit()
+                return jsonify(status=1,msg='group ' + group.name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No group with this id')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            group = FunctionsGroup.query.filter_by(name=name).first()
+            if group:
+                updated_functions = json_data['functions']
+                group.name = json_data['name']
+
+                db.session.add(group)
+                db.session.commit()
+                return jsonify(status=1,message='group ' + group.name + ' succesfully updated')
+            else:
+                return jsonify(status=0,message='Not deleted! No group with this name')
+
+
+            return jsonify(status= 1, message='group '  + group.name + ' succesfully updated')
+        except Exception as error:
+            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def update_by_id(group_id, json_data):
+        try:
+            group = FunctionsGroup.query.get(int(group_id))
+            if group:
+                updated_functions = json_data['functions']
+                group.name = json_data['name']
+
+                db.session.add(group)
+                db.session.commit()
+                return jsonify(status=1,message='group ' + group.name + ' succefully updated')
+            else:
+                return jsonify(status=0,message='Not deleted! No group with this name')
+            return jsonify(status= 1, message='group '  + group.name + ' succesfully updated')
+        except Exception as error:
+            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
 ##################################################
 ########### DBCONNECTION MODEL CLASS #############
 ##################################################
