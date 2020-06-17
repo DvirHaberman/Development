@@ -2,11 +2,27 @@ body {
     background-color: #fcf8e8;
 }
 
+
 .user-name {
     /* background-color: gray; */
     /* border-radius: 100%; */
     display: inline-block;
     padding: 1%;
+}
+
+.addGroupButton{
+  border-radius: 5%;
+  background-color: whitesmoke;
+  border: 1px solid #ced4da;
+}
+
+button#newGroupButton {
+    background-color: whitesmoke;
+    border None;
+    background-color: #e8f9e9;
+    border-style: none;
+    /* border-style: groove; */
+    border-radius: 50%;
 }
 
 #fixed-menus {
@@ -50,6 +66,10 @@ select:hover {
     /* position: relative; */
     /* height: 60%;
     width: 9%; */
+}
+
+input::-webkit-calendar-picker-indicator {
+  display: none;
 }
 
 .functions-and-groups-select-div {
@@ -147,10 +167,10 @@ select:hover {
     border-top: solid dimgray 1.5px;
 }
 
-.main-form-card-body button {
-    background-color: #e8f9e9;
+#input_parameters button {
+    /* background-color: #e8f9e9; */
     border-style: none;
-    border-radius: 50%;
+    /* border-radius: 50%; */
 }
 
 .main-form-card-body button i:hover {

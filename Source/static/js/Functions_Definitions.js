@@ -320,7 +320,13 @@ function GetParameterDataTbl(id, kind, val, type) {
 // clearing and filling the form                                          //
 ////////////////////////////////////////////////////////////////////////////
 
-
+function Add_Group(ul, li_Name, numOfRows) {
+  // var ul = document.getElementById("list");
+  var li = document.createElement("li");
+  li.appendChild(document.createTextNode(li_Name));
+  li.setAttribute("id", ["element" + numOfRows]); // added line
+  ul.appendChild(li);
+}
 
 function form_controls_handler() {
   this.form_controls = form_controls;
@@ -430,7 +436,12 @@ function form_controls_handler() {
 form_handler = new form_controls_handler();
 // form_handler.clear_form();
 
-
+$("#addGroupButton")[0].addEventListener("click", function() {
+  var GroupsList = document.getElementsByName("GroupsListNames")[0];
+  var numOfRows = GroupsList.children.length;
+  Add_Group(GroupsList,"ilan" , numOfRows+1);
+  // setOperLineString();
+});
 
 
 $("button[name='plus_param_row_button']")[0].addEventListener("click", function() {
