@@ -27,8 +27,8 @@ def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
     # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -1160,8 +1160,8 @@ class FunctionsGroup(db.Model):
         try:
             messages = []
             name = json_data['name']
-            if name in [group.name for func in FunctionsGroup.query.all()]:
-                return jsonify(status=0, messages=['cannot create - group with this name already exist'], data=None)
+            if name in [group.name for group in FunctionsGroup.query.all()]:
+                return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
             group = FunctionsGroup(name=name)
             db.session.add(group)
             db.session.commit()
@@ -1176,10 +1176,10 @@ class FunctionsGroup(db.Model):
                     messages.append('Error: functions identifiers must be contained in an array')
             else:
                 status=1
-            return jsonify(status=status, messages=messages, data=None)
+            return jsonify(status=status, message=messages, data=None)
         except Exception as error:
             messages = messages.append('something went wrong in the saving process')
-            return jsonify(status=0, messages=messages, data=None)
+            return jsonify(status=0, message=messages, data=None)
         finally:
             db.session.close()
 
@@ -1220,11 +1220,11 @@ class FunctionsGroup(db.Model):
             if group:
                 db.session.delete(group)
                 db.session.commit()
-                return jsonify(status=1,msg='group ' + name + ' succefully deleted')
+                return jsonify(status=1,message='group ' + name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No group with this name')
+                return jsonify(status=0,message='Not deleted! No group with this name')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1235,11 +1235,11 @@ class FunctionsGroup(db.Model):
             if group:
                 db.session.delete(group)
                 db.session.commit()
-                return jsonify(status=1,msg='group ' + group.name + ' succefully deleted')
+                return jsonify(status=1,message='group ' + group.name + ' succefully deleted')
             else:
-                return jsonify(status=0,msg='Not deleted! No group with this id')
+                return jsonify(status=0,message='Not deleted! No group with this id')
         except:
-            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
 
@@ -1249,7 +1249,11 @@ class FunctionsGroup(db.Model):
             group = FunctionsGroup.query.filter_by(name=name).first()
             if group:
                 updated_functions = json_data['functions']
-                group.name = json_data['name']
+                if not type(updated_functions) == type([1]):
+                    return jsonify(status=1,message='not updated! functions must be sent as an array/list')
+                group.functions = []
+                messages = group.add_functions(updated_functions)
+                # group.name = json_data['name']
 
                 db.session.add(group)
                 db.session.commit()
@@ -1270,7 +1274,8 @@ class FunctionsGroup(db.Model):
             group = FunctionsGroup.query.get(int(group_id))
             if group:
                 updated_functions = json_data['functions']
-                group.name = json_data['name']
+                if not type(updated_functions) == type([1]):
+                    return jsonify(status=1,message='not updated! functions must be sent as an array/list')
 
                 db.session.add(group)
                 db.session.commit()
