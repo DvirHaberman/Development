@@ -27,7 +27,8 @@ var form_controls = {
   description: $("input[name='description']")[0],
   is_class_method: $("input[name='isOutputIsAClass']")[0],
   class_name: $("input[name='outputClassName']")[0],
-  function_parameters: $("table[name='function_parameters']")[0]
+  function_parameters: $("table[name='function_parameters']")[0],
+  groups: $("ul[name='GroupsListNames']")[0]
 
 };
 
@@ -249,6 +250,13 @@ function clear_object(obj) {
     for (i = 0; i < num_of_options; i++) {
       obj.remove(0);
     }
+  }
+  else if (obj.tagName === "UL") {
+      lis = document.querySelectorAll(['#' + obj.id + 'li']);
+      for(var i=0; li=lis[i]; i++) {
+        li.parentNode.removeChild(li);
+      }
+
   } else if (obj.type==="checkbox"){
     obj.checked = 0;
     calc ();
@@ -281,6 +289,9 @@ function fill_object(obj, value, header) {
   } else if (obj.type==="checkbox"){
     obj.checked = value;
     calc ();
+
+  } else if (obj.tagName==="UL"){
+    Add_Group(obj, value, obj.children.length+1);
 
   } else {
     obj.value = value;
@@ -439,7 +450,8 @@ form_handler = new form_controls_handler();
 $("#addGroupButton")[0].addEventListener("click", function() {
   var GroupsList = document.getElementsByName("GroupsListNames")[0];
   var numOfRows = GroupsList.children.length;
-  Add_Group(GroupsList,"ilan" , numOfRows+1);
+  var selectedGroupName = $('#group_input')[0].value;
+  Add_Group(GroupsList,selectedGroupName , numOfRows+1);
   // setOperLineString();
 });
 
