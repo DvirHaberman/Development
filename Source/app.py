@@ -6,7 +6,7 @@ from python.processes_workers import Worker, init_processes, create_pipes, send_
 import os
 
 app = Flask(__name__)
-app.secret_key = "shhhh"#os.environ.get('PYTHON_SECRET_KEY')
+app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
