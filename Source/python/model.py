@@ -1257,7 +1257,10 @@ class FunctionsGroup(db.Model):
 
                 db.session.add(group)
                 db.session.commit()
-                return jsonify(status=1,message='group ' + group.name + ' succesfully updated')
+                if messages:
+                    return jsonify(status=0,message=messages)
+                else:
+                    return jsonify(status=1,message='group ' + group.name + ' succesfully updated')
             else:
                 return jsonify(status=0,message='Not deleted! No group with this name')
 
@@ -1276,10 +1279,16 @@ class FunctionsGroup(db.Model):
                 updated_functions = json_data['functions']
                 if not type(updated_functions) == type([1]):
                     return jsonify(status=1,message='not updated! functions must be sent as an array/list')
+                group.functions = []
+                messages = group.add_functions(updated_functions)
+                # group.name = json_data['name']
 
                 db.session.add(group)
                 db.session.commit()
-                return jsonify(status=1,message='group ' + group.name + ' succefully updated')
+                if messages:
+                    return jsonify(status=0,message=messages)
+                else:
+                    return jsonify(status=1,message='group ' + group.name + ' succesfully updated')
             else:
                 return jsonify(status=0,message='Not deleted! No group with this name')
             return jsonify(status= 1, message='group '  + group.name + ' succesfully updated')
