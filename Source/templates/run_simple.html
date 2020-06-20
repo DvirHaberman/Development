@@ -1,161 +1,147 @@
-{% extends "layout.html" %} 
-
-{% block css %}
+{% extends "layout.html" %} {% block css %}
 <link rel="stylesheet" href="../static/css/simple_run.css" />
-<link rel="stylesheet" href="../static/css/draggable_list.css">
-{% endblock %} 
-
-{% block content %}
+<link rel="stylesheet" href="../static/css/draggable_list.css"> {% endblock %} {% block content %}
 <!-- <center> -->
-    <div dir="ltr" class="row col-10 mx-4">
-        <div class="col-5 mr-auto jumbotron">
-            <div class="row">
+<div dir="ltr" class="row col-12" id=main_form>
+    <div class="card run-select-card">
+        <div class="card-header run-select-card-header">
+            <h2>Select Runs</h2>
+        </div>
+        <div class="card-body run-select-card-body">
 
-                <div class="col-6">
-                    <label for="database_select">select a db</label>
-                    <select class ="form-control" name="databases" id="database_select">
+            <div class="">
+                <label for="database_select"><h5>select a db</h5></label>
+                <select class="form-control" name="databases" id="database_select">
 
                     </select>
-                </div>
-                <div class="col-6">
-                    <label for="run_ids_select">select a run id</label>
-                    <div class="row">
-                        <div>
-                            <input list="run_ids_datalist" class ="form-control" name="run_ids" id="run_ids_select">
+            </div>
+            <div class="">
+                <label for="run_ids_select"><h5>select a run id</h5></label>
 
-                            <datalist id="run_ids_datalist">
+                <div class="input-group mb-3">
+                    <input list="run_ids_datalist" class="form-control input" name="run_ids" id="run_ids_select" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary add" type="button" id="add_run_id_button">Add</button>
+                    </div>
 
-                            </datalist>
-                        </div>
-                        <div>
-                            <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_run_id_button" />
-                        </div>
-                        
-                    </div>
+                    <datalist id="run_ids_datalist">
+                    </datalist>
                 </div>
-                <div>
-                    <h1>DRAG AND DROP</h1>
-                    <div class="list">
-                        <input list='some_datalist' type="text" class="input" placeholder="Add items in your list"/>
-                        <span class="add"><input class="btn btn-sm btn-primary" type="button" value="add"></span>
-                        <datalist id='some_datalist'>
-                            <option value="data1"></option>
-                            <option value="data3"></option>
-                            <option value="data4"></option>
-                            <option value="data2"></option>
-                        </datalist>
-                    </div>
-                    <ul class='draggble_ul'>
-                        <li class="draggable" draggable="true">HTML</li>
-                        <li class="draggable" draggable="true">CSS</li>
-                        <li class="draggable" draggable="true">JavaScript</li>
-                        <li class="draggable" draggable="true">PHP</li>
-                        <li class="draggable" draggable="true">MySQL</li>
+                <div class="draggble_list_div">
+                    <ul class='draggble_ul' id="run_ids_list">
                     </ul>
                 </div>
             </div>
-            <div class="my-2">
-                <label for="run_ids_list">selected run ids:</label>   
-                <textarea id="run_ids_list" cols="10" rows="3" class="form-control"></textarea>
-            </div>
         </div>
-        
-        <div class="col-5 ml-auto jumbotron">
-            <label for="functions_select">select a function</label>
-            <div class="row">
-                <div class="col-5">
-                    <input list="function_datalist" class ="form-control" name="functions" id="functions_select">
-                    <datalist id=function_datalist>
 
+    </div>
+    <div class="card function-select-card mx-4">
+        <div class="card-header function-select-card-header">
+            <h2>Select Functions</h2>
+        </div>
+        <div class="card-body function-select-card-body">
+
+            <div class="">
+                <label id="functions_select_label" for="run_ids_select"><h5>select a function</h5></label>
+
+                <div class="input-group mb-3">
+                    <input list="function_datalist" class="form-control input" name="functions" id="functions_select" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary add" type="button" id="add_function_button">Add</button>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                      </button>
+                    <div class="dropdown-menu">
+                        <button id="functions_option" class="dropdown-item dropdown-selected">Function</button>
+                        <div role="separator" class="dropdown-divider"></div>
+                        <button id="groups_option" class="dropdown-item">Group</button>
+                    </div>
+                    <datalist id="function_datalist">
+                        
                     </datalist>
                 </div>
-                <div>
-                    <input class ="btn btn-lg btn-success ml-1" type="button" value="Add" id="add_function_button" />
+                <div class="draggble_list_div">
+                    <ul class='draggble_ul' id="functions_list">
+                    </ul>
                 </div>
             </div>
-            <div class="my-2">
-                <label for="functions_list">selected functions:</label>   
-                <textarea id="functions_list" cols="10" rows="3" class="form-control"></textarea>
-            </div>
-            
         </div>
-        
     </div>
     <button id="go_button" class="btn btn-primary btn-lg m-4">GO!</button>
 
-            
- 
-    
-<!-- </center> -->
-<hr>
-<br>
-<br>
-<div class="col-5 mx-4">
-    <label for="mission_id">select mission id:</label>
-    <div class="row ml-auto">
-        <div>
-            <select class ="form-control" id="mission_id_select"></select>
-        </div>
-        <div>
-            <button class ="btn btn-lg btn-success ml-1" id='display_button'>display</button>
-        </div>
-    </div>
-</div>
 
-<hr />
-<div class="row container-fluid mx-auto">
-    <div id="results_table_div" class="mr-auto col-6">
-        <table id="results_table">
-        </table>
-    </div>
-    <div class="container-fluid col-6 ml-auto mt-auto">
-        <canvas hidden="hidden" id="results_statistics_chart"></canvas>
-    </div>
-</div>
-<br>
-<br>
-<div id="drill_down_div" class="container results_divs">
-    <div class="row">
-        <div class="col-6"> 
 
-            <h1 id="drill_down_header"></h1>
-            <h2 id="drill_down_db_name"></h2>
-            
-            <div class="row col-10">
-                <div class="results_divs col-5 m-2">
-                    <h2 id="drill_down_function_name"></h2>
-                </div>
-                <div class="results_divs col-5 m-2">
-                    <h2 id="drill_down_run_id"></h2>
-                </div>
+
+    <!-- </center> -->
+    <hr>
+    <br>
+    <br>
+    <div class="col-5 mx-4">
+        <label for="mission_id">select mission id:</label>
+        <div class="row ml-auto">
+            <div>
+                <select class="form-control" id="mission_id_select"></select>
             </div>
-            <div class="row col-10">
-                <div class="results_divs col-5 m-2">
-                    <h2 id="result_status"></h2>
-                </div>
-                <div class="results_divs col-5 m-2">
-                    <h2 id="result_text"></h2>
-                </div>
+            <div>
+                <button class="btn btn-lg btn-success ml-1" id='display_button'>display</button>
             </div>
-            
-        </div> 
-        
+        </div>
     </div>
-    <div class="col-8" id="drill_down_table_div">
-        <table id="drill_down_table">
-        
-        </table>
-    </div>
-    
-</div>
-<br>
-<br>
-<br>
-<br>
-{% endblock %} {% block scripts %}
-<!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
-<script src="../static/js/run_simple.js"></script>
-<script src="../static/js/display_results.js"></script>
-<!-- <script src="../static/js/draggble_list.js"></script> -->
 
-{% endblock %}
+    <hr />
+    <div class="row container-fluid mx-auto">
+        <div id="results_table_div" class="mr-auto col-6">
+            <table id="results_table">
+            </table>
+        </div>
+        <div class="container-fluid col-6 ml-auto mt-auto">
+            <canvas hidden="hidden" id="results_statistics_chart"></canvas>
+        </div>
+    </div>
+    <br>
+    <br>
+    <div id="drill_down_div" class="container results_divs">
+        <div class="row">
+            <div class="col-6">
+
+                <h1 id="drill_down_header"></h1>
+                <h2 id="drill_down_db_name"></h2>
+
+                <div class="row col-10">
+                    <div class="results_divs col-5 m-2">
+                        <h2 id="drill_down_function_name"></h2>
+                    </div>
+                    <div class="results_divs col-5 m-2">
+                        <h2 id="drill_down_run_id"></h2>
+                    </div>
+                </div>
+                <div class="row col-10">
+                    <div class="results_divs col-5 m-2">
+                        <h2 id="result_status"></h2>
+                    </div>
+                    <div class="results_divs col-5 m-2">
+                        <h2 id="result_text"></h2>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="col-8" id="drill_down_table_div">
+            <table id="drill_down_table">
+
+            </table>
+        </div>
+
+    </div>
+    <br>
+    <br>
+    <br>
+    <br> {% endblock %} {% block scripts %}
+    <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
+    <script src="../static/js/run_simple.js"></script>
+    <script src="../static/js/display_results.js"></script>
+    <!-- <script src="../static/js/draggble_list.js"></script> -->
+
+    {% endblock %}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{session['current_window_name']}}</title>
@@ -29,100 +30,87 @@
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
     <link rel="stylesheet" href="../static/css/layout_style.css">
     <link rel="stylesheet" href="../static/css/charts.min.css">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <script src="../static/js/popper.min.js"></script>
     <script src="../static/js/jquery_3_4_1_min.js"></script>
-    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
     <script src="../static/js/charts.bundle.js"></script>
     {% block css %}
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <link rel="stylesheet" href="../static/css/styles.css" /> -->
     {% endblock %}
-  </head>
-  <body>
+</head>
 
-    <section id="navigation-bar" >
-      <div class="container-fluid fixed-top">
-        <!-- Nav Bar -->
-        <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
-          <div class="col-4">
-          <a class="navbar-brand" href="/welcome"
-            ><img data-toggle="tooltip" data-placement="left" title="Tooltip on left"
-              class="octopus-img"
-              src="../static/images/octopus-gentelman-1.png"
-              alt=""
-            />
-            <h6 class="user-name">{{session['username']}}</h6>
-          </a>
-          <a href="/logout" class="text-primary"><h6>logout</h6></a>
-        </div>
-        <div id="window-title-div" class="mx-auto">
-            <a class="navbar-brand mx-auto" id="window-title" href="">{{session['current_window_name']}}</a>
-          </div>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-toggle="collapse"
-            data-target="#navbarTogglerDemo2"
-            aria-controls="navbarTogglerDemo2"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
+<body>
+
+    <section id="navigation-bar">
+        <div class="container-fluid fixed-top">
+            <!-- Nav Bar -->
+            <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="col-4">
+                    <a class="navbar-brand" href="/welcome"><img data-toggle="tooltip" data-placement="left" title="Tooltip on left" class="octopus-img" src="../static/images/octopus-gentelman-1.png" alt="" />
+                        <h6 class="user-name">{{session['username']}}</h6>
+                    </a>
+                    <a href="/logout" class="text-primary">
+                        <h6>logout</h6>
+                    </a>
+                </div>
+                <div id="window-title-div" class="mx-auto">
+                    <a class="navbar-brand mx-auto" id="window-title" href="">{{session['current_window_name']}}</a>
+                </div>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo2" aria-controls="navbarTogglerDemo2" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
-          <div class="collapse navbar-collapse col-4" id="navbarTogglerDemo2">
-            <ul class="navbar-nav ml-auto">
-            {% if session['current_window_name']=='Define Functions' %}
-              <li class="nav-item active">
-            {% else %}
-              <li class="nav-item">
-            {%endif%}
-                <a class="nav-link" href="Function_Definition">Define</a>
-              </li>
-            {% if session['current_window_name']=='Run Functions' %}
-              <li class="nav-item active">
-            {% else %}
-              <li class="nav-item">
-            {%endif%}
-                <a class="nav-link" href="run_simple">Run</a>
-              </li>
-            {% if session['userrole'] =='Admin' %}
-            {% if session['current_window_name']=='Define Users' %}
-              <li class="nav-item active">
-            {% else %}
-              <li class="nav-item">
-            {%endif%}
-                <a class="nav-link" href="user_wizard">Users</a>
-              </li>
-            {% if session['current_window_name']=='Define Connections' %}
-              <li class="nav-item active">
-            {% else %}
-              <li class="nav-item">
-            {%endif%}
-                <a class="nav-link" href="db_conn_wizard">Connections</a>
-              </li>
-            {%endif%}
-            </ul>
-          </div>
-        </nav>
-      </div>
+                <div class="collapse navbar-collapse col-4" id="navbarTogglerDemo2">
+                    <ul class="navbar-nav ml-auto">
+                        {% if session['current_window_name']=='Define Functions' %}
+                        <li class="nav-item active">
+                            {% else %}
+                            <li class="nav-item">
+                                {%endif%}
+                                <a class="nav-link" href="Function_Definition">Define</a>
+                            </li>
+                            {% if session['current_window_name']=='Run Functions' %}
+                            <li class="nav-item active">
+                                {% else %}
+                                <li class="nav-item">
+                                    {%endif%}
+                                    <a class="nav-link" href="run_simple">Run</a>
+                                </li>
+                                {% if session['userrole'] =='Admin' %} {% if session['current_window_name']=='Define Users' %}
+                                <li class="nav-item active">
+                                    {% else %}
+                                    <li class="nav-item">
+                                        {%endif%}
+                                        <a class="nav-link" href="user_wizard">Users</a>
+                                    </li>
+                                    {% if session['current_window_name']=='Define Connections' %}
+                                    <li class="nav-item active">
+                                        {% else %}
+                                        <li class="nav-item">
+                                            {%endif%}
+                                            <a class="nav-link" href="db_conn_wizard">Connections</a>
+                                        </li>
+                                        {%endif%}
+                    </ul>
+                </div>
+            </nav>
+        </div>
     </section>
     <br>
     <br>
     <br>
     <br>
     <div class="container-fluid">
-    {%block content%}
-    {% endblock %}
+        {%block content%} {% endblock %}
     </div>
-  </div>
+    </div>
 
- 
 
-  {%block scripts%}
-  {% endblock %}
-  {%block footer%}
-  {% endblock %}
-  <script src="../static/js/layout.js"></script>
-  <script src="../static/js/run_results_charts.js"></script>
-  </body>
-  </html>
+
+    {%block scripts%} {% endblock %} {%block footer%} {% endblock %}
+    <script src="../static/js/layout.js"></script>
+    <script src="../static/js/run_results_charts.js"></script>
+</body>
+
+</html>

@@ -3,11 +3,13 @@ body .list {
     /* width: 250px;  */
     margin: 0 0 0 30px;
     display: inline-block;
-  }
-  body .list ::-webkit-input-placeholder {
+}
+
+body .list ::-webkit-input-placeholder {
     color: #cecece;
-  }
-  body .list .input {
+}
+
+body .list .input {
     /* outline: none;
     border: 1px solid white;
     background-color: #53a8e6;
@@ -20,8 +22,9 @@ body .list {
     font-size: 16px;
     margin-left: -5px; */
     display: inline-block;
-  }
-  body .list span {
+}
+
+body .list span {
     position: absolute;
     right: 0;
     top: 0;
@@ -32,34 +35,43 @@ body .list {
     transition: all 200ms;
     color: white;
     will-change: transform;
-  }
-  body .list span:hover {
+}
+
+body .list span:hover {
     transform: rotate(180deg);
-  }
-  body ul {
+}
+
+body ul {
     padding: 0px;
-  }
-  body ul .draggable {
+}
+
+body ul .draggable {
     will-change: transform;
     font-family: "Raleway", sans-serif;
     font-weight: 800;
-    height: 50px;
+    /* height: 40px; */
     list-style-type: decimal;
     margin: 10px;
-    background-color: white;
+    /* background-color: white; */
     color: #212121;
-    width: 250px;
-    line-height: 3.2;
+    /* width: 250px; */
+    /* line-height: 3.2; */
     padding-left: 10px;
     cursor: move;
     transition: all 200ms;
     user-select: none;
-    margin-left: 25px;
-    /* margin: 10px auto; */
+    /* margin-left: 25px; */
+    margin: 10px auto;
+    /* margin-top: 10px; */
     position: relative;
-  }
-  body ul .draggable:after {
-    content: 'drag me';
+}
+
+li {
+    margin-top: 20px;
+}
+
+body ul .draggable:after {
+    /* content: 'drag me'; */
     right: 7px;
     font-size: 10px;
     position: absolute;
@@ -69,16 +81,17 @@ body .list {
     transition-timing-function: cubic-bezier(0.48, 0.72, 0.62, 1.5);
     transform: translateX(120%);
     opacity: 0;
-  }
-  body ul .draggable:hover:after {
+}
+
+body ul .draggable:hover:after {
     opacity: 1;
     transform: translate(0);
-  }
-   
-  .over {
-    transform: scale(1.1, 1.1);
-  }
+}
 
-  li span {
-      margin-left: auto;
-  }
+.over {
+    transform: scale(1.1, 1.1);
+}
+
+li span {
+    margin-left: auto;
+}
