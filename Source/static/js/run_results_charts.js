@@ -1,16 +1,16 @@
 var ctx = document.getElementById('results_statistics_chart');
-var colors={
-  nodata: '#007bff',
-  secondary: '#6c757d',
-  success: '#28a745',
-  info: '#17a2b8',
-  warning: '#ffc107',
-  fail: '#dc3545',
-  light: '#f8f9fa',
-  error: '#343a40'
+var colors = {
+    nodata: '#007bff',
+    secondary: '#6c757d',
+    success: '#28a745',
+    info: '#17a2b8',
+    warning: '#ffc107',
+    fail: '#dc3545',
+    light: '#f8f9fa',
+    error: '#343a40'
 };
 var myChart = new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
         labels: ['Success', 'Warning', 'Fail', 'Error', 'No Data'],
         datasets: [{
@@ -35,12 +35,12 @@ var myChart = new Chart(ctx, {
     },
     options: {
         responsiveAnimationDuration: 2000
-        // scales: {
-        //     yAxes: [{
-        //         ticks: {
-        //             beginAtZero: true
-        //         }
-        //     }]
-        // }
+            // scales: {
+            //     yAxes: [{
+            //         ticks: {
+            //             beginAtZero: true
+            //         }
+            //     }]
+            // }
     }
 });

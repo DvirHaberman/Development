@@ -38,16 +38,29 @@ td:hover {
     background-color: #17ebce;
 }
 
-.results_divs {
-    text-align: center;
+.result-output-text h1 {
+    color: #01a9b4;
+}
+
+.result-output-text h2 {
+    margin-top: 30px;
 }
 
 #results_table_div {
-    overflow: scroll;
+    /* overflow: hidden; */
+    overflow: auto;
+    max-height: 400px;
+    /* width: 50%; */
+}
+
+.results_statistics_div {
+    height: 30%;
 }
 
 #drill_down_table_div {
-    overflow: scroll;
+    overflow: auto;
+    /* overflow: scroll; */
+    max-height: 500px;
 }
 
 .run-select-card-body,
@@ -77,8 +90,28 @@ td:hover {
     height: 310px;
 }
 
+.run-select-card,
+.function-select-card {
+    height: 610px;
+    width: 17%;
+}
+
+.display-results-div {
+    width: 60%;
+    height: 610px;
+}
+
 .function-select-card-body .draggble_list_div {
     height: 400px;
+}
+
+
+/* #results_table_div {
+    height: 40%;
+} */
+
+.results_statistics_div {
+    height: 20%;
 }
 
 .draggble_list_div button {

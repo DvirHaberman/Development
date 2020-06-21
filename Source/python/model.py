@@ -1998,7 +1998,7 @@ class Site(db.Model):
             db.session.close()
 
 class OctopusProcess(db.Model):
-    __tablename__ = 'process'
+    __tablename__ = 'OctopusProcess'
     id = db.Column(db.Integer, primary_key=True)
     # project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
     name = db.Column(db.Text)
