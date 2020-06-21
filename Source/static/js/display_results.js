@@ -21,6 +21,23 @@ var statistics = {
 };
 results_table_div.appendChild(results_header);
 
+
+function clear_drill_down() {
+    drill_down_header.innerHTML = null;
+    drill_down_function_name.innerHTML = null;
+    drill_down_run_id.innerHTML = null;
+    drill_down_db_name.innerHTML = null;
+    result_status.innerHTML = null;
+    result_text.innerHTML = null;
+    drill_down_table_div.removeChild(drill_down_table)
+    drill_down_table = document.createElement('table');
+    drill_down_table.id = 'drill_down_table';
+    drill_down_table.classList.add(["table"]);
+    drill_down_table.classList.add(["table-hover"]);
+    drill_down_table.classList.add(["col-10"]);
+    drill_down_table.classList.add(["m-auto"]);
+    drill_down_table_div.appendChild(drill_down_table);
+}
 // drill_down_div.appendChild(drill_down_header);
 // drill_down_div.appendChild(drill_down_function_name);
 // drill_down_div.appendChild(drill_down_run_id);
@@ -43,6 +60,7 @@ function get_mission_ids() {
                 select_obj.appendChild(opt);
             }
             load_results();
+            // clear_drill_down();
         }
     });
 }
@@ -71,8 +89,8 @@ function drill_down() {
             drill_down_table.classList.add(["col-10"]);
             drill_down_table.classList.add(["m-auto"]);
             drill_down_table_div.appendChild(drill_down_table);
-            num_of_cols = result_array.schema.fields.length;
-            num_of_rows = result_array.data.length;
+            num_of_cols = result[0].result_array.schema.fields.length;
+            num_of_rows = result[0].result_array.data.length;
             newRow = drill_down_table.insertRow(-1);
 
             // newRow.appendChild(th);
@@ -81,7 +99,7 @@ function drill_down() {
             // newRow.insertCell(0);
             for (i = 0; i < num_of_cols - 1; i++) {
                 th = document.createElement('th');
-                th.innerHTML = result_array.schema.fields[i].name;
+                th.innerHTML = result[0].result_array.schema.fields[i].name;
                 th.bgColor = 'gray';
                 newRow.appendChild(th);
             }
@@ -89,12 +107,15 @@ function drill_down() {
                 newRow = drill_down_table.insertRow(-1);
                 for (j = 0; j < num_of_cols - 1; j++) {
                     td = document.createElement('td');
-                    var status = result_array.data[i][result_array.schema.fields[j].name];
+                    var status = result[0].result_array.data[i][result[0].result_array.schema.fields[j].name];
 
                     td.innerHTML = status;
                     newRow.appendChild(td);
                 }
             }
+        },
+        error() {
+            clear_drill_down();
         }
     });
 }
@@ -187,6 +208,7 @@ function load_results() {
             myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
 
             myChart.update();
+            clear_drill_down();
         }
     });
 }
