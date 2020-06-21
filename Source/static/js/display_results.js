@@ -54,8 +54,12 @@ function drill_down() {
         url: "/api/AnalyseResult/jsonify_by_ids/" + result_id,
         success: function(result) {
             drill_down_result = result;
-            result_array = drill_down_result[0].result_array;
-            drill_down_header.innerHTML = 'Result array for result id: ' + result_id;
+            result_array = drill_down_result[0].result_array; <<
+            << << < HEAD
+            drill_down_header.innerHTML = 'Result array for result id: ' + result_id; ===
+            === =
+            drill_down_header.innerHTML = 'Results for result id: ' + result_id; >>>
+            >>> > 31 bf2d6538ae7997ece86f92bcc7cee20d32bbd0
             drill_down_function_name.innerHTML = 'Function name: ' + function_name;
             drill_down_run_id.innerHTML = 'Run id: ' + run_id;
             drill_down_db_name.innerHTML = 'DB name: ' + drill_down_result[0].db_conn;
@@ -86,8 +90,48 @@ function drill_down() {
             for (i = 0; i < num_of_rows; i++) {
                 newRow = drill_down_table.insertRow(-1);
                 for (j = 0; j < num_of_cols - 1; j++) {
-                    td = document.createElement('td');
+                    td = document.createElement('td'); <<
+                    << << < HEAD
+                    var status = result_array.data[i][result_array.schema.fields[j].name]; ===
+                    === =
+                    // td.addEventListener("click",drill_down);
+                    // if (j==0){
                     var status = result_array.data[i][result_array.schema.fields[j].name];
+                    // }
+                    // else{
+                    //   var status = result_array.data[i][result_array.schema.fields[j].name].status;
+                    //   // var status_text = '';
+                    //   if(j>0){
+                    //     switch (status) {
+                    //       case 0:
+                    //         status = 'No Data';
+                    //         td.bgColor = 'blue';
+                    //         break;
+                    //       case 1:
+                    //         status = 'Error';
+                    //         td.bgColor = 'gray';
+                    //         break;
+                    //       case 2:
+                    //         status = 'Fail';
+                    //         td.bgColor = 'red';
+                    //         break;
+                    //       case 3:
+                    //         status = 'Warning';
+                    //         td.bgColor = 'orange';
+                    //         break;
+                    //       case 4:
+                    //         status = 'Success';
+                    //         td.bgColor = 'green';
+                    //         break;
+                    //       default:
+                    //         status = 'in process';
+                    //         // td.bgColor = 'green';
+                    //         break;
+                    //     }
+                    //   }
+                    // }
+                    >>>
+                    >>> > 31 bf2d6538ae7997ece86f92bcc7cee20d32bbd0
                     td.innerHTML = status;
                     newRow.appendChild(td);
                 }

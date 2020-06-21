@@ -143,7 +143,7 @@ class DbConnector:
         if self.status == 'valid':
             self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 5})
             conn = self.connection.connect()
-            data = pd.read_sql('select run_id from run_ids',con=conn)
+            data = pd.read_sql(sql,con=conn)
             conn.close()
             self.connection.dispose()
             self.connection = None
@@ -2002,8 +2002,8 @@ class Site(db.Model):
         finally:
             db.session.close()
 
-class Process(db.Model):
-    __tablename__ = 'process'
+class OctopusProcess(db.Model):
+    __tablename__ = 'OctopusProcess'
     id = db.Column(db.Integer, primary_key=True)
     # project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
     name = db.Column(db.Text)
@@ -2041,7 +2041,7 @@ class Process(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = Process.query.with_entities(Process.name).all()
+            names = OctopusProcess.query.with_entities(OctopusProcess.name).all()
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -2051,7 +2051,7 @@ class Process(db.Model):
     @staticmethod
     def get_by_id(process_id):
         try:
-            process = Process.query.get(int(process_id))
+            process = OctopusProcess.query.get(int(process_id))
             return jsonify(status=1, message=None, data=process.self_jsonify())
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -2061,7 +2061,7 @@ class Process(db.Model):
     @staticmethod
     def get_by_name(process_name):
         try:
-            process = Process.query.filter_by(name=process_name).first()
+            process = OctopusProcess.query.filter_by(name=process_name).first()
             return jsonify(status=1, message=None, data=process.self_jsonify())
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -2072,7 +2072,7 @@ class Process(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            if json_data['name'] in [process.name for process in Process.query.all()]:
+            if json_data['name'] in [process.name for process in OctopusProcess.query.all()]:
                 return jsonify(status=0, message='Not saved! a process_name with this name already exist')
             name = json_data['name']
             owner_id = int(json_data['owner_id']),
@@ -2085,7 +2085,7 @@ class Process(db.Model):
 
 
 
-            process = Process(name, owner_id, tags, description, stage_id, stage_type, order)
+            process = OctopusProcess(name, owner_id, tags, description, stage_id, stage_type, order)
 
             db.session.add(process)
             db.session.commit()
@@ -2099,7 +2099,7 @@ class Process(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            process = Process.query.filter_by(name=name).first()
+            process = OctopusProcess.query.filter_by(name=name).first()
             if process:
                 db.session.delete(process)
                 db.session.commit()
@@ -2114,7 +2114,7 @@ class Process(db.Model):
     @staticmethod
     def delete_by_id(process_id):
         try:
-            process = Process.query.get(int(process_id))
+            process = OctopusProcess.query.get(int(process_id))
             if process:
                 db.session.delete(process)
                 db.session.commit()
@@ -2129,7 +2129,7 @@ class Process(db.Model):
     @staticmethod
     def update_by_name(name, json_data):
         try:
-            process = Process.query.filter_by(name=name).first()
+            process = OctopusProcess.query.filter_by(name=name).first()
             if process:
                 process.name = json_data['name']
                 process.owner_id = int(json_data['owner_id']),
@@ -2161,7 +2161,7 @@ class Process(db.Model):
     @staticmethod
     def update_by_id(process_id, json_data):
         try:
-            process = Process.query.get(int(process_id))
+            process = OctopusProcess.query.get(int(process_id))
             if process:
                 process.name = json_data['name']
                 process.owner_id = int(json_data['owner_id']),
