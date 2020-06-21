@@ -1463,7 +1463,8 @@ class Mission(db.Model):
     def get_ids():
         table = Mission.query.all()
         ids = [row.id for row in table]
-        return jsonify(ids.sort(reverse=True))
+        ids.sort(reverse=True)
+        return jsonify(ids)
 class OverView(db.Model):
     __tablename__ = 'OverView'
     id = db.Column(db.Integer, primary_key=True)
