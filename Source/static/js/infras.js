@@ -252,8 +252,5 @@ document.getElementById("check_Auto_Run_DB_IP").addEventListener("click", functi
 // });
 AddSiteEventListener();
 
-function setToggle(toggleID, state) {
-  $('#'+ toggleID).bootstrapToggle(state)
-}
 
 setToggle("project_toggle", "on");

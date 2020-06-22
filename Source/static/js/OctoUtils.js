@@ -9,6 +9,10 @@
 // get_names(class)
 //
 
+function setToggle(toggleID, state) {
+  $('#'+ toggleID).bootstrapToggle(state)
+}
+
 function changeInputType(oldObject, eType, oType) {
   var newObject = document.createElement(eType);
   newObject.type = oType;
@@ -33,7 +37,7 @@ if (obj.type === "select-one") {
     }
   } else if (obj.type==="checkbox"){
     obj.checked = 0;
-
+    
   } else {
     obj.value = "";
   }

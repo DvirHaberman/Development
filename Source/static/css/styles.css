@@ -16,6 +16,22 @@ body {
   border: 1px solid #ced4da;
 }
 
+.draggable {
+      height: 40px;
+      font-size: 1rem;
+      font-weight: 400;
+}
+
+.modal_seperator{
+    font-size: 1rem;
+}
+
+.modal-content{
+    width: 1000px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
 button#newGroupButton {
     background-color: whitesmoke;
     border None;
@@ -25,6 +41,9 @@ button#newGroupButton {
     border-radius: 50%;
 }
 
+.some_datalist{
+  width = 80px;
+}
 #fixed-menus {
     /* margin-top: 10px; */
     margin-left: 1%;
@@ -37,11 +56,26 @@ button#newGroupButton {
     /* margin-bottom: 10px; */
 }
 
+.GroupOrFunction_Name{
+  width: 200px;
+}
+
+.GroupOrFunction_Name_Label{
+  margin-top: 10px;
+}
+
 
 /* #fixed-menus  */
 
 select:hover {
     box-shadow: inset 0 -3rem 3rem rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255), 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.3);
+}
+
+.form-inline .modal-fix-width-label{
+  width: 125px;
+  display: inline-block;
+  text-align: right;
+  margin-right: 15px;
 }
 
 .function-definition-header {
@@ -136,6 +170,7 @@ input::-webkit-calendar-picker-indicator {
 }
 
 .fas {
+    FONT-WEIGHT: 100;
     font-size: 2rem;
     margin-right: 10px;
 }

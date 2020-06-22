@@ -10,6 +10,8 @@ var paramsTblKinds = ["Sys Params",  "Tests Params",  "text"];
 var paramsTblType = ["DataFrame", "String", "Number"];
 var functions = [];
 
+var optionList = ["Seattle", "Las Vegas", "New York", "Salt lake City"];
+
 
 var form_controls = {
   function_select: $("select[name='function_select']")[0],
@@ -31,6 +33,26 @@ var form_controls = {
   groups: $("ul[name='GroupsListNames']")[0]
 
 };
+
+var Group_Modal_form_controls = {
+  Group_name: $('#Modal_Select_Group_Name')[0],
+  Group_List: $('#chosen_list')[0]
+}
+
+
+function fillDataList(container, optionList) {
+    i = 0,
+    len = optionList.length,
+    dl = document.createElement('datalist');
+
+    dl.id = 'dlCities';
+    for (; i < len; i += 1) {
+        var option = document.createElement('option');
+        option.value = optionList[i];
+        dl.appendChild(option);
+    }
+    container.appendChild(dl);
+}
 
 // document.querySelector('.custom-file-input').addEventListener('change',function(e){
 //   var fileName = document.getElementById("functionLocation").files[0].name;
@@ -252,7 +274,7 @@ function clear_object(obj) {
     }
   }
   else if (obj.tagName === "UL") {
-      lis = document.querySelectorAll(['#' + obj.id + 'li']);
+      lis = document.querySelectorAll("[id^='element']");
       for(var i=0; li=lis[i]; i++) {
         li.parentNode.removeChild(li);
       }
@@ -289,7 +311,8 @@ function fill_object(obj, value, header) {
   } else if (obj.type==="checkbox"){
     obj.checked = value;
     calc ();
-
+  // } else if (obj.tagName==="DATALIST"){
+  //
   } else if (obj.tagName==="UL"){
     Add_Group(obj, value, obj.children.length+1);
 
@@ -331,15 +354,47 @@ function GetParameterDataTbl(id, kind, val, type) {
 // clearing and filling the form                                          //
 ////////////////////////////////////////////////////////////////////////////
 
+function getAllGroups(groupListID){
+  var groups = "";
+    $.ajax({
+      url: "/api/FunctionsGroup/get_names",
+      async: false,
+      success: function(result) {
+
+        if (result.status===1){
+          groups = result.data;
+          var datalistObj = $('#'+groupListID)[0]
+          var numOfEle = datalistObj.children.length;
+          for (i=0; i<numOfEle; i++){
+            datalistObj.removeChild(datalistObj.options[0]);
+          }
+          for (i=0; i<groups.length; i++){
+            // insert
+            var option = document.createElement("option");
+            option.value = groups[i];
+            datalistObj.appendChild(option);
+          }
+
+        } //if
+      } // function
+    });
+    return groups;
+}
+
+
 function Add_Group(ul, li_Name, numOfRows) {
   // var ul = document.getElementById("list");
   var li = document.createElement("li");
   li.appendChild(document.createTextNode(li_Name));
+  li.innerHTML = li_Name +  CreateParamEmptyBottunElement(PlaceRemoveImg());
   li.setAttribute("id", ["element" + numOfRows]); // added line
   ul.appendChild(li);
+  // ul.push(li);
+
+
 }
 
-function form_controls_handler() {
+function Function_Definition_form_controls_handler() {
   this.form_controls = form_controls;
   this.clear_form = function(exclude) {
     Object.keys(this.form_controls).forEach(function(key, index) {
@@ -444,16 +499,70 @@ function form_controls_handler() {
     });
   }
 }
-form_handler = new form_controls_handler();
+form_handler = new Function_Definition_form_controls_handler();
+modal_form_controls_handler = new form_controls_handler();
 // form_handler.clear_form();
 
+//// Group Mdal ///
 $("#addGroupButton")[0].addEventListener("click", function() {
   var GroupsList = document.getElementsByName("GroupsListNames")[0];
   var numOfRows = GroupsList.children.length;
   var selectedGroupName = $('#group_input')[0].value;
-  Add_Group(GroupsList,selectedGroupName , numOfRows+1);
+  if (AllGroups.includes(selectedGroupName)){
+    found = false;
+    $("#GroupsList li").each((id, elem) => {
+    if (elem.innerText == selectedGroupName) {
+      found = true;
+    }
+    });
+    if (!found) Add_Group(GroupsList,selectedGroupName , numOfRows+1);
+  } else {
+    alert("not such Group Name!")
+  }
   // setOperLineString();
 });
+
+$('#Group_toggle').change(function() {
+  if ($('#Group_toggle')[0].checked){ //new
+    // infras.new(Site_form_controls, "site_name");
+      alert('new group');
+      modal_form_controls_handler.new(Group_Modal_form_controls,"Group_name" );
+
+  } else { //exist
+    getAllGroups("Modal_Select_Group_Name")
+    setToggle("Group_funciton_toggle", "on"); //select Function
+  }
+
+});
+
+$('#Group_funciton_toggle').change(function() {
+  if ($('#Group_funciton_toggle')[0].checked){ //new
+    // getAllFunctionNames("Modal_Select_Group_Name");  // or use get names Method
+  } else { //exist
+    getAllGroups("Modal_Select_Group_Name") ;
+  }
+
+});
+
+$('#Duplicate_Group').change(function() { //duplicate
+  alert("duplicate group");
+});
+
+$('#Save_Group').change(function() { //save
+  alert("save group")
+});
+
+$('#Delete_Group').change(function() { //delete
+  alert("delete group")
+});
+
+$('#Modal_Select_Group_Name').change(function() { //Select
+  // get group 
+});
+
+
+//// Group Modal ///
+
 
 
 $("button[name='plus_param_row_button']")[0].addEventListener("click", function() {
@@ -494,3 +603,6 @@ form_controls.function_select.addEventListener("change", function() {
 
 
 form_handler.get_all_functions('onReset');
+getAllGroups("Group_Function_Name");
+getAllGroups("some_datalist");
+var AllGroups = getAllGroups("groups_datalist");
