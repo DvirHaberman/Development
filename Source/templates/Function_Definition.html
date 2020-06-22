@@ -14,7 +14,7 @@
             <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
             <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
             <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/folder-13.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="edit_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a>
             <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/repeat.png')}}" alt="Card image cap" /></a>
             <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/play-button-1.png')}}" alt="Card image cap" /></a>
         </div>
@@ -150,17 +150,17 @@
 
 
             <div class="input-groups-data col-3">
-              <div class="function-input-row col-12">
-                <label for="group_input">Groups</label>
-                <button type="button" name="button" id = "newGroupButton" data-toggle="modal" data-target="#defineGroupModal" >   <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
-              </div>
+                <div class="function-input-row col-12">
+                    <label for="group_input">Groups</label>
+                    <button type="button" name="button" id="newGroupButton" data-toggle="modal" data-target="#defineGroupModal">   <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
+                </div>
 
 
                 <div class="function-input-row col-12 input-group mb-3">
-                  <input type="text" list="groups_datalist" id="group_input" class="form-control" placeholder="..."  aria-describedby="basic-addon2">
-                  <div class="input-group-append">
-                    <button class="btn btn-outline-secondary addGroupButton" id="addGroupButton" type="button">Add</button>
-                  </div>
+                    <input type="text" list="groups_datalist" id="group_input" class="form-control" placeholder="..." aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary addGroupButton" id="addGroupButton" type="button">Add</button>
+                    </div>
                 </div>
 
 
@@ -170,7 +170,7 @@
                   <option value="group2">group2</option>
                   <option value="group3">group3</option>
                 </datalist>
-                <ul name= "GroupsListNames" id="GroupsList">
+                <ul name="GroupsListNames" id="GroupsList">
 
                 </ul>
             </div>
@@ -238,29 +238,29 @@
         </div>
     </section> -->
 
-    <div class="modal fade" id="defineGroupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-          <div class="modal-content">
+<div class="modal fade" id="defineGroupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title ml-auto" id="exampleModalLongTitle">Define Group</h5>
+                <h5 class="modal-title ml-auto" id="exampleModalLongTitle">Define Group</h5>
 
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body" id=ModalGroupBody>
-              <div  id="analyse_stage_div">
+                <div id="analyse_stage_div">
 
-                <div class="row mx-auto layout-buttons-div">
-                    <input id = "Group_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary" data-width="80">
-                    <button id = "Save_Group" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
-                    <button id = "Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
-                    <button id = "Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
-                </div>
-                <div class="form-inline seperate-row" >
-                  <label for="Modal_Select_Group_Name" class = "modal-fix-width-label" ><h5>Group Name:</h5></label>
-                  <input list='Group_Function_Name' id = "Modal_Select_Group_Name" type="text" class="input form-control GroupOrFunction_Name" placeholder="..."/>
-                </div>
+                    <div class="row mx-auto layout-buttons-div">
+                        <input id="Group_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary" data-width="80">
+                        <button id="Save_Group" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
+                        <button id="Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
+                        <button id="Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
+                    </div>
+                    <div class="form-inline seperate-row">
+                        <label for="Modal_Select_Group_Name" class="modal-fix-width-label"><h5>Group Name:</h5></label>
+                        <input list='Group_Function_Name' id="Modal_Select_Group_Name" type="text" class="input form-control GroupOrFunction_Name" placeholder="..." />
+                    </div>
                     <datalist id='Group_Function_Name'>
                         <option value="data1"></option>
                         <option value="data3"></option>
@@ -268,60 +268,59 @@
                         <option value="data2"></option>
                     </datalist>
 
-                <div class="row seperate-row">
-                  <div class "col-7">
+                    <div class="row seperate-row">
+                        <div class "col-7">
 
-                        <div class="form-inline">
-                          <label for="Group_funciton_toggle" class = "lable-Toggle-Function_Or_Group-Modal" ><h6>Add &nbsp</h6></label>
-                          <input class="display-block" type="checkbox" id="Group_funciton_toggle" checked data-toggle="toggle" data-on="Function" data-off="Group" data-onstyle="default" data-width="100">
-                          <label for="Group_funciton_toggle" class = "label-adition-modal" ><h6>&nbsp to your list: </h6></label>
-                        </div>
+                            <div class="form-inline">
+                                <label for="Group_funciton_toggle" class="lable-Toggle-Function_Or_Group-Modal"><h6>Add &nbsp</h6></label>
+                                <input class="display-block" type="checkbox" id="Group_funciton_toggle" checked data-toggle="toggle" data-on="Function" data-off="Group" data-onstyle="default" data-width="100">
+                                <label for="Group_funciton_toggle" class="label-adition-modal"><h6>&nbsp to your list: </h6></label>
+                            </div>
 
-                      <div class="list" >
-                          <div>
-                            <input list='some_datalist' id = "Modal_Group_Name" type="text" class="input form-control Modal_GroupFunctionName_Select" placeholder="Select"/>
-                            <div class="add"><input class="btn btn-sm btn-secondary" type="button" value="add"></div>
-                          </div>
-                            <datalist id='some_datalist'>
+                            <div class="list">
+                                <div>
+                                    <input list='some_datalist' id="Modal_Group_Name" type="text" class="input form-control Modal_GroupFunctionName_Select" placeholder="Select" />
+                                    <div class="add"><input class="btn btn-sm btn-secondary" type="button" value="add"></div>
+                                </div>
+                                <datalist id='some_datalist'>
                                 <option value="data1"></option>
                                 <option value="data3"></option>
                                 <option value="data4"></option>
                                 <option value="data2"></option>
                             </datalist>
-                      </div>
-                    </div>
+                            </div>
+                        </div>
 
-                      <div class="col-1 seperators-div">
-                          <i class="fas fa-circle seperator"></i>
-                          <i class="fas fa-circle seperator"></i>
-                          <i class="fas fa-circle seperator"></i>
-                      </div>
+                        <div class="col-1 seperators-div">
+                            <i class="fas fa-circle seperator"></i>
+                            <i class="fas fa-circle seperator"></i>
+                            <i class="fas fa-circle seperator"></i>
+                        </div>
 
-                      <div class="col-5 mx-auto">
-                        <label for="chosen_list" class="draagable-ul-title"><h5>Chosen list:</h5></label>
-                        <ul class='draggble_ul list-div' id="chosen_list">
-                            <li class="draggable" draggable="false">HTML</li>
-                            <li class="draggable" draggable="false">CSS</li>
-                            <li class="draggable" draggable="false">JavaScript</li>
-                            <li class="draggable" draggable="false">PHP</li>
-                            <li class="draggable" draggable="false">MySQL</li>
-                        </ul>
-                      </div>
+                        <div class="col-5 mx-auto">
+                            <label for="chosen_list" class="draagable-ul-title"><h5>Chosen list:</h5></label>
+                            <ul class='draggble_ul list-div' id="chosen_list">
+                                <li class="draggable" draggable="false">HTML</li>
+                                <li class="draggable" draggable="false">CSS</li>
+                                <li class="draggable" draggable="false">JavaScript</li>
+                                <li class="draggable" draggable="false">PHP</li>
+                                <li class="draggable" draggable="false">MySQL</li>
+                            </ul>
+                        </div>
 
                     </div>
                 </div>
-              </div>
-
-
             </div>
 
-          </div>
+
         </div>
-      </div>
+
+    </div>
+</div>
+</div>
 
 
-{%endblock%}
-{%block scripts%}
+{%endblock%} {%block scripts%}
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src="../static/js/draggble_list.js"></script>
 <script src="../static/js/OctoUtils.js"></script>

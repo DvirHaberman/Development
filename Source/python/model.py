@@ -809,11 +809,17 @@ class OctopusFunction(db.Model):
                 is_class_method=1
             else:
                 is_class_method=0
+                
 
             if 'status' in data:
                 status = data['status']
             else:
                 status = 0
+
+            if 'groups' in data:
+                groups = data['groups']
+            else:
+                groups = []
 
             if 'feature' in data:
                 feature = data['feature']
@@ -844,7 +850,7 @@ class OctopusFunction(db.Model):
                 version=data['version'],
                 version_comments=data['version_comments'],
                 function_checksum=22,
-                handler_checksum=33,
+                handler_checksum=33
                 # is_locked=row.is_locked
             )
             db.session.add(func)
@@ -862,7 +868,7 @@ class OctopusFunction(db.Model):
                 FunctionParameters.save(function_id = function_id,
                                         index = index, kind = kind,
                                         value = value, param_type = param_type)
-            return jsonify(f"function {func.name} was succefully saved")
+                
         except Exception as error:
             try:
                 FunctionParameters.query.filter_by(function_id = func.id).delete()
@@ -871,6 +877,116 @@ class OctopusFunction(db.Model):
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
             except:
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+        try:
+            # function_id = func.id
+            for group in groups:
+                groupobj = FunctionsGroup.query.filter_by(name=group).first()
+                if groupobj:
+                    groupobj.functions.append(func)
+                    db.session.add(groupobj)
+                    db.session.commit()
+            return jsonify(f"function {func.name} was succefully saved")
+        except Exception as error:
+            try:
+                db.session.delete(func)
+                db.session.commit()
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+            except:
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+    
+    @staticmethod
+    def update(data):
+        try:
+            try:
+                if not data['name'] in [func.name for func in OctopusFunction.query.all()]:
+                    return jsonify(f"No function with this name")
+
+                if data['is_class_method']:
+                    is_class_method=1
+                else:
+                    is_class_method=0
+                    
+
+                if 'status' in data:
+                    status = data['status']
+                else:
+                    status = 0
+
+                if 'groups' in data:
+                    groups = data['groups']
+                else:
+                    groups = []
+
+                if 'feature' in data:
+                    feature = data['feature']
+                else:
+                    feature = None
+                
+                if 'requirement' in data:
+                    requirement = data['requirement']
+                else:
+                    requirement = None
+                
+                func = OctopusFunction.query.filter_by(name=data['name']).first()
+                
+                func.name=data['name']
+                func.callback=data['callback']
+                func.location=data['location']
+                func.owner=User.query.filter_by(name=session['username'])[0].id
+                func.file_name = data['location'].split('\\')[-1]
+                func.class_name = data['class_name']
+                func.is_class_method = is_class_method
+                func.status=status
+                # tree=row.tree,
+                func.feature=feature
+                func.requirement=requirement
+                func.kind=data['kind']
+                func.tags=data['tags']
+                func.description=data['description']
+                # project=row.project,
+                func.version=data['version']
+                func.version_comments=data['version_comments']
+                # func.function_checksum=22
+                # func.handler_checksum=33
+                # is_locked=row.is_locked
+                # db.session.add(func)
+                # db.session.commit()
+            except Exception as error:
+                db.session.rollback()
+                return jsonify("Not Saved! Something went wrong while saving the functions")
+
+            try:
+                [db.session.delete(param) for param in func.function_parameters]
+                function_id = func.id
+                for param in data['function_parameters']:
+                    index = param['index']
+                    kind = param['kind']
+                    value = param['value']
+                    param_type = param['type']
+                    FunctionParameters.save(function_id = function_id,
+                                            index = index, kind = kind,
+                                            value = value, param_type = param_type)
+                    
+            except Exception as error:
+                db.session.rollback()
+                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+            try:
+                func.groups = []
+                func.groups = [FunctionsGroup.query.filter_by(name=group).first() for group in groups]
+                # for group in groups:
+                #     groupobj = FunctionsGroup.query.filter_by(name=group).first()
+                #     if groupobj:
+                #         groupobj.functions.append(func)
+                # db.session.add(groupobj)
+                db.session.commit()
+                return jsonify(f"function {func.name} was succefully updated")
+            except Exception as error:
+                db.session.rollback()
+                return jsonify(f"Not Saved! Something went wrong while saving the groups")
+        except:
+            return jsonify(f"unexpected error")
+        finally:
+            db.session.close()
     @staticmethod
     def jsonify_all():
         table = OctopusFunction.query.all()

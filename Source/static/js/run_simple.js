@@ -28,13 +28,13 @@ function remove_li_element() {
     var value = this.parentElement.children[0].innerHTML;
     curr_li_ele.parentElement.removeChild(curr_li_ele);
     if (li_type === 'function') {
-        selected_functions.pop(selected_functions.indexOf(value));
+        selected_functions.filter(function(filter_val, index, arr) { return filter_val !== value; });
     }
     if (li_type === 'group') {
-        selected_groups.pop(selected_groups.indexOf(value));
+        selected_groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
     }
     if (li_type === 'run_id') {
-        selected_run_ids.pop(selected_run_ids.indexOf(value));
+        selected_run_ids.filter(function(filter_val, index, arr) { return filter_val !== value; });
     }
 
 }
