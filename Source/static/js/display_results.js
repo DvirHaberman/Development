@@ -43,6 +43,9 @@ function clear_drill_down() {
 // drill_down_div.appendChild(drill_down_run_id);
 // drill_down_div.appendChild(drill_down_db_name);
 // drill_down_div.appendChild(drill_down_table);
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function get_mission_ids() {
     var select_obj = $('#mission_id_select')[0];
@@ -59,6 +62,7 @@ function get_mission_ids() {
                 opt.text = result[i]
                 select_obj.appendChild(opt);
             }
+            sleep(2000);
             load_results();
             // clear_drill_down();
         }
