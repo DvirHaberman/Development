@@ -11,7 +11,7 @@ var paramsTblType = ["DataFrame", "String", "Number"];
 var functions = [];
 var selected_Groups = [];
 var optionList = ["Seattle", "Las Vegas", "New York", "Salt lake City"];
-
+var Stage = "update";
 
 var form_controls = {
     function_select: $("select[name='function_select']")[0],
@@ -550,7 +550,7 @@ function Function_Definition_form_controls_handler() {
                     functions = result;
                     if (mode === 'onReset') {
                         functoinIndex = 0;
-                    } else if (mode === 'onReset') {
+                    } else if (mode === 'save') {
                         functoinIndex = result.length - 1;
                     } else {
                         functoinIndex = form_controls.function_select.selectedIndex;
@@ -564,66 +564,7 @@ form_handler = new Function_Definition_form_controls_handler();
 modal_form_controls_handler = new form_controls_handler();
 // form_handler.clear_form();
 
-//// Group Mdal ///
-$("#addGroupButton")[0].addEventListener("click", add_group) //function() {
-    //   var GroupsList = document.getElementsByName("GroupsListNames")[0];
-    //   var numOfRows = GroupsList.children.length;
-    //   var selectedGroupName = $('#group_input')[0].value;
-    //   if (AllGroups.includes(selectedGroupName)){
-    //     found = false;
-    //     $("#GroupsList li").each((id, elem) => {
-    //     if (elem.innerText == selectedGroupName) {
-    //       found = true;
-    //     }
-    //     });
-    //     if (!found) Add_Group(GroupsList,selectedGroupName , numOfRows+1);
-    //   } else {
-    //     alert("not such Group Name!")
-    //   }
-    //   // setOperLineString();
-    // });
-
-$('#Group_toggle').change(function() {
-    if ($('#Group_toggle')[0].checked) { //new
-        // infras.new(Site_form_controls, "site_name");
-        alert('new group');
-        modal_form_controls_handler.new(Group_Modal_form_controls, "Group_name");
-
-    } else { //exist
-        getAllGroups("Modal_Select_Group_Name")
-        setToggle("Group_funciton_toggle", "on"); //select Function
-    }
-
-});
-
-$('#Group_funciton_toggle').change(function() {
-    if ($('#Group_funciton_toggle')[0].checked) { //new
-        // getAllFunctionNames("Modal_Select_Group_Name");  // or use get names Method
-    } else { //exist
-        getAllGroups("Modal_Select_Group_Name");
-    }
-
-});
-
-$('#Duplicate_Group').change(function() { //duplicate
-    alert("duplicate group");
-});
-
-$('#Save_Group').change(function() { //save
-    alert("save group")
-});
-
-$('#Delete_Group').change(function() { //delete
-    alert("delete group")
-});
-
-$('#Modal_Select_Group_Name').change(function() { //Select
-    // get group
-});
-
-
-//// Group Modal ///
-
+$("#addGroupButton")[0].addEventListener("click", add_group);
 
 
 $("button[name='plus_param_row_button']")[0].addEventListener("click", function() {
@@ -638,11 +579,29 @@ $("input[name='callback']")[0].addEventListener("change", function() {
 });
 
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
+    Stage = "new";
     form_handler.clear_form(["function_select", "owner", "version", "function_checksum", "version_comments", "changed_date", "status"]);
 });
 
+
+$("a[name='delete_function_button']")[0].addEventListener("click", function() {
+    var function_name = form_controls.function_select.options[form_controls.function_select.selectedIndex].text;
+    $.ajax({
+        type: "POST",
+        url: "/api/OctopusFunction/delete_by_name/" + function_name,
+        success: function(msg) {
+            alert(msg)
+            form_handler.get_all_functions('onReset');
+        }
+    });
+
+});
+
+
 $("a[name='save_function_button']")[0].addEventListener("click", function() {
     data = form_handler.get_form_data();
+
+    if (Stage==="new"){
     $.ajax({
         type: "POST",
         url: "/api/OctopusFunction/save_function",
@@ -652,31 +611,34 @@ $("a[name='save_function_button']")[0].addEventListener("click", function() {
         success: function(msg) {
             alert(msg)
             form_handler.get_all_functions('save');
+        Stage = "update";
         }
     });
 
-});
+    }
+    if (Stage==="update"){
+      $.ajax({
+          type: "POST",
+          url: "/api/OctopusFunction/update",
+          dataType: "json",
+          data: JSON.stringify(data),
+          contentType: 'application/json',
+          success: function(msg) {
+              alert(msg)
+              form_handler.get_all_functions('current');
+          }
+      });
+    }
 
-$("a[name='edit_function_button']")[0].addEventListener("click", function() {
-    data = form_handler.get_form_data();
-    $.ajax({
-        type: "POST",
-        url: "/api/OctopusFunction/update",
-        dataType: "json",
-        data: JSON.stringify(data),
-        contentType: 'application/json',
-        success: function(msg) {
-            alert(msg)
-            form_handler.get_all_functions('current');
-        }
-    });
 
 });
 
 form_controls.function_select.addEventListener("change", function() {
+    Stage = "update";
     form_handler.fill_form(this.selectedIndex, ["function_select"]);
 
 });
+
 
 
 form_handler.get_all_functions('onReset');

@@ -11,12 +11,10 @@
 <section id="fixed-menus">
     <div class="row">
         <div class="fixed-buttons-div card bg-secondary shadow-lg">
-            <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/folder-13.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor" name="edit_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/repeat.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/play-button-1.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"   ><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"  ><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="delete_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/trash.png')}}" alt="Card image cap" /></a>
+            <!-- <a role="button" href="#" class="fix-buttons-ancor" name="edit_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a> -->
         </div>
         <div class="fixed-fields-div card shadow-lg bg-primary text-light rounded">
             <label for="select_function">Search Function</label>
@@ -33,7 +31,7 @@
               <option value="">C</option>
             </select>
 
-                <i class="fas fa-user-astronaut fas-7x inline-icon"></i>
+                <!-- <i class="fas fa-user-astronaut fas-7x inline-icon"></i> -->
 
             </div>
             <label for="select_version">Version</label>
@@ -181,7 +179,7 @@
     <div id="input_parameters" class="card bg-light mb-3 main-form-card">
         <div class="row card-body main-form-card-body">
             <label>Inputs:</label>
-            <button name="plus_param_row_button" class="ml-auto"> <i class="fas fa-plus-circle"></i></button>
+            <button name="plus_param_row_button" class="ml-auto"> <i class="fas fa-plus-circle" aria-hidden="true"></i></button>
             <!-- //plus_param_row_button -->
 
             <table class="table table-hover" name="function_parameters">
