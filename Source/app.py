@@ -174,10 +174,16 @@ def run_functions():
     json_input = request.get_json()
     user_id = User.query.filter_by(name=session['username']).first().id
     mission_name = 'mission_' + session['username']
-    function_names = json_input['functions'].split(',')
+    function_names = json_input['functions']
+    groups_names = json_input['groups']
+    additional_names = []
+    for group_name in groups_names:
+        group = FunctionsGroup.query.filter_by(name=group_name).first()
+        additional_names = additional_names + [func.name for func in group.functions]
+    function_names = list(set(function_names + additional_names))
     functions_ids = db.session.query(OctopusFunction).filter(OctopusFunction.name.in_( function_names)).with_entities(OctopusFunction.id).all()
     functions_ids = list(*zip(*functions_ids))
-    runs = json_input['runs'].split(',')
+    runs = json_input['runs']
     db_name = json_input['db_name']
     db_id = DbConnections.query.filter_by(name=db_name).first().id
     json_data = {'user_id':user_id,'mission_name':mission_name,
