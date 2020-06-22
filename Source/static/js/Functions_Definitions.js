@@ -9,7 +9,7 @@ var paramsTblIsByValue = [0, 1, 1, 1, 0];
 var paramsTblKinds = ["Sys Params",  "Tests Params",  "text"];
 var paramsTblType = ["DataFrame", "String", "Number"];
 var functions = [];
-
+var selected_Groups = [];
 var optionList = ["Seattle", "Las Vegas", "New York", "Salt lake City"];
 
 
@@ -22,6 +22,9 @@ var form_controls = {
   name: $("input[name='name']")[0],
   kind: $("input[name='kind']")[0],
   tags: $("input[name='tags']")[0],
+  feature: $("input[name='feature']")[0],
+  requirement: $("input[name='requirement']")[0],
+  status: $("select[name='status']")[0],
   callback: $("input[name='callback']")[0],
   location: $("input[name='Location']")[0],
   description: $("input[name='description']")[0],
@@ -52,6 +55,56 @@ function fillDataList(container, optionList) {
         dl.appendChild(option);
     }
     container.appendChild(dl);
+}
+
+function add_group() {
+    var value = $('#group_input')[0].value;
+    if (!selected_Groups.includes(value) && AllGroups.includes(value)) {
+        var GroupsList = document.getElementsByName("GroupsListNames")[0];
+        GroupsList.appendChild(create_li_element(value, 'group'));
+        selected_Groups.push(value);
+        $('#group_input')[0].value = null;
+    }
+}
+
+function create_li_element(value, type) {
+    var li_ele = document.createElement('li');
+    var div_ele = document.createElement('div');
+    var label_ele = document.createElement('label');
+    var button_ele = document.createElement('button');
+    var i_ele = document.createElement('i')
+    li_ele.classList.add('draggable');
+    li_ele.classList.add(type);
+    li_ele.appendChild(div_ele);
+    div_ele.classList.add('row');
+    div_ele.appendChild(label_ele);
+    div_ele.appendChild(button_ele);
+    label_ele.classList.add('mr-auto');
+    button_ele.classList.add('ml-auto');
+    label_ele.innerHTML = value;
+    button_ele.appendChild(i_ele);
+    button_ele.addEventListener('click', remove_li_element);
+    i_ele.classList.add('far')
+    i_ele.classList.add('fa-trash-alt')
+
+    return li_ele;
+}
+
+function remove_li_element() {
+    var curr_li_ele = this.parentElement.parentElement;
+    var li_type = curr_li_ele.classList[1];
+    var value = this.parentElement.children[0].innerHTML;
+    curr_li_ele.parentElement.removeChild(curr_li_ele);
+    if (li_type === 'function') {
+        selected_functions.pop(selected_functions.indexOf(value));
+    }
+    if (li_type === 'group') {
+        selected_Groups.pop(selected_groups.indexOf(value));
+    }
+    if (li_type === 'run_id') {
+        selected_run_ids.pop(selected_run_ids.indexOf(value));
+    }
+
 }
 
 // document.querySelector('.custom-file-input').addEventListener('change',function(e){
@@ -274,11 +327,12 @@ function clear_object(obj) {
     }
   }
   else if (obj.tagName === "UL") {
-      lis = document.querySelectorAll("[id^='element']");
-      for(var i=0; li=lis[i]; i++) {
-        li.parentNode.removeChild(li);
+      var GroupsList = document.getElementsByName("GroupsListNames")[0];
+      num_of_li = GroupsList.children.length;
+      for( i=0; i<num_of_li; i++) {
+        GroupsList.removeChild(GroupsList.children[0]);
       }
-
+      selected_Groups = [];
   } else if (obj.type==="checkbox"){
     obj.checked = 0;
     calc ();
@@ -314,7 +368,13 @@ function fill_object(obj, value, header) {
   // } else if (obj.tagName==="DATALIST"){
   //
   } else if (obj.tagName==="UL"){
-    Add_Group(obj, value, obj.children.length+1);
+    // Add_Group(obj, value, obj.children.length+1);
+    var GroupsList = document.getElementsByName("GroupsListNames")[0];
+    var num_of_ele = value.length;
+    for (i=0;i<num_of_ele;i++) {
+      GroupsList.appendChild(create_li_element(value[i], 'group'));
+      selected_Groups.push(value[i]);
+    }
 
   } else {
     obj.value = value;
@@ -390,8 +450,6 @@ function Add_Group(ul, li_Name, numOfRows) {
   li.setAttribute("id", ["element" + numOfRows]); // added line
   ul.appendChild(li);
   // ul.push(li);
-
-
 }
 
 function Function_Definition_form_controls_handler() {
@@ -399,7 +457,9 @@ function Function_Definition_form_controls_handler() {
   this.clear_form = function(exclude) {
     Object.keys(this.form_controls).forEach(function(key, index) {
       if (!exclude.includes(key)) {
-        clear_object(this.form_controls[key]);
+        if(key !== "status"){
+          clear_object(this.form_controls[key]);
+        }
       }
     });
   },
@@ -413,7 +473,9 @@ function Function_Definition_form_controls_handler() {
     Object.keys(this.form_controls).forEach(function(key, index) {
       if (!exclude.includes(key)) {
         value = curr_function[key];
-        if (key === "function_select") {
+        if (key === "status") {
+          this.form_controls[key].selectedIndex = value;
+        }else if (key === "function_select") {
           var num_of_functions = functions.length;
           for (i = 0; i < num_of_functions; i++) {
             var option = document.createElement("option");
@@ -472,11 +534,15 @@ function Function_Definition_form_controls_handler() {
       name: $("input[name='name']")[0].value,
       kind: $("input[name='kind']")[0].value,
       tags: $("input[name='tags']")[0].value,
+      feature: $("input[name='feature']")[0].value,
+      requirement: $("input[name='requirement']")[0].value,
+      status: $("select[name='status']")[0].selectedIndex,
       callback: $("input[name='callback']")[0].value,
       location: $("input[name='Location']")[0].value,
       description: $("input[name='description']")[0].value,
       is_class_method: $("input[name='isOutputIsAClass']")[0].checked,
       class_name: $("input[name='outputClassName']")[0].value,
+      groups:  selected_groups,
       // changed_date: $("input[name='changed_date']")[0],
 
       function_parameters: tableData
@@ -494,7 +560,7 @@ function Function_Definition_form_controls_handler() {
         } else {
           functoinIndex = result.length-1;
         }
-        form_handler.fill_form(functoinIndex, [""]);
+        form_handler.fill_form(functoinIndex, []);
       }
     });
   }
@@ -504,23 +570,23 @@ modal_form_controls_handler = new form_controls_handler();
 // form_handler.clear_form();
 
 //// Group Mdal ///
-$("#addGroupButton")[0].addEventListener("click", function() {
-  var GroupsList = document.getElementsByName("GroupsListNames")[0];
-  var numOfRows = GroupsList.children.length;
-  var selectedGroupName = $('#group_input')[0].value;
-  if (AllGroups.includes(selectedGroupName)){
-    found = false;
-    $("#GroupsList li").each((id, elem) => {
-    if (elem.innerText == selectedGroupName) {
-      found = true;
-    }
-    });
-    if (!found) Add_Group(GroupsList,selectedGroupName , numOfRows+1);
-  } else {
-    alert("not such Group Name!")
-  }
-  // setOperLineString();
-});
+$("#addGroupButton")[0].addEventListener("click", add_group)//function() {
+//   var GroupsList = document.getElementsByName("GroupsListNames")[0];
+//   var numOfRows = GroupsList.children.length;
+//   var selectedGroupName = $('#group_input')[0].value;
+//   if (AllGroups.includes(selectedGroupName)){
+//     found = false;
+//     $("#GroupsList li").each((id, elem) => {
+//     if (elem.innerText == selectedGroupName) {
+//       found = true;
+//     }
+//     });
+//     if (!found) Add_Group(GroupsList,selectedGroupName , numOfRows+1);
+//   } else {
+//     alert("not such Group Name!")
+//   }
+//   // setOperLineString();
+// });
 
 $('#Group_toggle').change(function() {
   if ($('#Group_toggle')[0].checked){ //new
@@ -557,7 +623,7 @@ $('#Delete_Group').change(function() { //delete
 });
 
 $('#Modal_Select_Group_Name').change(function() { //Select
-  // get group 
+  // get group
 });
 
 
@@ -577,7 +643,7 @@ $("input[name='callback']")[0].addEventListener("change", function() {
 });
 
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
-  form_handler.clear_form(["function_select", "owner" , "version" , "function_checksum", "version_comments", "changed_date" ]);
+  form_handler.clear_form(["function_select", "owner" , "version" , "function_checksum", "version_comments", "changed_date", "status" ]);
 });
 
 $("a[name='save_function_button']")[0].addEventListener("click", function() {
@@ -603,6 +669,6 @@ form_controls.function_select.addEventListener("change", function() {
 
 
 form_handler.get_all_functions('onReset');
-getAllGroups("Group_Function_Name");
-getAllGroups("some_datalist");
+// getAllGroups("Group_Function_Name"); modal
+// getAllGroups("some_datalist");  modal
 var AllGroups = getAllGroups("groups_datalist");

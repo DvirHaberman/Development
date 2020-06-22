@@ -18,6 +18,11 @@
     margin-bottom: 20px;
 }
 
+.layout-buttons-div button{
+    background-color: white;
+    border: none;
+}
+
 .normal-size{
     font-size: 2.5rem;
     margin-left: 20px;
