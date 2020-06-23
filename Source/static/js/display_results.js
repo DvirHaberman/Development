@@ -140,6 +140,13 @@ function load_results() {
             results_table.classList.add(["col-10"]);
             results_table.classList.add(["m-auto"]);
             results_table_div.appendChild(results_table);
+            if (result === null) {
+                ctx.hidden = true;
+                // myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
+                myChart.update();
+                clear_drill_down();
+                alert('no data');
+            }
             num_of_cols = result.schema.fields.length;
             num_of_rows = result.data.length;
             newRow = results_table.insertRow(-1);

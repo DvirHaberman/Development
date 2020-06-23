@@ -1,206 +1,236 @@
-.main-selectors-div{
+.main-selectors-div {
     margin-top: 30px;
     /* margin-bottom: 10px; */
     /* padding-bottom: 20px; */
 }
 
-.add{
-  display: inline-block;
+.add {
+    display: inline-block;
 }
-.stage-def-inputs{
+
+.stage-def-inputs {
     margin-left: 30px;
     margin-bottom: 30px;
 }
 
-.extra-margin{
-  margin-left: 26px;
+.extra-margin {
+    margin-left: 26px;
 }
 
-.medium-icon{
-  font-size: 3rem;
+.medium-icon {
+    font-size: 3rem;
 }
 
-.samll-margin{
-  margin-left: 16px;
+.samll-margin {
+    margin-left: 16px;
 }
 
-.medium-margin-right{
-  margin-right: 26px;
+.small-padding {
+    padding: 16px;
 }
 
-.rightmost-control{
-  margin-left: auto;
+.medium-margin-right {
+    margin-right: 26px;
 }
 
-.green-control{
-  color: greenyellow;
+.rightmost-control {
+    margin-left: auto;
 }
 
-.red-control{
-  color: red;
+.green-control {
+    color: greenyellow;
 }
 
-.stage-headline{
-  padding-top: 16px;
+.red-control {
+    color: red;
 }
 
-.marginCard{
-  margin-top: 10px;
+.stage-headline {
+    padding-top: 16px;
 }
 
-.displayInline{
-  display: inline-block;
+.marginCard {
+    margin-top: 10px;
 }
 
-.align-form-label{
-  margin-top: 5px;
-  margin-right: 10px;
+.displayInline {
+    display: inline-block;
 }
 
-.modal-body input{
-  margin-bottom: 10px;
+.align-form-label {
+    margin-top: 5px;
+    margin-right: 10px;
 }
 
-.seperator{
-  margin-top: 20px;
-  /* margin-bottom: 20px; */
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  color: chocolate;
-  font-size: 5px;
+.modal-body input {
+    margin-bottom: 10px;
 }
 
-.seperators-div{
-  margin-top: 30px;
-  margin-left: 50px;
+.seperator {
+    margin-top: 20px;
+    /* margin-bottom: 20px; */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    color: chocolate;
+    font-size: 5px;
 }
 
-.seperate-row{
-  margin-top: 25px;
+.seperators-div {
+    margin-top: 30px;
+    margin-left: 50px;
 }
-  /* margin-bottom: auto; */
+
+.seperate-row {
+    margin-top: 25px;
+}
+
+
+/* margin-bottom: auto; */
+
 
 /* } */
 
-.toggle.ios, .toggle-on.ios, .toggle-off.ios {
-  border-radius: 20px;
-  display: block;
-  margin-bottom: 15px;
-  margin-left: 25px;
-  margin-top: 20px;
+.toggle.ios,
+.toggle-on.ios,
+.toggle-off.ios {
+    border-radius: 20px;
+    display: block;
+    margin-bottom: 15px;
+    margin-left: 25px;
+    margin-top: 20px;
 }
 
 .toggle-off {
-  background-color: gainsboro;
+    background-color: gainsboro;
 }
+
 .toggle.ios .toggle-handle {
-  border-radius: 20px;
-  display: block;
-  margin-bottom: 15px;
-  /* margin-top: 25px; */
-  /* margin-left: 15px; */
+    border-radius: 20px;
+    display: block;
+    margin-bottom: 15px;
+    /* margin-top: 25px; */
+    /* margin-left: 15px; */
 }
 
-.display-block{
-  display: block;
+.display-block {
+    display: block;
 }
 
-.drag_to_remove{
-  font-size: 2rem;
-  margin-top: 25px;
-  margin-left: 30px;
-  color: black;
-  /* padding: 0 ; */
+.drag_to_remove {
+    font-size: 2rem;
+    margin-top: 25px;
+    margin-left: 30px;
+    color: black;
+    /* padding: 0 ; */
 }
 
-.drag_to_remove:hover{
-  scale: 1.1;
-  border: 1px dashed dark;
+.drag_to_remove:hover {
+    scale: 1.1;
+    border: 1px dashed dark;
 }
 
-.draagable-ul-title{
-  margin-top: 25px;
+.draagable-ul-title {
+    margin-bottom: 0px;
 }
 
-.main-form-analyse{
-  height: 500px;
+#modal_ul label {
+    margin-bottom: 0px;
 }
 
-.main-form-run{
-  height: 600px;
-  width: 900px;
+.main-form-analyse {
+    height: 500px;
 }
 
-.list-div{
-  overflow-y: scroll;
-  height: 300px;
+.main-form-run {
+    height: 600px;
+    width: 900px;
 }
+
+.list-div {
+    overflow-y: scroll;
+    height: 300px;
+}
+
+
 /*
 .modal-fix-width-label{
   width: 125px;
   text-align: right;
 } */
 
-.form-inline .modal-fix-width-label{
-  width: 125px;
-  display: inline-block;
-  text-align: right;
-  margin-right: 15px;
+.form-inline .modal-fix-width-label {
+    width: 125px;
+    display: inline-block;
+    text-align: right;
+    margin-right: 15px;
 }
 
-#Adnvaced_defintions_modal .form-inline{
-  margin-top: 15px;
-}
-.modal-content{
-  width: 600px;
-  margin-left:auto;
-  margin-right:auto;
+#Adnvaced_defintions_modal .form-inline {
+    margin-top: 15px;
 }
 
-.normal-size{
+.modal-content {
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.normal-size {
     font-size: 2rem;
     margin-left: 12px;
     color: black;
 }
 
-.adapt-icon-size{
+.adapt-icon-size {
     font-size: 1.8rem;
     margin-left: 12px;
     color: black;
     margin-top: 2px;
     border: none;
     background-color: white;
-
 }
 
-.layout-buttons-div button{
-  background: white ;
-  border: None;
+.layout-buttons-div button {
+    background: white;
+    border: None;
+}
+
+.dropdown-selected {
+    background-color: #0779e4;
+}
+
+.modal_group {
+    width: 180px;
+}
+
+.modal_function {
+    width: 180px;
 }
 
 .modal span.toggle-handle.btn.btn-default {
     background-color: white;
     border-color: gray;
 }
-toggle.btn.btn-default{
-  border-color: gray;
+
+toggle.btn.btn-default {
+    border-color: gray;
 }
 
-.lable-Toggle-Function_Or_Group-Modal{
-  margin-top: 7px;
-  margin-left: 20px;
+.lable-Toggle-Function_Or_Group-Modal {
+    margin-top: 7px;
+    margin-left: 20px;
 }
 
-.label-adition-modal{
-  margin-top: 7px;
-  margin-left: 3px;
+.label-adition-modal {
+    margin-top: 7px;
+    margin-left: 3px;
 }
 
-.fas.seperator{
-  font-size: 1rem;
+.fas.seperator {
+    font-size: 1rem;
 }
 
-.Modal_GroupFunctionName_Select{
-  margin-left: -10px;
+.Modal_GroupFunctionName_Select {
+    margin-left: -10px;
 }
