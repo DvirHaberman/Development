@@ -952,7 +952,7 @@ class OctopusFunction(db.Model):
                 # db.session.add(func)
                 # db.session.commit()
             except Exception as error:
-                db.session.rollback()
+                # db.session.rollback()
                 return jsonify("Not Saved! Something went wrong while saving the functions")
 
             try:
@@ -968,7 +968,7 @@ class OctopusFunction(db.Model):
                                             value = value, param_type = param_type)
                     
             except Exception as error:
-                db.session.rollback()
+                # db.session.rollback()
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
             try:
                 func.groups = []
@@ -981,7 +981,7 @@ class OctopusFunction(db.Model):
                 db.session.commit()
                 return jsonify(f"function {func.name} was succefully updated")
             except Exception as error:
-                db.session.rollback()
+                # db.session.rollback()
                 return jsonify(f"Not Saved! Something went wrong while saving the groups")
         except:
             return jsonify(f"unexpected error")
@@ -1014,6 +1014,16 @@ class OctopusFunction(db.Model):
             return jsonify('Function succefully deleted')
         except:
             return jsonify('Not deleted! Something went wrong in the delete process')
+
+    @staticmethod
+    def get_names():
+        try:
+            names = OctopusFunction.query.with_entities(OctopusFunction.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
 
 
     def run(self, db_conn, run_id, tests_params=None):
@@ -1550,6 +1560,8 @@ class Mission(db.Model):
             runs = [runs]
         conn = DbConnector.load_conn_by_id(int(json_data['conn_id']))
         # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
+        if not (runs and functions):
+            return jsonify(None)
         mission = Mission(json_data['mission_name'])
         db.session.add(mission)
         db.session.commit()
@@ -1739,6 +1751,8 @@ class AnalyseResult(db.Model):
                             task.run_id:-1}
                             for task in tasks]
         res_df = pd.DataFrame(mission_results)
+        if res_df.empty:
+            return jsonify(None)
         res_df = res_df.set_index('function_name').groupby(level=0).last()
         return jsonify(json.loads(res_df.to_json(orient='table')))
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)

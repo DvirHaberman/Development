@@ -2,7 +2,6 @@ body {
     background-color: #fcf8e8;
 }
 
-
 .user-name {
     /* background-color: gray; */
     /* border-radius: 100%; */
@@ -10,27 +9,27 @@ body {
     padding: 1%;
 }
 
-.addGroupButton{
-  border-radius: 5%;
-  background-color: whitesmoke;
-  border: 1px solid #ced4da;
+.addGroupButton {
+    border-radius: 5%;
+    background-color: whitesmoke;
+    border: 1px solid #ced4da;
 }
 
 .draggable {
-      height: 40px;
-      font-size: 1rem;
-      font-weight: 400;
+    height: 40px;
+    font-size: 1rem;
+    font-weight: 400;
 }
 
-.modal_seperator{
+.modal_seperator {
     font-size: 1rem;
 }
 
-.modal-content{
+.modal-content {
     width: 1000px;
-    margin-left:auto;
-    margin-right:auto;
-  }
+    margin-left: auto;
+    margin-right: auto;
+}
 
 button#newGroupButton {
     background-color: whitesmoke;
@@ -41,9 +40,10 @@ button#newGroupButton {
     border-radius: 50%;
 }
 
-.some_datalist{
-  width = 80px;
+.some_datalist {
+    width=80px;
 }
+
 #fixed-menus {
     /* margin-top: 10px; */
     margin-left: 1%;
@@ -56,12 +56,12 @@ button#newGroupButton {
     /* margin-bottom: 10px; */
 }
 
-.GroupOrFunction_Name{
-  width: 200px;
+.GroupOrFunction_Name {
+    width: 200px;
 }
 
-.GroupOrFunction_Name_Label{
-  margin-top: 10px;
+.GroupOrFunction_Name_Label {
+    margin-top: 10px;
 }
 
 
@@ -71,11 +71,11 @@ select:hover {
     box-shadow: inset 0 -3rem 3rem rgba(0, 0, 0, 0.1), 0 0 0 2px rgb(255, 255, 255), 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.3);
 }
 
-.form-inline .modal-fix-width-label{
-  width: 125px;
-  display: inline-block;
-  text-align: right;
-  margin-right: 15px;
+.form-inline .modal-fix-width-label {
+    width: 125px;
+    display: inline-block;
+    text-align: right;
+    margin-right: 15px;
 }
 
 .function-definition-header {
@@ -103,7 +103,7 @@ select:hover {
 }
 
 input::-webkit-calendar-picker-indicator {
-  display: none;
+    display: none;
 }
 
 .functions-and-groups-select-div {
@@ -231,23 +231,26 @@ input::-webkit-calendar-picker-indicator {
     position: relative;
     height: 300px;
     margin-left: 30px;
-
     /* overflow-y: scroll; */
 }
 
-#GroupsList div{
-  width: 130px;
-  font-weight: normal;
+#GroupsList div {
+    width: 130px;
+    font-weight: normal;
 }
-
 
 .input-groups-data label {
     margin-left: 7px;
 }
 
-.group{
-  width: 150px;
+.group {
+    width: 150px;
 }
+
+.function {
+    width: 150px;
+}
+
 
 /*
 .input-form {

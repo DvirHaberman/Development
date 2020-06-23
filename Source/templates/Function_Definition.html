@@ -1,7 +1,7 @@
 {% extends "layout.html"%} {% block css %}
 <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
 <link rel="stylesheet" href="../static/css/draggable_list.css">
-<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link href="../static/css/bootstrap-toggle.min.css" rel="stylesheet">
 <link rel="stylesheet" href="../static/css/metadata_layout.css" />
 <link rel="stylesheet" href="../static/css/Function_Definition_Modal.css" />
 <link rel="stylesheet" href="../static/css/styles.css" /> {% endblock %} {%block content%}
@@ -11,8 +11,8 @@
 <section id="fixed-menus">
     <div class="row">
         <div class="fixed-buttons-div card bg-secondary shadow-lg">
-            <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"   ><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
-            <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"  ><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="new_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/magic-wand.png')}}" alt="Card image cap" /></a>
+            <a role="button" href="#" class="fix-buttons-ancor" name="save_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/save.png')}}" alt="Card image cap" /></a>
             <a role="button" href="#" class="fix-buttons-ancor" name="delete_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/trash.png')}}" alt="Card image cap" /></a>
             <!-- <a role="button" href="#" class="fix-buttons-ancor" name="edit_function_button"><img class="card-img-top img-responsive" src="{{url_for('static',filename='icons/edit.png')}}" alt="Card image cap" /></a> -->
         </div>
@@ -246,7 +246,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <div class="modal-body" id=ModalGroupBody>
+            <div class="modal-body" id="ModalGroupBody">
                 <div id="analyse_stage_div">
 
                     <div class="row mx-auto layout-buttons-div">
@@ -255,6 +255,7 @@
                         <button id="Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
                         <button id="Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
                     </div>
+
                     <div class="form-inline seperate-row">
                         <label for="Modal_Select_Group_Name" class="modal-fix-width-label"><h5>Group Name:</h5></label>
                         <input list='Group_Function_Name' id="Modal_Select_Group_Name" type="text" class="input form-control GroupOrFunction_Name" placeholder="..." />
@@ -266,8 +267,33 @@
                         <option value="data2"></option>
                     </datalist>
 
-                    <div class="row seperate-row">
-                        <div class "col-7">
+                    <div class="row small-padding">
+                        <div class="">
+                            <label id="functions_select_label" for="functions_modal_select"><h5>select a function</h5></label>
+
+                            <div class="input-group mb-3">
+                                <input list="modal_datalist" class="form-control input" name="functions" id="functions_modal_select" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary add" type="button" id="add_function_button">Add</button>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                  </button>
+                                <div class="dropdown-menu">
+                                    <button id="functions_option" class="dropdown-item dropdown-selected">Function</button>
+                                    <div role="separator" class="dropdown-divider"></div>
+                                    <button id="groups_option" class="dropdown-item">Group</button>
+                                </div>
+                                <datalist id="modal_datalist">
+                                    
+                                </datalist>
+                            </div>
+                            <!-- <div class="draggble_list_div">
+                                <ul class='draggble_ul' id="functions_list">
+                                </ul>
+                            </div> -->
+                        </div>
+                        <!-- <div class="col-7">
 
                             <div class="form-inline">
                                 <label for="Group_funciton_toggle" class="lable-Toggle-Function_Or_Group-Modal"><h6>Add &nbsp</h6></label>
@@ -287,7 +313,7 @@
                                 <option value="data2"></option>
                             </datalist>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="col-1 seperators-div">
                             <i class="fas fa-circle seperator"></i>
@@ -297,12 +323,8 @@
 
                         <div class="col-5 mx-auto">
                             <label for="chosen_list" class="draagable-ul-title"><h5>Chosen list:</h5></label>
-                            <ul class='draggble_ul list-div' id="chosen_list">
-                                <li class="draggable" draggable="false">HTML</li>
-                                <li class="draggable" draggable="false">CSS</li>
-                                <li class="draggable" draggable="false">JavaScript</li>
-                                <li class="draggable" draggable="false">PHP</li>
-                                <li class="draggable" draggable="false">MySQL</li>
+                            <ul class='draggble_ul list-div' id="modal_ul">
+
                             </ul>
                         </div>
 
@@ -319,9 +341,10 @@
 
 
 {%endblock%} {%block scripts%}
-<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+<script src="../static/js/bootstrap-toggle.min.js"></script>
 <script src="../static/js/draggble_list.js"></script>
 <script src="../static/js/OctoUtils.js"></script>
 <script src="../static/js/Functions_Definitions.js"></script>
-
+<script src="../static/js/Functions_Definitions_Modal.js"></script>
+<script src="../static/js/OctoUtils.js"></script>
 {%endblock%}
