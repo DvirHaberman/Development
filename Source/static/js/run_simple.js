@@ -187,12 +187,15 @@ function run_setup() {
         data: JSON.stringify(data),
         contentType: 'application/json',
         success: function(result) {
-            alert('your mission id is: ' + result);
+            $('#dissmisable_alert_text')[0].innerHTML = 'your mission id is: ' + result;
+            $('.alert')[0].hidden = false;
+            // alert('your mission id is: ' + result);
             get_mission_ids();
         }
     });
 }
 
+$('.alert button')[0].addEventListener('click', function() { $('.alert')[0].hidden = true; });
 functions_option.addEventListener('click', get_all_functions);
 groups_option.addEventListener('click', get_all_groups);
 add_run_id_button.addEventListener('click', add_run_id);

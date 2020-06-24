@@ -145,7 +145,9 @@ function load_results() {
                 // myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
                 myChart.update();
                 clear_drill_down();
-                alert('no data');
+                $('#dissmisable_alert_text')[0].innerHTML = 'no data';
+                $('.alert')[0].hidden = false;
+                // alert('no data');
             }
             num_of_cols = result.schema.fields.length;
             num_of_rows = result.data.length;

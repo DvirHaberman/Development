@@ -3,6 +3,12 @@
 <link rel="stylesheet" href="../static/css/draggable_list.css"> {% endblock %} {% block content %}
 <!-- <center> -->
 <div dir="ltr" class="row col-12" id=main_form>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+        <strong id="dissmisable_alert_text"></strong>
+        <button type="button" class="close" data-hide="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <div class="card run-select-card">
         <div class="card-header run-select-card-header">
             <h2>Runs</h2>

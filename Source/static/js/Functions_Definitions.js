@@ -590,7 +590,9 @@ $("a[name='delete_function_button']")[0].addEventListener("click", function() {
         type: "POST",
         url: "/api/OctopusFunction/delete_by_name/" + function_name,
         success: function(msg) {
-            alert(msg)
+            $('#main_dissmisable_alert_text')[0].innerHTML = msg;
+            $('#main_alert')[0].hidden = false;
+            // alert(msg)
             form_handler.get_all_functions('onReset');
         }
     });
@@ -601,33 +603,37 @@ $("a[name='delete_function_button']")[0].addEventListener("click", function() {
 $("a[name='save_function_button']")[0].addEventListener("click", function() {
     data = form_handler.get_form_data();
 
-    if (Stage==="new"){
-    $.ajax({
-        type: "POST",
-        url: "/api/OctopusFunction/save_function",
-        dataType: "json",
-        data: JSON.stringify(data),
-        contentType: 'application/json',
-        success: function(msg) {
-            alert(msg)
-            form_handler.get_all_functions('save');
-        Stage = "update";
-        }
-    });
+    if (Stage === "new") {
+        $.ajax({
+            type: "POST",
+            url: "/api/OctopusFunction/save_function",
+            dataType: "json",
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function(msg) {
+                $('#main_dissmisable_alert_text')[0].innerHTML = msg;
+                $('#main_alert')[0].hidden = false;
+                // alert(msg)
+                form_handler.get_all_functions('save');
+                Stage = "update";
+            }
+        });
 
     }
-    if (Stage==="update"){
-      $.ajax({
-          type: "POST",
-          url: "/api/OctopusFunction/update",
-          dataType: "json",
-          data: JSON.stringify(data),
-          contentType: 'application/json',
-          success: function(msg) {
-              alert(msg)
-              form_handler.get_all_functions('current');
-          }
-      });
+    if (Stage === "update") {
+        $.ajax({
+            type: "POST",
+            url: "/api/OctopusFunction/update",
+            dataType: "json",
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function(msg) {
+                $('#main_dissmisable_alert_text')[0].innerHTML = msg;
+                $('#main_alert')[0].hidden = false;
+                // alert(msg)
+                form_handler.get_all_functions('current');
+            }
+        });
     }
 
 
@@ -640,6 +646,7 @@ form_controls.function_select.addEventListener("change", function() {
 });
 
 
+$('#main_alert button')[0].addEventListener('click', function() { $('#main_alert')[0].hidden = true; })
 
 form_handler.get_all_functions('onReset');
 // getAllGroups("Group_Function_Name"); modal

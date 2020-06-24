@@ -143,3 +143,10 @@ td:hover {
 .dropdown-selected:hover {
     background-color: #0779e4;
 }
+
+.alert {
+    position: absolute;
+    left: 800px;
+    top: 31px;
+    z-index: 1;
+}
