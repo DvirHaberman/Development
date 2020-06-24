@@ -47,7 +47,7 @@ td:hover {
 }
 
 #results_table_div {
-    /* overflow: hidden; */
+    margin-top: 40px;
     overflow: auto;
     max-height: 400px;
     /* width: 50%; */
@@ -60,7 +60,7 @@ td:hover {
 #drill_down_table_div {
     overflow: auto;
     /* overflow: scroll; */
-    max-height: 500px;
+    max-height: 700px;
 }
 
 .run-select-card-body,

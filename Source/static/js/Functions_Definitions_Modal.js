@@ -255,11 +255,13 @@ $('#Save_Group').click(function() { //save
         group_name = modal_group_name.value;
         save_group(group_name);
         action = 'save';
+        reload_functions();
         setToggle('Group_toggle', 'off')
     } else { //existing
         group_name = modal_group_name.value;
         update_group(group_name);
         action = 'update';
+        reload_functions();
         setToggle('Group_toggle', 'off')
     }
 });
@@ -273,9 +275,23 @@ $('#Delete_Group').click(function() { //delete
             get_functions_names();
             modal_group_name.value = groups_names[0];
             load_group(groups_names[0]);
+            reload_functions();
         }
     }
 });
+
+function reload_functions() {
+    $.ajax({
+        url: "/api/OctopusFunction/jsonify_all",
+        async: false,
+        success: function(result) {
+            functions = result;
+            functoinIndex = form_controls.function_select.selectedIndex;
+            form_handler.fill_form(functoinIndex, []);
+        }
+
+    });
+}
 
 
 $('#Modal_Select_Group_Name').on('keyup', function(e) {
@@ -375,4 +391,4 @@ groups_option.addEventListener('click', get_groups_names);
 get_groups_names();
 get_functions_names();
 
-// Metadata_form_controls.Name.setAttribute("list", null);
+modal_group_name.setAttribute("list", null);
