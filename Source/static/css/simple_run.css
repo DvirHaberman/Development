@@ -8,6 +8,17 @@ td {
     text-align: center;
 }
 
+td:nth-child(n+3) {
+    color: white;
+    font-weight: bolder;
+}
+
+datalist option {
+    text-align: left;
+    width: 50px;
+    font-size: 3rem;
+}
+
 tr:nth-child(even) {
     background-color: #eee;
 }
@@ -145,8 +156,10 @@ td:hover {
 }
 
 .alert {
-    position: absolute;
+    /* position: absolute;
     left: 800px;
     top: 31px;
-    z-index: 1;
+    z-index: 1; */
+    margin-left: 30px;
+    margin-bottom: 0px;
 }

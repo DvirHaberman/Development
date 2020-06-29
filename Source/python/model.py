@@ -18,6 +18,7 @@ from pathlib import Path
 import sys
 import os
 import cx_Oracle
+from time import time
 
 def init_db():
     db = SQLAlchemy()
@@ -169,8 +170,8 @@ class DbConnector:
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
-        run_ids = conn.run_sql('select run_id from run_ids')
-        return jsonify([int(x) for x in list(run_ids['run_id'].values)])
+        data = conn.run_sql('select run_id, scenario_name from run_ids')
+        return jsonify(run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
 
     @staticmethod
     def delete_conn_by_name(name):
@@ -1045,7 +1046,8 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! Function module is not in the specified location',
-                    'result_arr' : None
+                    'result_arr' : None,
+                    'time_elapsed' : None
                 }
             #import module
             if self.file_name == None:
@@ -1065,7 +1067,8 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! The specified module does not contain the given class or method',
-                    'result_arr' : None
+                    'result_arr' : None,
+                    'time_elapsed' : None
                 }
             #else - check for function
             else:
@@ -1076,7 +1079,8 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn.name,
                 'result_status':1,
                 'result_text':'Error! Unexpected error while extracting the method',
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
         try:
             db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
@@ -1094,20 +1098,24 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn,
                 'result_status':1,
                 'result_text':"Error! Unexpected error while extracting method's parameters",
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
         try:
             if len(parameters_list) > 0:
                 if 'Tests Params' in parameters_list:
                     index = parameters_list.index('Tests Params')
                     parameters_list[index] = tests_params
+                start_time = time()
                 result_dict = req_method(conn, run_id, *parameters_list)
             else:
+                start_time = time()
                 result_dict = req_method(conn, run_id)
+            time_elapsed = time() - start_time
             conn.close()
             db_conn.connection.dispose()
             db_conn.connection = None
-            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name)])
+            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
             return result_dict
         except Exception as error:
             try:
@@ -1122,7 +1130,8 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn.name,
                 'result_status':1,
                 'result_text':'Error! Unexpected error while activating the method',
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
 
     # def __repr__(self):
@@ -1631,9 +1640,10 @@ class AnalyseResult(db.Model):
     result_array = db.relationship('ResultArray', backref='AnalyseResult', lazy=True, uselist=True)
     result_array_header = db.Column(db.Text)
     result_array_types = db.Column(db.Text)
+    time_elapsed = db.Column(db.Float)
 
     def __init__(self, task_id, run_id,  result_status, result_text,
-                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None):
+                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None, time_elapsed=None):
         self.task_id = task_id
         self.run_id = run_id
         self.db_conn = db_conn_string
@@ -1641,6 +1651,7 @@ class AnalyseResult(db.Model):
         self.result_text = result_text
         self.result_array = []
         self.result_array_types = result_array_types
+        self.time_elapsed = time_elapsed
         # db.session.add(self)
         # db.session.commit()
 
@@ -1755,9 +1766,11 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
+                            'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
                             task.run_id:{
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
-                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
+                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status,
+                                            'time_elapsed' : AnalyseResult.query.filter_by(task_id=task.id)[0].time_elapsed
                                         }
                             }
 
