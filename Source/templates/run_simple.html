@@ -3,6 +3,12 @@
 <link rel="stylesheet" href="../static/css/draggable_list.css"> {% endblock %} {% block content %}
 <!-- <center> -->
 <div dir="ltr" class="row col-12" id=main_form>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+        <strong id="dissmisable_alert_text"></strong>
+        <button type="button" class="close" data-hide="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <div class="card run-select-card">
         <div class="card-header run-select-card-header">
             <h2>Runs</h2>
@@ -70,80 +76,89 @@
     </div>
     <div class="display-results-div">
         <div class="">
-            <label for="mission_id">select mission id:</label>
+
             <div class="row ml-auto">
+                <button id="go_button" class="btn btn-primary btn-lg mx-4">Analyse</button>
+
                 <div>
-                    <select class="form-control" id="mission_id_select"></select>
+                    <label for="mission_id">select mission id:</label>
+                    <div class="row">
+                        <div>
+                            <select class="form-control" id="mission_id_select"></select>
+                        </div>
+                        <div>
+                            <button class="btn btn-lg btn-success ml-1" id='display_button'>display</button>
+                        </div>
+
+
+                    </div>
                 </div>
-                <div>
-                    <button class="btn btn-lg btn-success ml-1" id='display_button'>display</button>
+            </div>
+
+            <hr />
+            <!-- <div class="mx-auto"> -->
+
+            <div class="results_statistics_div">
+                <div class="container-fluid">
+                    <canvas hidden="hidden" id="results_statistics_chart"></canvas>
                 </div>
             </div>
+            <!-- </div> -->
         </div>
-
-        <hr />
-        <!-- <div class="mx-auto"> -->
-
-        <div class="results_statistics_div">
-            <div class="container-fluid">
-                <canvas hidden="hidden" id="results_statistics_chart"></canvas>
-            </div>
-        </div>
-        <!-- </div> -->
-    </div>
-    <br>
-    <br>
-
-</div>
-<button id="go_button" class="btn btn-primary btn-lg m-4">GO!</button>
-<div id="results_table_div" class="mr-auto">
-    <table id="results_table">
-    </table>
-</div>
-<div class="row m-3">
-    <div id="drill_down_div" class="col-4">
-        <div class="row">
-            <div class="result-output-text">
-
-                <h1 id="drill_down_header"></h1>
-                <h2 id="drill_down_db_name"></h2>
-
-                <!-- <div class="row col-10"> -->
-                <!-- <div class="results_divs m-2"> -->
-                <h2 id="drill_down_function_name"></h2>
-                <!-- </div> -->
-                <!-- <div class="results_divs m-2"> -->
-                <h2 id="drill_down_run_id"></h2>
-                <!-- </div> -->
-                <!-- </div> -->
-                <!-- <div class="row col-10"> -->
-                <!-- <div class="results_divs m-2"> -->
-                <h2 id="result_status"></h2>
-                <!-- </div> -->
-                <!-- <div class="results_divs m-2"> -->
-                <h2 id="result_text"></h2>
-                <!-- </div> -->
-                <!-- </div> -->
-
-            </div>
-
-        </div>
+        <br>
+        <br>
 
     </div>
-    <div class=" col-8" id="drill_down_table_div">
-        <table id="drill_down_table">
-
+    <div id="results_table_div" class="mr-auto col-12">
+        <table id="results_table">
         </table>
     </div>
-</div>
-<br>
+    <div class="row m-3 col-12">
+        <div id="drill_down_div" class="col-4 mt-4">
+            <div class="row card">
+                <div class="result-output-text card-body">
 
-<br>
-<br>
-<br> {% endblock %} {% block scripts %}
-<!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
-<script src="../static/js/run_simple.js"></script>
-<script src="../static/js/display_results.js"></script>
-<!-- <script src="../static/js/draggble_list.js"></script> -->
+                    <h1 id="drill_down_header"></h1>
+                    <h2 id="drill_down_db_name"></h2>
 
-{% endblock %}
+                    <!-- <div class="row col-10"> -->
+                    <!-- <div class="results_divs m-2"> -->
+                    <h2 id="drill_down_function_name"></h2>
+                    <!-- </div> -->
+                    <!-- <div class="results_divs m-2"> -->
+                    <h2 id="drill_down_run_id"></h2>
+                    <!-- </div> -->
+                    <!-- </div> -->
+                    <!-- <div class="row col-10"> -->
+                    <!-- <div class="results_divs m-2"> -->
+                    <h2 id="result_status"></h2>
+                    <!-- </div> -->
+                    <!-- <div class="results_divs m-2"> -->
+                    <h2 id="result_text"></h2>
+                    <!-- </div> -->
+                    <!-- </div> -->
+                    <h2 id="function_owner"></h2>
+                    <h2 id="function_state"></h2>
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class=" col-8" id="drill_down_table_div">
+            <table id="drill_down_table">
+
+            </table>
+        </div>
+    </div>
+    <br>
+
+    <br>
+    <br>
+    <br> {% endblock %} {% block scripts %}
+    <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
+    <script src="../static/js/run_simple.js"></script>
+    <script src="../static/js/display_results.js"></script>
+    <!-- <script src="../static/js/draggble_list.js"></script> -->
+
+    {% endblock %}

@@ -12,6 +12,8 @@ var drill_down_function_name = $('#drill_down_function_name')[0];
 var drill_down_db_name = $('#drill_down_db_name')[0];
 var result_status = $('#result_status')[0];
 var result_text = $('#result_text')[0];
+var function_owner = $('#function_owner')[0];
+var function_state = $('#function_state')[0];
 var statistics = {
     success: 0,
     warning: 0,
@@ -83,15 +85,56 @@ function drill_down() {
             drill_down_function_name.innerHTML = 'Function name: ' + function_name;
             drill_down_run_id.innerHTML = 'Run id: ' + run_id;
             drill_down_db_name.innerHTML = 'DB name: ' + drill_down_result[0].db_conn;
-            result_status.innerHTML = 'Result Status: ' + drill_down_result[0].result_status;
+            switch (drill_down_result[0].result_status) {
+                case 0:
+                    result_status_text = 'No Data';
+                    break;
+                case 1:
+                    result_status_text = 'Error';
+                    break;
+                case 2:
+                    result_status_text = 'Fail';
+                    break;
+                case 3:
+                    result_status_text = 'Warning';
+                    break;
+                case 4:
+                    result_status_text = 'Success';
+                    break;
+                default:
+                    result_status_text = 'in process';
+                    // td.bgColor = 'green';
+                    break;
+            }
+            result_status.innerHTML = 'Result Status: ' + result_status_text;
             result_text.innerHTML = 'Result Text: ' + drill_down_result[0].result_text;
+            function_owner.innerHTML = 'Function owner: ' + drill_down_result[0].function_owner;
+
+            switch (drill_down_result[0].function_state) {
+                case 0:
+                    function_state_text = 'Needed';
+                    break;
+                case 1:
+                    function_state_text = 'In Dev';
+                    break;
+                case 2:
+                    function_state_text = 'Completed';
+                default:
+                    function_state_text = 'undefined';
+                    // td.bgColor = 'green';
+                    break;
+            }
+
+            function_state.innerHTML = 'Function state: ' + function_state_text;
             drill_down_table_div.removeChild(drill_down_table)
             drill_down_table = document.createElement('table');
             drill_down_table.id = 'drill_down_table';
             drill_down_table.classList.add(["table"]);
             drill_down_table.classList.add(["table-hover"]);
             drill_down_table.classList.add(["col-10"]);
-            drill_down_table.classList.add(["m-auto"]);
+            // drill_down_table.classList.add(["m-auto"]);
+            drill_down_table.classList.add(["mt-4"]);
+            drill_down_table.classList.add(["mx-auto"]);
             drill_down_table_div.appendChild(drill_down_table);
             num_of_cols = result[0].result_array.schema.fields.length;
             num_of_rows = result[0].result_array.data.length;
@@ -145,7 +188,9 @@ function load_results() {
                 // myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
                 myChart.update();
                 clear_drill_down();
-                alert('no data');
+                $('#dissmisable_alert_text')[0].innerHTML = 'no data';
+                $('.alert')[0].hidden = false;
+                // alert('no data');
             }
             num_of_cols = result.schema.fields.length;
             num_of_rows = result.data.length;

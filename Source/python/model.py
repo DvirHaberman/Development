@@ -1697,16 +1697,32 @@ class AnalyseResult(db.Model):
             result_array = self.tablify_results_arrays()
         else:
             result_array = None
+
+        function_obj = OctopusFunction.query.get(AnalyseTask.query.get(self.task_id).function_id)
+        if function_obj:
+            function_id = function_obj.id
+            function_status = function_obj.status
+            user = User.query.get(OctopusFunction.query.get(function_id).owner)
+            if user:
+                user_name = user.name
+            else:
+                user_name = None
+        else:
+            function_id = None
+            user_name=None
+        
         return jsonify(
             id=self.id,
             task_id = self.task_id,
-            function_id = AnalyseTask.query.get(self.task_id).function_id,
+            function_id = function_id,
             run_id = self.run_id,
             db_conn = self.db_conn,
             result_status = self.result_status,
             result_text = self.result_text,
             result_array_types = self.result_array_types,
-            result_array=result_array
+            result_array=result_array,
+            function_state = function_status,
+            function_owner = user_name
         )
 
     def tablify_results_arrays(self):

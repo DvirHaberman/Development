@@ -7,6 +7,14 @@
 <link rel="stylesheet" href="../static/css/styles.css" /> {% endblock %} {%block content%}
 
 
+<div id="main_alert" class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+    <strong id="main_dissmisable_alert_text"></strong>
+    <button type="button" class="close" data-hide="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+
 
 <section id="fixed-menus">
     <div class="row">
@@ -149,7 +157,7 @@
 
             <div class="input-groups-data col-3">
                 <div class="function-input-row col-12">
-                    <label for="group_input">Groups</label>
+                    <label for="group_input">Groups <br> Membership</label>
                     <button type="button" name="button" id="newGroupButton" data-toggle="modal" data-target="#defineGroupModal">   <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
                 </div>
 
@@ -255,7 +263,12 @@
                         <button id="Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
                         <button id="Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
                     </div>
-
+                    <div id="modal_alert" class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+                        <strong id="modal_dissmisable_alert_text"></strong>
+                        <button type="button" class="close" data-hide="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                     <div class="form-inline seperate-row">
                         <label for="Modal_Select_Group_Name" class="modal-fix-width-label"><h5>Group Name:</h5></label>
                         <input list='Group_Function_Name' id="Modal_Select_Group_Name" type="text" class="input form-control GroupOrFunction_Name" placeholder="..." />
@@ -346,5 +359,4 @@
 <script src="../static/js/OctoUtils.js"></script>
 <script src="../static/js/Functions_Definitions.js"></script>
 <script src="../static/js/Functions_Definitions_Modal.js"></script>
-<script src="../static/js/OctoUtils.js"></script>
 {%endblock%}
