@@ -1,7 +1,8 @@
 import pandas as pd
-
+from time import sleep
 def return_success(conn, run_id):
     data = pd.read_sql('select * from run_ids',con=conn)
+    sleep(3)
     return {'result_status':4, 'result_arr':None, 'result_text':'just success'}
 
 def return_warning(conn, run_id):

@@ -144,7 +144,7 @@ function load_run_ids(db_name) {
     $.ajax({
         url: "/api/DbConnector/get_run_ids/" + db_name,
         success: function(result) {
-            run_ids_list = result;
+            run_ids_list = result['run_ids'];
             var num_of_runs = run_ids_list.length;
             // var num_of_current_runs = run_ids_select.options.length;
             // for (i = 0; i < num_of_current_runs; i++) {
@@ -160,7 +160,8 @@ function load_run_ids(db_name) {
                 // option.text = run_ids_list[i];
                 // run_ids_select.add(option);
                 var option = document.createElement("option");
-                option.text = run_ids_list[i];
+                option.value = result['run_ids'][i];
+                option.text = 'Scenario : ' + result['scenarios'][i];
                 run_ids_datalist.appendChild(option);
             }
             run_ids_select.value = null;

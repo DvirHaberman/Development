@@ -235,7 +235,8 @@ class Worker:
                             analyse_result = AnalyseResult(task_id=task.id,run_id=results['run_id'],
                                                 db_conn_string=task.db_conn_obj.name,
                                                 result_status=results['result_status'],
-                                                result_text=results['result_text'])
+                                                result_text=results['result_text'],
+                                                time_elapsed=results['time_elapsed'])
                             # db.session.add(analyse_result)
                             # db.session.commit()
                             # done_queue.task_done()
