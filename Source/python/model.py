@@ -18,6 +18,7 @@ from pathlib import Path
 import sys
 import os
 import cx_Oracle
+from time import time
 
 def init_db():
     db = SQLAlchemy()
@@ -26,9 +27,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -44,6 +44,13 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
                                         db.ForeignKey('OctopusFunctions.id')),
                               db.Column('group_id', db.Integer,
                                         db.ForeignKey('FunctionsGroup.id'))
+                              )
+
+ProjectsAndUsers = db.Table('ProjectsAndUsers',
+                              db.Column('project_id', db.Integer,
+                                        db.ForeignKey('Project.id')),
+                              db.Column('user_id', db.Integer,
+                                        db.ForeignKey('User.id'))
                               )
 
 
@@ -169,8 +176,8 @@ class DbConnector:
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
-        run_ids = conn.run_sql('select run_id from run_ids')
-        return jsonify([int(x) for x in list(run_ids['run_id'].values)])
+        data = conn.run_sql('select run_id, scenario_name from run_ids')
+        return jsonify(run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
 
     @staticmethod
     def delete_conn_by_name(name):
@@ -327,7 +334,7 @@ class Role(db.Model):
 #########################################
 
 class User(db.Model):
-    __tablename__ = "Users"
+    __tablename__ = "User"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     first_name = db.Column(db.Text)
@@ -338,10 +345,13 @@ class User(db.Model):
     functions = db.relationship('OctopusFunction', backref='User', lazy=True)
     max_priority = db.Column(db.Integer)
     state = db.Column(db.Integer)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    projects = db.relationship('Project', secondary=ProjectsAndUsers,
+                                backref=db.backref('users', lazy='dynamic'))
+    default_project = db.Column(db.Integer)
 
     def __init__(self, name=None, first_name=None, last_name=None, password_sha=None, state=None,
-                 role=None, team=None, functions=[], max_priority=None, project=None):
+                 role=None, team=None, functions=[], max_priority=None, projects=[], default_project=None):
         self.name = name
         self.first_name = first_name
         self.last_name = last_name
@@ -351,7 +361,8 @@ class User(db.Model):
         self.team = team
         self.functions = functions
         self.max_priority = max_priority
-        self.project = project
+        self.projects = projects
+        self.default_project = default_project
 
     def self_jsonify(self):
         return jsonify(
@@ -365,7 +376,8 @@ class User(db.Model):
             functions=jsonify([func.self_jsonify()
                                for func in self.functions]).json,
             max_priority=self.max_priority,
-            project=Project.query.get(self.project).name
+            projects=jsonify([project.name
+                               for project in self.projects]).json
         ).json
 
     @staticmethod
@@ -385,11 +397,18 @@ class User(db.Model):
             k+=1
         team_id = Team.query.filter_by(name=data['team']).first().id
         role_id = Role.query.filter_by(name=data['role']).first().id
-        project_id = Project.query.filter_by(name=data['project']).first().id
+        projects = db.session.query(Project).filter(Project.name.in_(data['projects'])).all()
         user = User(name=data['first_name']+data['last_name'][:k+1], first_name=data['first_name'], last_name=data['last_name'], password_sha='123456', state=0,
-                 role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), project=project_id)
+                 role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), projects=projects)
         db.session.add(user)
         db.session.commit()
+        session['projects'] = data['projects']
+        if session['projects']:
+            if session['current_project'] not in session['projects']:
+                session['current_project'] = session['projects'][0]
+        else:
+            session['current_project'] = None
+
         return jsonify(status=1, msg='user ' + user.name +' was successfuly saved')
 
     @staticmethod
@@ -398,9 +417,16 @@ class User(db.Model):
         user.max_priority = data['max_priority']
         user.team = Team.query.filter_by(name=data['team']).first().id
         user.role = Role.query.filter_by(name=data['role']).first().id
-        user.project = Project.query.filter_by(name=data['project']).first().id
+        user.projects = []
+        user.projects = db.session.query(Project).filter(Project.name.in_(data['projects'])).all()
         db.session.add(user)
         db.session.commit()
+        session['projects'] = data['projects']
+        if session['projects']:
+            if session['current_project'] not in session['projects']:
+                session['current_project'] = session['projects'][0]
+        else:
+            session['current_project'] = None
         return jsonify(status=1,msg='user updated!')
     @staticmethod
     def delete_user_by_name(name):
@@ -469,7 +495,7 @@ class User(db.Model):
 
     @staticmethod
     def get_user_by_id(user_id):
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         return jsonify(user.self_jsonify())
 
     # def __repr__(self):
@@ -494,14 +520,18 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     output_dir = db.Column(db.Text)
-    users = db.relationship('User', backref='Project', lazy=True)
+    repository_root = db.Column(db.Text)
+    # users = db.relationship('User', backref='Project', lazy=True)
     sites = db.relationship('Site', backref='Project', lazy=True)
+    functions = db.relationship(
+        'OctopusFunction', backref='Project', lazy=True, uselist=True)
 
-    def __init__(self, name, output_dir, users=[], sites=[]):
+    def __init__(self, name, output_dir=None, repository_root=None, sites=[]):
         self.name = name
         # self.version = version
         self.output_dir = output_dir
-        self.users = users
+        self.repository_root = repository_root
+        # self.users = users
         self.sites = sites
 
     def self_jsonify(self):
@@ -509,7 +539,8 @@ class Project(db.Model):
             id=self.id,
             name=self.name,
             output_dir=self.output_dir,
-            users=jsonify([user.name for user in self.users]).json,
+            # users=jsonify([user.name for user in self.users]).json,
+            users=jsonify([user.self_jsonify() for user in self.users]).json,
             sites=jsonify([site.self_jsonify() for site in self.sites]).json,
             sites_names=jsonify([site.name for site in self.sites]).json
         ).json
@@ -713,7 +744,7 @@ class OctopusFunction(db.Model):
     callback = db.Column(db.Text)
     file_name = db.Column(db.Text)
     location = db.Column(db.Text)
-    owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
+    owner = db.Column(db.Integer, db.ForeignKey('User.id'))
     status = db.Column(db.Integer)
     tree = db.relationship(
         'Trees', backref='OctopusFunction', lazy=True, uselist=False)
@@ -732,10 +763,12 @@ class OctopusFunction(db.Model):
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
     feature = db.Column(db.Text)
     requirement = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
                  kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(),
-                 is_locked=0, feature=None, requirement=None):
+                 is_locked=0, feature=None, requirement=None, project=None):
         self.name = name
         self.callback = callback
         self.file_name = file_name
@@ -757,6 +790,7 @@ class OctopusFunction(db.Model):
         self.function_parameters = function_parameters
         self.feature = feature
         self.requirement = requirement
+        self.project = project
 
     def self_jsonify(self):
         try:
@@ -846,7 +880,7 @@ class OctopusFunction(db.Model):
                 kind=data['kind'],
                 tags=data['tags'],
                 description=data['description'],
-                # project=row.project,
+                project=Project.query.filter_by(name=session['current_project']).first().id,
                 version=data['version'],
                 version_comments=data['version_comments'],
                 function_checksum=22,
@@ -1045,7 +1079,8 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! Function module is not in the specified location',
-                    'result_arr' : None
+                    'result_arr' : None,
+                    'time_elapsed' : None
                 }
             #import module
             if self.file_name == None:
@@ -1065,7 +1100,8 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! The specified module does not contain the given class or method',
-                    'result_arr' : None
+                    'result_arr' : None,
+                    'time_elapsed' : None
                 }
             #else - check for function
             else:
@@ -1076,7 +1112,8 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn.name,
                 'result_status':1,
                 'result_text':'Error! Unexpected error while extracting the method',
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
         try:
             db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
@@ -1094,20 +1131,24 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn,
                 'result_status':1,
                 'result_text':"Error! Unexpected error while extracting method's parameters",
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
         try:
             if len(parameters_list) > 0:
                 if 'Tests Params' in parameters_list:
                     index = parameters_list.index('Tests Params')
                     parameters_list[index] = tests_params
+                start_time = time()
                 result_dict = req_method(conn, run_id, *parameters_list)
             else:
+                start_time = time()
                 result_dict = req_method(conn, run_id)
+            time_elapsed = time() - start_time
             conn.close()
             db_conn.connection.dispose()
             db_conn.connection = None
-            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name)])
+            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
             return result_dict
         except Exception as error:
             try:
@@ -1122,7 +1163,8 @@ class OctopusFunction(db.Model):
                 'db_conn': db_conn.name,
                 'result_status':1,
                 'result_text':'Error! Unexpected error while activating the method',
-                'result_arr' : None
+                'result_arr' : None,
+                'time_elapsed' : None
             }
 
     # def __repr__(self):
@@ -1211,7 +1253,6 @@ class FunctionsGroup(db.Model):
     name = db.Column(db.Text)
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
-
     def __init__(self, name=None, functions=[]):
         self.name = name
         self. functions = functions
@@ -1631,9 +1672,10 @@ class AnalyseResult(db.Model):
     result_array = db.relationship('ResultArray', backref='AnalyseResult', lazy=True, uselist=True)
     result_array_header = db.Column(db.Text)
     result_array_types = db.Column(db.Text)
+    time_elapsed = db.Column(db.Float)
 
     def __init__(self, task_id, run_id,  result_status, result_text,
-                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None):
+                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None, time_elapsed=None):
         self.task_id = task_id
         self.run_id = run_id
         self.db_conn = db_conn_string
@@ -1641,6 +1683,7 @@ class AnalyseResult(db.Model):
         self.result_text = result_text
         self.result_array = []
         self.result_array_types = result_array_types
+        self.time_elapsed = time_elapsed
         # db.session.add(self)
         # db.session.commit()
 
@@ -1755,9 +1798,11 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
+                            'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
                             task.run_id:{
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
-                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
+                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status,
+                                            'time_elapsed' : AnalyseResult.query.filter_by(task_id=task.id)[0].time_elapsed
                                         }
                             }
 

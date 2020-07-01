@@ -9,11 +9,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1
@@ -247,6 +245,11 @@ def validate_user():
         if user:
             session['username'] = username
             session['userrole'] = Role.query.get(user.role).name
+            session['projects'] = [project.name for project in user.projects]
+            if session['projects']:
+                session['current_project'] = session['projects'][0]
+            else:  
+                session['current_project'] = None
             return redirect('/welcome')
         else:
             flash('Invalid username or password!')
@@ -254,6 +257,40 @@ def validate_user():
     else:
         return redirect('/login')
 
+@app.route('/change_project/<int:index>')
+def change_project(index):
+    session['current_project'] = session['projects'][index-1]
+    if session['current_window_name'] == 'Run Functions':
+        return redirect('/run_simple')
+
+    if  session['current_window_name'] == 'Welcome':
+        return redirect('/welcome')
+
+    if session['current_window_name'] == 'Define Process':
+        return redirect('/define_process')
+
+    if session['current_window_name'] == 'Define Stage':
+        return redirect('/run_stage_define')
+
+    if session['current_window_name'] == 'Run Functions':
+        return redirect('/run_function')
+
+    if session['current_window_name'] == 'Define Complex Net':
+        return redirect('/define_complex_net')
+
+    if session['current_window_name'] == 'Infras':
+        return redirect('/infras')
+
+    if session['current_window_name'] == 'Define Connections':
+        return redirect('/db_conn_wizard')
+
+    if session['current_window_name'] == 'Define Functions':
+        return redirect('/Function_Definition')
+
+    if session['current_window_name'] == 'Define Users':
+        return redirect('/user_wizard')
+    
+    
 @app.route('/run_simple')
 def run_simple():
     if session.get('username', None) is None:
