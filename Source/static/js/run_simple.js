@@ -91,9 +91,9 @@ function add_run_id() {
 
 function get_all_functions() {
     $.ajax({
-        url: "/api/OctopusFunction/jsonify_all",
+        url: "/api/OctopusFunction/get_names",
         success: function(result) {
-            functions = result;
+            functions = result.data;
             var num_of_current_items = function_datalist.options.length;
             for (i = 0; i < num_of_current_items; i++) {
                 function_datalist.removeChild(function_datalist.options[0]);
@@ -101,7 +101,7 @@ function get_all_functions() {
             var num_of_functions = functions.length;
             functions_list = [];
             for (i = 0; i < num_of_functions; i++) {
-                var name = functions[i].name;
+                var name = functions[i];
                 var option = document.createElement("option");
                 option.text = name;
                 function_datalist.appendChild(option);

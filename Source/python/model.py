@@ -525,6 +525,10 @@ class Project(db.Model):
     sites = db.relationship('Site', backref='Project', lazy=True)
     functions = db.relationship(
         'OctopusFunction', backref='Project', lazy=True, uselist=True)
+    functions_groups = db.relationship(
+        'FunctionsGroup', backref='Project', lazy=True, uselist=True)
+    db_connections = db.relationship(
+        'DbConnections', backref='Project', lazy=True, uselist=True)
 
     def __init__(self, name, output_dir=None, repository_root=None, sites=[]):
         self.name = name
@@ -1023,7 +1027,7 @@ class OctopusFunction(db.Model):
             db.session.close()
     @staticmethod
     def jsonify_all():
-        table = OctopusFunction.query.all()
+        table = OctopusFunction.query.filter_by(project=session['current_project_id']).all()
         return jsonify([row.self_jsonify() for row in table])
 
     @staticmethod
@@ -1052,7 +1056,7 @@ class OctopusFunction(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = OctopusFunction.query.with_entities(OctopusFunction.name).all()
+            names = OctopusFunction.query.filter_by(project=session['current_project_id']).with_entities(OctopusFunction.name).all()
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1251,22 +1255,24 @@ class FunctionsGroup(db.Model):
     __tablename__ = 'FunctionsGroup'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
-    def __init__(self, name=None, functions=[]):
+    def __init__(self, name=None, project=None, functions=[]):
         self.name = name
-        self. functions = functions
+        self.functions = functions
+        self.project = project
 
     def self_jsonify(self):
         return jsonify(
             id=self.id,
             name=self.name,
-            functions=jsonify([func.name for func in self.functions]).json
+            functions=jsonify([func.name for func in self.functions if func.project==session['current_project_id']]).json
         ).json
 
     @staticmethod
     def jsonify_all():
-        table = FunctionsGroup.query.all()
+        table = FunctionsGroup.query.filter_by(project=session['current_project_id']).all()
         return jsonify([row.self_jsonify() for row in table])
 
     def add_functions(self, functions_list):
@@ -1327,9 +1333,9 @@ class FunctionsGroup(db.Model):
         try:
             messages = []
             name = json_data['name']
-            if name in [group.name for group in FunctionsGroup.query.all()]:
+            if name in [group.name for group in FunctionsGroup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
-            group = FunctionsGroup(name=name)
+            group = FunctionsGroup(name=name, project=session['current_project_id'])
             db.session.add(group)
             db.session.commit()
             functions = json_data['functions']
@@ -1353,7 +1359,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = FunctionsGroup.query.with_entities(FunctionsGroup.name).all()
+            names = FunctionsGroup.query.filter_by(project=session['current_project_id']).with_entities(FunctionsGroup.name).all()
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1373,7 +1379,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def get_by_name(group_name):
         try:
-            group = FunctionsGroup.query.filter_by(name=group_name).first()
+            group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
             return jsonify(status=1, message=None, data=group.self_jsonify())
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1383,7 +1389,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            group = FunctionsGroup.query.filter_by(name=name).first()
+            group = FunctionsGroup.query.filter_by(name=name, project=session['current_project_id']).first()
             if group:
                 db.session.delete(group)
                 db.session.commit()
@@ -1413,7 +1419,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def update_by_name(name, json_data):
         try:
-            group = FunctionsGroup.query.filter_by(name=name).first()
+            group = FunctionsGroup.query.filter_by(name=name,project=session['current_project_id']).first()
             if group:
                 updated_functions = json_data['functions']
                 if not type(updated_functions) == type([1]):
@@ -1478,9 +1484,9 @@ class DbConnections(db.Model):
     port = db.Column(db.Text)
     schema = db.Column(db.Text)
     conn_string = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
 
-
-    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string):
+    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string, project=None):
         self.db_type = db_type
         self.schema = schema
         self.user = user
@@ -1489,6 +1495,7 @@ class DbConnections(db.Model):
         self.port = port
         self.name = name
         self.conn_string = conn_string
+        self.project = project
 
     def self_jsonify(self):
         return jsonify(
@@ -1504,7 +1511,7 @@ class DbConnections(db.Model):
 
     @staticmethod
     def get_names():
-        connections = DbConnections.query.all()
+        connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
         return jsonify([conn.name for conn in connections])
 ##################################################
 ########### ERRORLOG MODEL CLASS ####################

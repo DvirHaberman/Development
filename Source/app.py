@@ -176,14 +176,14 @@ def run_functions():
     groups_names = json_input['groups']
     additional_names = []
     for group_name in groups_names:
-        group = FunctionsGroup.query.filter_by(name=group_name).first()
+        group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
         additional_names = additional_names + [func.name for func in group.functions]
     function_names = list(set(function_names + additional_names))
     functions_ids = db.session.query(OctopusFunction).filter(OctopusFunction.name.in_( function_names)).with_entities(OctopusFunction.id).all()
     functions_ids = list(*zip(*functions_ids))
     runs = json_input['runs']
     db_name = json_input['db_name']
-    db_id = DbConnections.query.filter_by(name=db_name).first().id
+    db_id = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first().id
     json_data = {'user_id':user_id,'mission_name':mission_name,
                 'functions':functions_ids,'runs':runs,
                  'conn_id':db_id, 'db_name':db_name}
@@ -248,8 +248,12 @@ def validate_user():
             session['projects'] = [project.name for project in user.projects]
             if session['projects']:
                 session['current_project'] = session['projects'][0]
+                session['current_project_id'] = Project.query.filter_by(name=session['current_project']).first().id
+
             else:  
                 session['current_project'] = None
+                session['current_project_id'] = None
+
             return redirect('/welcome')
         else:
             flash('Invalid username or password!')
@@ -260,6 +264,7 @@ def validate_user():
 @app.route('/change_project/<int:index>')
 def change_project(index):
     session['current_project'] = session['projects'][index-1]
+    session['current_project_id'] = Project.query.filter_by(name=session['current_project']).first().id
     if session['current_window_name'] == 'Run Functions':
         return redirect('/run_simple')
 
@@ -359,7 +364,7 @@ def db_conn_wizard():
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
-    connections = DbConnections.query.all()
+    connections = DbConnections.filter_by(project=session['current_project_id']).query.all()
     return jsonify([conn.self_jsonify() for conn in connections])
 
 @app.route('/api/delete_conn_by_name/<string:conn_name>', methods=["POST"])
@@ -381,7 +386,7 @@ def save_connection():
                 hostname=data['hostname'], port=data['port'], schema=data['schema'], name=data['name'])
     conn.save()
     if conn.status == 'valid':
-        connections = DbConnections.query.all()
+        connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
         conn_data = [conn.self_jsonify() for conn in connections]
         return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
     else:
