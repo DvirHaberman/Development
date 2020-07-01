@@ -14,6 +14,7 @@ var result_status = $('#result_status')[0];
 var result_text = $('#result_text')[0];
 var function_owner = $('#function_owner')[0];
 var function_state = $('#function_state')[0];
+var export_to_excel_button = $('#export_to_excel_button')[0];
 var statistics = {
     success: 0,
     warning: 0,
@@ -262,7 +263,7 @@ function load_results() {
                                     break;
                             }
                             if (time_elapsed !== null) {
-                                status = status + '<br>' + String(Math.round(time_elapsed * 1000)) + 'msec';
+                                status = status + '<br>' + Math.round(time_elapsed * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'msec';
                             }
                         }
                     }
@@ -279,8 +280,30 @@ function load_results() {
     });
 }
 
-$('#display_button')[0].addEventListener('click', load_results);
 
+
+function s2ab(s) {
+    var buf = new ArrayBuffer(s.length);
+    var view = new Uint8Array(buf);
+    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+
+
+$('#display_button')[0].addEventListener('click', load_results);
+export_to_excel_button.addEventListener('click', () => {
+    var wb = XLSX.utils.table_to_book(document.getElementById('results_table'), { sheet: "Sheet JS" });
+    var wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'binary' });
+    saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), 'test.xlsx');
+});
+
+// $('#display_button')[0].addEventListener('click', load_results);
+// export_to_excel_button.addEventListener('click', () => {
+//     // saveAs(new Blob([wb], { type: "application/octet-stream" }), 'test.xlsx');
+//     var blob = new Blob([wb], { type: "text/plain;charset=utf-8" });
+//     saveAs(blob, "mysheet.xlsx");
+// });
 
 clear_drill_down();
 get_mission_ids();

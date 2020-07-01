@@ -8,7 +8,7 @@ td {
     text-align: center;
 }
 
-td:nth-child(n+3) {
+#results_table_div td:nth-child(n+3) {
     color: white;
     font-weight: bolder;
 }
@@ -53,8 +53,8 @@ td:hover {
     color: #01a9b4;
 }
 
-.result-output-text h2 {
-    margin-top: 30px;
+.result-output-text h3 {
+    margin-top: 20px;
 }
 
 #results_table_div {
