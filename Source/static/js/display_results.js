@@ -31,6 +31,8 @@ function clear_drill_down() {
     drill_down_db_name.innerHTML = null;
     result_status.innerHTML = null;
     result_text.innerHTML = null;
+    function_owner.innerHTML = null;
+    function_state.innerHTML = null;
     drill_down_table_div.removeChild(drill_down_table)
     drill_down_table = document.createElement('table');
     drill_down_table.id = 'drill_down_table';
@@ -38,6 +40,7 @@ function clear_drill_down() {
     drill_down_table.classList.add(["table-hover"]);
     drill_down_table.classList.add(["col-10"]);
     drill_down_table.classList.add(["m-auto"]);
+    drill_down_div.classList.remove('card');
     drill_down_table_div.appendChild(drill_down_table);
 }
 // drill_down_div.appendChild(drill_down_header);
@@ -81,6 +84,7 @@ function drill_down() {
             drill_down_result = result;
 
             drill_down_header.innerHTML = 'Result array for result id: ' + result_id;
+            drill_down_div.classList.add('card');
 
             drill_down_function_name.innerHTML = 'Function name: ' + function_name;
             drill_down_run_id.innerHTML = 'Run id: ' + run_id;
@@ -215,46 +219,45 @@ function load_results() {
                 for (j = 0; j < num_of_cols; j++) {
                     td = document.createElement('td');
                     td.addEventListener("click", drill_down);
-                    if (j == 0) {
+                    if (j < 2) {
                         var status = result.data[i][result.schema.fields[j].name];
                     } else {
                         var status = result.data[i][result.schema.fields[j].name].status;
                         // var status_text = '';
 
 
-                        if (j > 0) {
-                            switch (status) {
-                                case 0:
-                                    status = 'No Data';
-                                    td.bgColor = 'blue';
-                                    statistics.nodata += 1;
-                                    break;
-                                case 1:
-                                    status = 'Error';
-                                    td.bgColor = 'gray';
-                                    statistics.error += 1;
-                                    break;
-                                case 2:
-                                    status = 'Fail';
-                                    td.bgColor = 'red';
-                                    statistics.fail += 1;
-                                    break;
-                                case 3:
-                                    status = 'Warning';
-                                    td.bgColor = 'orange';
-                                    statistics.warning += 1;
-                                    break;
-                                case 4:
-                                    status = 'Success';
-                                    td.bgColor = 'green';
-                                    statistics.success += 1;
-                                    break;
-                                default:
-                                    status = 'in process';
-                                    // td.bgColor = 'green';
-                                    break;
-                            }
+                        switch (status) {
+                            case 0:
+                                status = 'No Data';
+                                td.bgColor = 'blue';
+                                statistics.nodata += 1;
+                                break;
+                            case 1:
+                                status = 'Error';
+                                td.bgColor = 'gray';
+                                statistics.error += 1;
+                                break;
+                            case 2:
+                                status = 'Fail';
+                                td.bgColor = 'red';
+                                statistics.fail += 1;
+                                break;
+                            case 3:
+                                status = 'Warning';
+                                td.bgColor = 'orange';
+                                statistics.warning += 1;
+                                break;
+                            case 4:
+                                status = 'Success';
+                                td.bgColor = 'green';
+                                statistics.success += 1;
+                                break;
+                            default:
+                                status = 'in process';
+                                // td.bgColor = 'green';
+                                break;
                         }
+
                     }
                     td.innerHTML = status;
                     newRow.appendChild(td);

@@ -20,6 +20,91 @@ import os
 import cx_Oracle
 from time import time
 
+if sys.platform.startswith('win'):
+    sep = '\\'
+else:
+    sep = '/'
+
+def params_to_dict(params):
+    return {'&BBBB':'repBBBB', '&ZZZ':'repZZZ'}
+
+def run_sql(conn, run_id, query, params):
+    try:
+        translator = params_to_dict(params.to_dict())
+    except:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! parameters extaction error!",
+                    'results_arr' : None
+                }
+
+    try:
+        for key, value in translator.items():
+            query = query.replace(key,value)
+    except:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! parameters replacement error!",
+                    'results_arr' : None
+                }
+    try:
+        result = pd.read_sql(query,con=conn)
+        result['status'] = 4
+        result['text'] = 'some text'
+    except Exception as error:
+        return {
+                        'result_status':1,
+                        'result_text':"Error! SQL didn't run properly!",
+                        'results_arr' : None
+                    }
+    if len(result) == 0:
+        return {
+                        'result_status':1,
+                        'result_text':'Error! SQL returned a empty result',
+                        'results_arr' : None
+                    }
+    # try:
+    #     if len(result) == 1:
+    #         return {
+    #                         'result_status':result['Status'],
+    #                         'result_text':result['Text'],
+    #                         'results_arr' : None
+    #                     }
+    # except Exception as error:
+    #     return {
+    #                 'result_status':1,
+    #                 'result_text':"Error! something went wrong while extracting the result Text and Status",
+    #                 'results_arr' : None
+    #             }
+
+    try:
+        if len(result) > 0:
+            result_status = list(result.head(1)['status'].values)[0]
+            result_text = list(result.head(1)['text'].values)[0]
+            result.drop(columns=['status', 'text'])
+            return {
+                            # 'result_status':result_first_line['Status'],
+                            # 'result_text':result_first_line['Text'],
+                            'result_status':4,
+                            'result_text':'some text',
+                            'results_arr' : result
+                        }
+    except Exception as error:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! something went wrong while extracting the result Text, Status and array",
+                    'results_arr' : None
+                }
+    
+
+def run_matlab(conn, run_id, params):
+    return {
+        'result_status':4,
+        'result_text':"Well you just did nothing",
+        'results_arr' : None
+    }
+
+
 def init_db():
     db = SQLAlchemy()
     return db
@@ -72,7 +157,7 @@ class DbConnector:
         self.port = port
         self.connection = None
         self.message = ''
-
+        
         # assinging name - if no name is given then the name is composed of the type and schema
         if name or name == '':
             self.name = name
@@ -133,13 +218,14 @@ class DbConnector:
             return
 
         # checking if the name exists - names must be unique
-        if DbConnections.query.filter_by(name=self.name).first():
+        if DbConnections.query.filter_by(name=self.name,project=session['current_project_id']).first():
             self.message = 'cannot save - db name already exist'
             self.status = 'invalid'
             return
         # saving connection data to DB
         try:
-            conn = DbConnections(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
+            conn = DbConnections(self.db_type, self.user, self.password, self.hostname,
+                                 self.port, self.schema, self.name, self.conn_string, project=session['current_project_id'])
             db.session.add(conn)
             db.session.commit()
         except Exception as error:
@@ -168,7 +254,7 @@ class DbConnector:
 
     @staticmethod
     def load_conn_by_name(db_name):
-        conn_data = DbConnections.query.filter_by(name=db_name).first()
+        conn_data = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first()
         return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                          password=conn_data.password, hostname=conn_data.hostname,
                          schema=conn_data.schema, port=conn_data.port,
@@ -177,12 +263,12 @@ class DbConnector:
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
         data = conn.run_sql('select run_id, scenario_name from run_ids')
-        return jsonify(run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
+        return jsonify(status=1,run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
 
     @staticmethod
     def delete_conn_by_name(name):
         try:
-            conn = DbConnections.query.filter_by(name=name).first()
+            conn = DbConnections.query.filter_by(name=name,project=session['current_project_id']).first()
             if conn:
                 db.session.delete(conn)
                 db.session.commit()
@@ -874,7 +960,7 @@ class OctopusFunction(db.Model):
                 callback=data['callback'],
                 location=data['location'],
                 owner=User.query.filter_by(name=session['username'])[0].id,
-                file_name = data['location'].split('\\')[-1],
+                file_name = data['location'].split(sep)[-1],
                 class_name = data['class_name'],
                 is_class_method = is_class_method,
                 status=status,
@@ -971,7 +1057,7 @@ class OctopusFunction(db.Model):
                 func.callback=data['callback']
                 func.location=data['location']
                 func.owner=User.query.filter_by(name=session['username'])[0].id
-                func.file_name = data['location'].split('\\')[-1]
+                func.file_name = data['location'].split(sep)[-1]
                 func.class_name = data['class_name']
                 func.is_class_method = is_class_method
                 func.status=status
@@ -1033,7 +1119,7 @@ class OctopusFunction(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            func = OctopusFunction.query.filter_by(name=name).first()
+            func = OctopusFunction.query.filter_by(name=name,project=session['current_project_id']).first()
             if func:
                 db.session.delete(func)
                 db.session.commit()
@@ -1083,94 +1169,164 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! Function module is not in the specified location',
-                    'result_arr' : None,
+                    'results_arr' : None,
                     'time_elapsed' : None
                 }
-            #import module
-            if self.file_name == None:
-                file_name = self.location.split('\\')[-1]
-                module = importlib.import_module(file_name.split('.')[0])
-            else:
-                module = importlib.import_module(self.file_name.split('.')[0])
-            #if class - check for method
-
-            if self.is_class_method:
+            try:
+                db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
+                conn = db_conn.connection.connect()
+            except:
                 try:
-                    req_class = getattr(module, self.class_name)
-                    req_method = getattr(req_class, self.callback)
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
                 except:
+                    db_conn.connection = None
+                return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1,
+                    'result_text':"Error! Unexpected error while connecting to db",
+                    'results_arr' : None,
+                    'time_elapsed' : None
+                }
+            try:
+                parameters_list = self.get_parameters_list(conn, run_id)
+            except:
+                return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1,
+                    'result_text':"Error! Unexpected error while extracting method's parameters",
+                    'results_arr' : None,
+                    'time_elapsed' : None
+                }
+            try:
+                if self.kind.lower() == 'python':
+                    #import module
+                    try:
+                        if self.file_name == None:
+                            self.file_name = self.location.split(sep)[-1]
+                            module = importlib.import_module(file_name.split('.')[-2])
+                        else:
+                            module = importlib.import_module(self.file_name.split('.')[-2])
+                    except:
+                        return {
+                            'run_id': run_id,
+                            'db_conn': db_conn.name,
+                            'result_status':1,
+                            'result_text':'Error! Error while getting the module (file)',
+                            'results_arr' : None,
+                            'time_elapsed' : None
+                        }
+                    #if class - check for method
+
+                    if self.is_class_method:
+                        try:
+                            req_class = getattr(module, self.class_name)
+                            req_method = getattr(req_class, self.callback)
+                        except:
+                            return {
+                            'run_id': run_id,
+                            'db_conn': db_conn.name,
+                            'result_status':1,
+                            'result_text':'Error! The specified module does not contain the given class or method',
+                            'results_arr' : None,
+                            'time_elapsed' : None
+                            }
+                    #else - check for function
+                    else:
+                        try:
+                            req_method = getattr(module, self.callback)
+                        except:
+                            return {
+                                'run_id': run_id,
+                                'db_conn': db_conn.name,
+                                'result_status':1,
+                                'result_text':'Error! Unexpected error while extracting the method',
+                                'results_arr' : None,
+                                'time_elapsed' : None
+                            }
+            
+                        if len(parameters_list) > 0:
+                            if 'Tests Params' in parameters_list:
+                                index = parameters_list.index('Tests Params')
+                                parameters_list[index] = tests_params
+                            start_time = time()
+                            result_dict = req_method(conn, run_id, *parameters_list)
+                        else:
+                            start_time = time()
+                            result_dict = req_method(conn, run_id)
+                elif self.kind.lower() == 'sql':
+                    if len(parameters_list) > 0:
+                        if 'Tests Params' in parameters_list:
+                            index = parameters_list.index('Tests Params')
+                            parameters_list[index] = tests_params
+                        query = open(self.location,'r').read()
+                        start_time = time()
+                        result_dict = run_sql(conn, run_id, query, *parameters_list)
+                    else:
+                        start_time = time()
+                        result_dict = run_sql(conn, run_id)
+
+                elif self.kind.lower() == 'matlab':
+                    if len(parameters_list) > 0:
+                        if 'Tests Params' in parameters_list:
+                            index = parameters_list.index('Tests Params')
+                            parameters_list[index] = tests_params
+                        start_time = time()
+                        result_dict = run_matlab(conn, run_id, *parameters_list)
+                    else:
+                        start_time = time()
+                        result_dict = run_matlab(conn, run_id)
+                else:
                     return {
+                        'run_id': run_id,
+                        'db_conn': db_conn.name,
+                        'result_status':1,
+                        'result_text':'Error! Function kind must be python, sql or matlab',
+                        'results_arr' : None,
+                        'time_elapsed' : None
+                    }
+                time_elapsed = time() - start_time
+                conn.close()
+                db_conn.connection.dispose()
+                db_conn.connection = None
+                result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
+                return result_dict
+            except Exception as error:
+                try:
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
+                except:
+                    db_conn.connection = None
+
+                return {
                     'run_id': run_id,
                     'db_conn': db_conn.name,
                     'result_status':1,
-                    'result_text':'Error! The specified module does not contain the given class or method',
-                    'result_arr' : None,
+                    'result_text':'Error! Unexpected error while activating the method',
+                    'results_arr' : None,
                     'time_elapsed' : None
                 }
-            #else - check for function
-            else:
-                req_method = getattr(module, self.callback)
         except:
             return {
                 'run_id': run_id,
                 'db_conn': db_conn.name,
                 'result_status':1,
-                'result_text':'Error! Unexpected error while extracting the method',
-                'result_arr' : None,
+                'result_text':'Error! Unexpected error while handling the method',
+                'results_arr' : None,
                 'time_elapsed' : None
             }
-        try:
-            db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
-            conn = db_conn.connection.connect()
-            parameters_list = self.get_parameters_list(conn, run_id)
-        except:
-            try:
-                conn.close()
-                db_conn.connection.dispose()
-                db_conn.connection = None
-            except:
-                db_conn.connection = None
-            return {
-                'run_id': run_id,
-                'db_conn': db_conn,
-                'result_status':1,
-                'result_text':"Error! Unexpected error while extracting method's parameters",
-                'result_arr' : None,
-                'time_elapsed' : None
-            }
-        try:
-            if len(parameters_list) > 0:
-                if 'Tests Params' in parameters_list:
-                    index = parameters_list.index('Tests Params')
-                    parameters_list[index] = tests_params
-                start_time = time()
-                result_dict = req_method(conn, run_id, *parameters_list)
-            else:
-                start_time = time()
-                result_dict = req_method(conn, run_id)
-            time_elapsed = time() - start_time
-            conn.close()
-            db_conn.connection.dispose()
-            db_conn.connection = None
-            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
-            return result_dict
-        except Exception as error:
-            try:
-                conn.close()
-                db_conn.connection.dispose()
-                db_conn.connection = None
-            except:
-                db_conn.connection = None
-
-            return {
-                'run_id': run_id,
-                'db_conn': db_conn.name,
-                'result_status':1,
-                'result_text':'Error! Unexpected error while activating the method',
-                'result_arr' : None,
-                'time_elapsed' : None
-            }
-
+        finally:
+            if db_conn.connection:
+                try:
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
+                except:
+                    db_conn.connection = None
     # def __repr__(self):
     #     print(f'my name is {self.name} and my owner is {self.owner}')
 
@@ -1291,7 +1447,7 @@ class FunctionsGroup(db.Model):
                         else:
                             messages.append('Error: No functions with id ' + func)
                     else:
-                        func_obj = OctopusFunction.query.filter_by(name=func).first()
+                        func_obj = OctopusFunction.query.filter_by(name=func,project=session['current_project_id']).first()
                         if func_obj:
                             func_obj = func_obj
                             identifier_resolved_flag=True
@@ -1604,23 +1760,20 @@ class Mission(db.Model):
         functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
         names = [func.name for func in functions]
         runs = json_data['runs']
-        if not type(runs) == type(list()):
-            runs = [runs]
-        conn = DbConnector.load_conn_by_id(int(json_data['conn_id']))
-        # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
-        if not (runs and functions):
-            return jsonify(None)
+
         mission = Mission(json_data['mission_name'])
         db.session.add(mission)
         db.session.commit()
         user_id = json_data['user_id']
-        for run in runs:
-            for func in functions:
-                task = Task(mission.id, conn, run, func.id, user_id)
-                tasks_queue.put_nowait(task)
-                # task.log()
-                # task.run()
-                # task.update()
+        for db_name in runs:
+            conn = DbConnector.load_conn_by_name(db_name)
+            run_ids = [run for run in runs[db_name]]
+            if not type(run_ids) == type(list()):
+                run_ids = run_ids
+            for run in run_ids:
+                for func in functions:
+                    task = Task(mission.id, conn, run, func.id, user_id)
+                    tasks_queue.put_nowait(task)
 
         return str(mission.id)
 
@@ -1660,7 +1813,7 @@ class OverView(db.Model):
             analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
                                            result_status=result['result_status'],
                                            result_text=result['result_text'],
-                                           result_array=result['result_arr'])#,
+                                           result_array=result['results_arr'])#,
                                         #    result_array_header=[],#result['result_array_header'],
                                         #    result_array_types=[])#=result['result_array_types'])
 
@@ -1806,7 +1959,7 @@ class AnalyseResult(db.Model):
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
                             'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
-                            task.run_id:{
+                            task.db_conn_string+ ' - ' +str(task.run_id):{
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
                                             'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status,
                                             'time_elapsed' : AnalyseResult.query.filter_by(task_id=task.id)[0].time_elapsed
@@ -1816,7 +1969,8 @@ class AnalyseResult(db.Model):
                             if task.status == 4
                             else
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
-                            task.run_id:-1}
+                            'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
+                            task.db_conn_string+ ' - ' +str(task.run_id):-1}
                             for task in tasks]
         res_df = pd.DataFrame(mission_results)
         if res_df.empty:
@@ -2495,7 +2649,7 @@ class ComplexNet(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            complex_net = ComplexNet.query.filter_by(name=name).first()
+            complex_net = ComplexNet.query.filter_by(name=name,project=session['current_project_id']).first()
             if complex_net:
                 db.session.delete(complex_net)
                 db.session.commit()
@@ -2993,7 +3147,7 @@ class StageRunMani(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            stage_run_mani = StageRunMani.query.filter_by(name=name).first()
+            stage_run_mani = StageRunMani.query.filter_by(name=name,project=session['current_project_id']).first()
             if stage_run_mani:
                 db.session.delete(stage_run_mani)
                 db.session.commit()

@@ -235,11 +235,12 @@ class Worker:
                             analyse_result = AnalyseResult(task_id=task.id,run_id=results['run_id'],
                                                 db_conn_string=task.db_conn_obj.name,
                                                 result_status=results['result_status'],
-                                                result_text=results['result_text'])
+                                                result_text=results['result_text'],
+                                                time_elapsed = results['time_elapsed'])
                             # db.session.add(analyse_result)
                             # db.session.commit()
                             # done_queue.task_done()
-                            message = analyse_result.log(results['result_arr'], error_queue)
+                            message = analyse_result.log(results['results_arr'], error_queue)
                             updates_queue.put_nowait((task.id,status,message))
                             print(f'done with logging result {task.id} in {datetime.utcnow()}')
                         except Exception as error:

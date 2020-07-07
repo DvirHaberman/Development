@@ -182,11 +182,10 @@ def run_functions():
     functions_ids = db.session.query(OctopusFunction).filter(OctopusFunction.name.in_( function_names)).with_entities(OctopusFunction.id).all()
     functions_ids = list(*zip(*functions_ids))
     runs = json_input['runs']
-    db_name = json_input['db_name']
-    db_id = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first().id
+    # db_name = json_input['db_name']
+    # db_id = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first().id
     json_data = {'user_id':user_id,'mission_name':mission_name,
-                'functions':functions_ids,'runs':runs,
-                 'conn_id':db_id, 'db_name':db_name}
+                'functions':functions_ids,'runs':runs}
     try:
         return jsonify(Mission.create_mission(json_data,tasks_queue))
         # return 'done'
@@ -364,12 +363,12 @@ def db_conn_wizard():
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
-    connections = DbConnections.filter_by(project=session['current_project_id']).query.all()
+    connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
     return jsonify([conn.self_jsonify() for conn in connections])
 
 @app.route('/api/delete_conn_by_name/<string:conn_name>', methods=["POST"])
 def delete_connection(conn_name):
-    conn_to_delete = DbConnections.query.filter_by(name=conn_name).first()
+    conn_to_delete = DbConnections.query.filter_by(name=conn_name,project=session['current_project_id']).first()
     if conn_to_delete:
         try:
             db.session.delete(conn_to_delete)
@@ -381,16 +380,22 @@ def delete_connection(conn_name):
 
 @app.route('/api/save_connection', methods = ['POST'])
 def save_connection():
-    data = request.get_json()
-    conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
-                hostname=data['hostname'], port=data['port'], schema=data['schema'], name=data['name'])
-    conn.save()
-    if conn.status == 'valid':
-        connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
-        conn_data = [conn.self_jsonify() for conn in connections]
-        return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
-    else:
-        return jsonify(status=0, msg='Failed saving the connection!\n' + conn.message)
+    try:
+        data = request.get_json()
+        conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
+                    hostname=data['hostname'], port=data['port'], schema=data['schema'], 
+                    name=data['name'])
+        conn.save()
+        if conn.status == 'valid':
+            connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
+            conn_data = [conn.self_jsonify() for conn in connections]
+            return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
+        else:
+            return jsonify(status=0, msg='Failed saving the connection!\n' + conn.message)
+    except:
+        return jsonify(status=0, msg='Failed saving the connection!')
+    finally:
+        db.session.close()
 
 @app.route('/Function_Definition')
 def Function_Definition():
@@ -418,21 +423,26 @@ def api_methods_with_args(class_name,class_method,args):
         data = request.get_json()
     except:
         data = None
-    module = importlib.import_module('python.model')
-    req_class = getattr(module,class_name)
-    class_method = getattr(req_class, class_method)
-    method_args = [arg for arg in args.split(',')]
-    if type(method_args) == type([1]):
-        if data:
-            return class_method(*method_args, data)
+    try:
+        module = importlib.import_module('python.model')
+        req_class = getattr(module,class_name)
+        class_method = getattr(req_class, class_method)
+        method_args = [arg for arg in args.split(',')]
+        if type(method_args) == type([1]):
+            if data:
+                output = class_method(*method_args, data)
+            else:
+                output = class_method(*method_args)
         else:
-            return class_method(*method_args)
-    else:
-        if data:
-            return class_method(method_args, data)
-        else:
-            return class_method(method_args)
-
+            if data:
+                output = class_method(method_args, data)
+            else:
+                output = class_method(method_args)
+        return output
+    except Exception as error:
+        return jsonify(status=0, message='something went wrong')
+    finally:
+        db.session.close()
 
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])
 def api_methods_no_args(class_name,class_method):
@@ -447,16 +457,15 @@ def api_methods_no_args(class_name,class_method):
         req_class = getattr(module,class_name)
         class_method = getattr(req_class, class_method)
         if data:
-            return class_method(data)
+            output = class_method(data)
         else:
-            return class_method()
+            output = class_method()
+        return output
     except:
-        db.session.close()
         return jsonify(status=0, message='something went wrong')
+    finally:
+        db.session.close()
 
-@app.route('/api', methods = ['GET','POST'])
-def api():
-    return jsonify(data = [num for num in range(10)])
 
 
 if __name__ == "__main__":
