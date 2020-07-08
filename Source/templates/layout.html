@@ -51,9 +51,21 @@
                     <a class="navbar-brand" href="/welcome"><img data-toggle="tooltip" data-placement="left" title="Tooltip on left" class="octopus-img" src="../static/images/octopus-gentelman-1.png" alt="" />
                         <h6 class="user-name">{{session['username']}}</h6>
                     </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="ProjectsDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Projects({{session['current_project']}})
+                      </a>
+                    <div class="dropdown-menu bg-dark border-light" aria-labelledby="navbarDropdownMenuLink">
+                        {% for project in session['projects'] %} {% if project == session['current_project'] %}
+                        <a class="dropdown-item text-light bg-success border-light" href="{{'/change_project/' ~ loop.index}}">{{project}}</a> {%else%}
+                        <a class="dropdown-item bg-dark text-light border-light" href="{{'/change_project/' ~ loop.index}}">{{project}}</a> {%endif%}
+                        <!-- <div class="dropdown-divider bg-light"></div> -->
+                        {% endfor %}
+                    </div>
+
                     <a href="/logout" class="text-primary">
                         <h6>logout</h6>
                     </a>
+
                 </div>
                 <div id="window-title-div" class="mx-auto">
                     <a class="navbar-brand mx-auto" id="window-title" href="">{{session['current_window_name']}}</a>

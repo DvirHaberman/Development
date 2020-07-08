@@ -2,10 +2,24 @@ var functions;
 var groups;
 var selected_functions = [];
 var selected_groups = [];
-var selected_run_ids = [];
+var connections = [];
+var selected_run_ids = {
+    // toJSON() {
+    //     var json_string = '';
+    //     for (entry in connections) {
+    //         // if (entry in selected_run_ids) {
+    //         //     selected_run_ids[entry];
+    //         // }
+    //         json_string = json_string + this[connections[entry]]['111111'];
+    //     }
+    //     return json_string;
+    // }
+};
 var functions_list = [];
 var run_ids_list = [];
+var scenarios_list = [];
 var groups_list = [];
+var dbs_list = {};
 var functions_option = $('#functions_option')[0];
 var functions_select_label = $('#functions_select_label')[0];
 var groups_option = $('#groups_option')[0];
@@ -34,7 +48,8 @@ function remove_li_element() {
         selected_groups = selected_groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
     }
     if (li_type === 'run_id') {
-        selected_run_ids = selected_run_ids.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        db = database_select.value
+        delete selected_run_ids[db][value];
     }
 
 }
@@ -42,18 +57,41 @@ function remove_li_element() {
 function create_li_element(value, type) {
     var li_ele = document.createElement('li');
     var div_ele = document.createElement('div');
-    var label_ele = document.createElement('label');
+    if (type == 'run_id') {
+        var run_label_ele = document.createElement('label');
+        var db_label_ele = document.createElement('label');
+        var scenario_label_ele = document.createElement('label');
+
+        run_label_ele.innerHTML = value[0];
+        db_label_ele.innerHTML = value[1];
+        scenario_label_ele.innerHTML = value[2];
+
+        run_label_ele.classList.add('col-6')
+        run_label_ele.classList.add('mr-auto')
+        db_label_ele.classList.add('col-6')
+        db_label_ele.classList.add('ml-auto')
+        scenario_label_ele.classList.add('mr-auto')
+
+        div_ele.appendChild(run_label_ele);
+        div_ele.appendChild(db_label_ele);
+        div_ele.appendChild(scenario_label_ele);
+    } else {
+        label_ele = document.createElement('label');
+        label_ele.innerHTML = value;
+        label_ele.classList.add('mr-auto')
+        div_ele.appendChild(label_ele);
+    }
+
     var button_ele = document.createElement('button');
     var i_ele = document.createElement('i')
     li_ele.classList.add('draggable');
     li_ele.classList.add(type);
     li_ele.appendChild(div_ele);
     div_ele.classList.add('row');
-    div_ele.appendChild(label_ele);
+
     div_ele.appendChild(button_ele);
-    label_ele.classList.add('mr-auto');
     button_ele.classList.add('ml-auto');
-    label_ele.innerHTML = value;
+
     button_ele.appendChild(i_ele);
     button_ele.addEventListener('click', remove_li_element);
     i_ele.classList.add('far')
@@ -81,19 +119,32 @@ function add_group() {
 }
 
 function add_run_id() {
-    value = run_ids_select.value;
-    if (!selected_run_ids.includes(value) && run_ids_list.includes(Number(value))) {
-        run_ids_ul.appendChild(create_li_element(value, 'run_id'));
-        selected_run_ids.push(value);
-        run_ids_select.value = null;
+    run_id = run_ids_select.value;
+    db = database_select.value
+    scenario = dbs_list[db][run_id];
+    if (!run_ids_list.includes(Number(run_id))) {
+        return
     }
+    if (run_id in selected_run_ids[db]) {
+        return
+    } else {
+        Object.defineProperty(selected_run_ids[db], run_id, {
+            value: scenario,
+            writable: true,
+            configurable: true,
+            enumerable: true
+        });
+    }
+    run_ids_ul.appendChild(create_li_element([run_id, db, scenario], 'run_id'));
+    // selected_run_ids.push({ 'run_id': run_id, 'db': db, 'scenario': scenario });
+    run_ids_select.value = null;
 }
 
 function get_all_functions() {
     $.ajax({
-        url: "/api/OctopusFunction/jsonify_all",
+        url: "/api/OctopusFunction/get_names",
         success: function(result) {
-            functions = result;
+            functions = result.data;
             var num_of_current_items = function_datalist.options.length;
             for (i = 0; i < num_of_current_items; i++) {
                 function_datalist.removeChild(function_datalist.options[0]);
@@ -101,7 +152,7 @@ function get_all_functions() {
             var num_of_functions = functions.length;
             functions_list = [];
             for (i = 0; i < num_of_functions; i++) {
-                var name = functions[i].name;
+                var name = functions[i];
                 var option = document.createElement("option");
                 option.text = name;
                 function_datalist.appendChild(option);
@@ -143,26 +194,29 @@ function get_all_groups() {
 function load_run_ids(db_name) {
     $.ajax({
         url: "/api/DbConnector/get_run_ids/" + db_name,
-        success: function(result) {
-            run_ids_list = result['run_ids'];
-            var num_of_runs = run_ids_list.length;
-            // var num_of_current_runs = run_ids_select.options.length;
-            // for (i = 0; i < num_of_current_runs; i++) {
-            //   run_ids_select.remove(0);
-            // }
+
+        success: function(result) {;
             var num_of_current_runs = run_ids_datalist.options.length;
             for (i = 0; i < num_of_current_runs; i++) {
                 run_ids_datalist.removeChild(run_ids_datalist.options[0]);
             }
-
-            for (i = 0; i < num_of_runs; i++) {
-                // var option = document.createElement("option");
-                // option.text = run_ids_list[i];
-                // run_ids_select.add(option);
-                var option = document.createElement("option");
-                option.value = result['run_ids'][i];
-                option.text = 'Scenario : ' + result['scenarios'][i];
-                run_ids_datalist.appendChild(option);
+            if (result.status) {
+                scenarios_list = result.scenarios;
+                run_ids_list = result.run_ids;
+                var num_of_runs = run_ids_list.length;
+                for (i = 0; i < num_of_runs; i++) {
+                    var option = document.createElement("option");
+                    option.value = run_ids_list[i];
+                    option.text = scenarios_list[i];
+                    run_ids_datalist.appendChild(option);
+                    // dbs_list[db_name].push({ 'scenario': option.text, 'run_id':  });
+                    Object.defineProperty(dbs_list[db_name], option.value, {
+                        value: option.text,
+                        writable: true,
+                        configurable: true,
+                        enumerable: true
+                    });
+                }
             }
             run_ids_select.value = null;
         }
@@ -174,12 +228,16 @@ function run_setup() {
     // function_ids=functions.filter(obj=>{return [1,3].includes(obj.id)})
     // name = function_select.options[function_select.selectedIndex].innerHTML;
     // function_names = selected_functions;
-    database_name = database_select.options[database_select.selectedIndex].value
+    if (selected_run_ids.length == 0 || (selected_functions.length == 0 && selected_groups.length == 0)) {
+        $('#dissmisable_alert_text')[0].innerHTML = 'runs or functions cannot be empty';
+        $('.alert')[0].hidden = false;
+        return
+    }
+    // database_name = database_select.options[database_select.selectedIndex].value
     var data = {
         functions: selected_functions,
         groups: selected_groups,
-        runs: selected_run_ids,
-        db_name: database_name
+        runs: selected_run_ids
     };
     $.ajax({
         type: "POST",
@@ -218,14 +276,27 @@ function get_db_names() {
     $.ajax({
         url: "/api/DbConnections/get_names",
         success: function(conn_names) {
+            connections = conn_names;
             var num_of_conns = conn_names.length;
             for (i = 0; i < num_of_conns; i++) {
                 var option = document.createElement("option");
                 option.text = conn_names[i];
                 database_select.add(option);
-                load_run_ids(database_select.options[0].text);
-                get_all_functions();
+                Object.defineProperty(dbs_list, conn_names[i], {
+                    value: {},
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                });
+                Object.defineProperty(selected_run_ids, conn_names[i], {
+                    value: {},
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                });
             }
+            load_run_ids(database_select.options[0].text);
+            get_all_functions();
         }
     });
 }

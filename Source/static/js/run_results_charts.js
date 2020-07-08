@@ -12,29 +12,33 @@ var colors = {
 var myChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-        labels: ['Success', 'Warning', 'Fail', 'Error', 'No Data'],
+        labels: ['Success', 'Warning', 'Fail', 'Error', 'No Data', 'Unknown', 'In process'],
         datasets: [{
-            label: 'Statistics',
-            data: [12, 19, 3, 5, 2],
+            label: ['Success', 'Warning', 'Fail', 'Error', 'No Data', 'Unknown', 'In process'],
+            data: [0, 0, 0, 0, 0, 0, 0],
             backgroundColor: [
                 colors.success,
                 colors.warning,
                 colors.fail,
                 colors.error,
-                colors.nodata
+                colors.nodata,
+                colors.info,
+                colors.secondary
             ],
             borderColor: [
                 colors.success,
                 colors.warning,
                 colors.fail,
                 colors.error,
-                colors.nodata
+                colors.nodata,
+                colors.info,
+                colors.secondary
             ],
             borderWidth: 1
         }]
     },
     options: {
-        responsiveAnimationDuration: 2000
+        responsiveAnimationDuration: 1500
             // scales: {
             //     yAxes: [{
             //         ticks: {
