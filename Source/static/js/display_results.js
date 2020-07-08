@@ -14,6 +14,7 @@ var result_status = $('#result_status')[0];
 var result_text = $('#result_text')[0];
 var function_owner = $('#function_owner')[0];
 var function_state = $('#function_state')[0];
+var export_to_excel_button = $('#export_to_excel_button')[0];
 var statistics = {
     success: 0,
     warning: 0,
@@ -67,8 +68,10 @@ function get_mission_ids() {
                 opt.text = result[i]
                 select_obj.appendChild(opt);
             }
-            sleep(2000);
-            load_results();
+            sleep(500).then(() => {
+                load_results();
+            });
+
             // clear_drill_down();
         }
     });
@@ -82,9 +85,8 @@ function drill_down() {
         url: "/api/AnalyseResult/jsonify_by_ids/" + result_id,
         success: function(result) {
             drill_down_result = result;
-
-            drill_down_header.innerHTML = 'Result array for result id: ' + result_id;
             drill_down_div.classList.add('card');
+            drill_down_header.innerHTML = 'Result array for result id: ' + result_id;
 
             drill_down_function_name.innerHTML = 'Function name: ' + function_name;
             drill_down_run_id.innerHTML = 'Run id: ' + run_id;
@@ -220,58 +222,65 @@ function load_results() {
                 for (j = 0; j < num_of_cols; j++) {
                     td = document.createElement('td');
                     td.addEventListener("click", drill_down);
-                    if (j < 2) {
+                    if (result.schema.fields[j].name == 'function_name' ||
+                        result.schema.fields[j].name == 'owner') {
                         var status = result.data[i][result.schema.fields[j].name];
+                        status = '<br>' + status;
                     } else {
                         var status = result.data[i][result.schema.fields[j].name].status;
+                        var time_elapsed = result.data[i][result.schema.fields[j].name].time_elapsed;
                         // var status_text = '';
 
 
-                        switch (status) {
-                            case 0:
-                                status = 'No Data';
-                                td.bgColor = 'blue';
-                                statistics.nodata += 1;
-                                break;
-                            case 1:
-                                status = 'Error';
-                                td.bgColor = '#343a40';
-                                statistics.error += 1;
-                                break;
-                            case 2:
-                                status = 'Fail';
-                                td.bgColor = 'red';
-                                statistics.fail += 1;
-                                break;
-                            case 3:
-                                status = 'Warning';
-                                td.bgColor = 'orange';
-                                statistics.warning += 1;
-                                break;
-                            case 4:
-                                status = 'Success';
-                                td.bgColor = 'green';
-                                statistics.success += 1;
-                                break;
-                            case 5:
-                                status = 'Unknown';
-                                td.bgColor = '#17a2b8';
-                                statistics.unknown += 1;
-                                break;
-                            default:
-                                status = 'in process';
-                                statistics.in_process += 1;
-                                td.bgColor = '#6c757d';
-                                break;
+                        if (j > 1) {
+                            switch (status) {
+                                case 0:
+                                    status = 'No Data';
+                                    td.bgColor = 'blue';
+                                    statistics.nodata += 1;
+                                    break;
+                                case 1:
+                                    status = 'Error';
+                                    td.bgColor = 'gray';
+                                    statistics.error += 1;
+                                    break;
+                                case 2:
+                                    status = 'Fail';
+                                    td.bgColor = 'red';
+                                    statistics.fail += 1;
+                                    break;
+                                case 3:
+                                    status = 'Warning';
+                                    td.bgColor = 'orange';
+                                    statistics.warning += 1;
+                                    break;
+                                case 4:
+                                    status = 'Success';
+                                    td.bgColor = 'green';
+                                    statistics.success += 1;
+                                    break;
+                                case 5:
+                                    status = 'Unknown';
+                                    td.bgColor = '#17a2b8';
+                                    statistics.unknown += 1;
+                                    break;
+                                default:
+                                    status = 'in process';
+                                    statistics.in_process += 1;
+                                    td.bgColor = '#6c757d';
+                                    break;
+                            }
+                            if (time_elapsed !== null) {
+                                status = status + '<br>' + Math.round(time_elapsed * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'msec';
+                            }
                         }
-
                     }
                     td.innerHTML = status;
                     newRow.appendChild(td);
                 }
             }
             ctx.hidden = false;
-            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata, statistics.unknown, statistics.in_process];
+            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
 
             myChart.update();
             clear_drill_down();
@@ -279,8 +288,30 @@ function load_results() {
     });
 }
 
+
+
+function s2ab(s) {
+    var buf = new ArrayBuffer(s.length);
+    var view = new Uint8Array(buf);
+    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+
+
 $('#display_button')[0].addEventListener('click', load_results);
+export_to_excel_button.addEventListener('click', () => {
+    var wb = XLSX.utils.table_to_book(document.getElementById('results_table'), { sheet: "Sheet JS" });
+    var wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'binary' });
+    saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), 'test.xlsx');
+});
 
+// $('#display_button')[0].addEventListener('click', load_results);
+// export_to_excel_button.addEventListener('click', () => {
+//     // saveAs(new Blob([wb], { type: "application/octet-stream" }), 'test.xlsx');
+//     var blob = new Blob([wb], { type: "text/plain;charset=utf-8" });
+//     saveAs(blob, "mysheet.xlsx");
+// });
 
-
+clear_drill_down();
 get_mission_ids();
