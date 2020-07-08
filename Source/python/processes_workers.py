@@ -232,15 +232,25 @@ class Worker:
                         task, results, status, message = done_queue.get_nowait()
                         try:
                             # results = task.function_obj.run(task.db_conn_obj, task.run_id)
-                            analyse_result = AnalyseResult(task_id=task.id,run_id=results['run_id'],
+                            keys = ['run_id', 'result_status', 'result_text', 'time_elapsed', 'results_arr']
+                            final_result = {'run_id':'Unknown', 'result_status':5, 'result_text':'Missing', 'time_elapsed':'Unknown', 'results_arr':None}
+                            missing = [key for key in keys if key not in results]
+                            for key, value in results.items():
+                                if key not in missing:
+                                    final_result[key] = value
+                            if missing:
+                                # status = 5
+                                message = 'fields' + ', '.join(missing) + 'are missing in the returned result'
+                                
+                            analyse_result = AnalyseResult(task_id=task.id,run_id=final_result['run_id'],
                                                 db_conn_string=task.db_conn_obj.name,
-                                                result_status=results['result_status'],
-                                                result_text=results['result_text'],
-                                                time_elapsed = results['time_elapsed'])
+                                                result_status=final_result['result_status'],
+                                                result_text=final_result['result_text'],
+                                                time_elapsed = final_result['time_elapsed'])
                             # db.session.add(analyse_result)
                             # db.session.commit()
                             # done_queue.task_done()
-                            message = analyse_result.log(results['results_arr'], error_queue)
+                            message = analyse_result.log(final_result['results_arr'], error_queue)
                             updates_queue.put_nowait((task.id,status,message))
                             print(f'done with logging result {task.id} in {datetime.utcnow()}')
                         except Exception as error:

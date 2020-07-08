@@ -189,7 +189,6 @@ function load_results() {
             results_table_div.appendChild(results_table);
             if (result === null) {
                 ctx.hidden = true;
-                // myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
                 myChart.update();
                 clear_drill_down();
                 $('#dissmisable_alert_text')[0].innerHTML = 'no data';
@@ -214,6 +213,8 @@ function load_results() {
             statistics.fail = 0;
             statistics.error = 0;
             statistics.nodata = 0;
+            statistics.unknown = 0;
+            statistics.in_process = 0;
             for (i = 0; i < num_of_rows; i++) {
                 newRow = results_table.insertRow(-1);
                 for (j = 0; j < num_of_cols; j++) {
@@ -234,7 +235,7 @@ function load_results() {
                                 break;
                             case 1:
                                 status = 'Error';
-                                td.bgColor = 'gray';
+                                td.bgColor = '#343a40';
                                 statistics.error += 1;
                                 break;
                             case 2:
@@ -252,9 +253,15 @@ function load_results() {
                                 td.bgColor = 'green';
                                 statistics.success += 1;
                                 break;
+                            case 5:
+                                status = 'Unknown';
+                                td.bgColor = '#17a2b8';
+                                statistics.unknown += 1;
+                                break;
                             default:
                                 status = 'in process';
-                                // td.bgColor = 'green';
+                                statistics.in_process += 1;
+                                td.bgColor = '#6c757d';
                                 break;
                         }
 
@@ -264,7 +271,7 @@ function load_results() {
                 }
             }
             ctx.hidden = false;
-            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
+            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata, statistics.unknown, statistics.in_process];
 
             myChart.update();
             clear_drill_down();
