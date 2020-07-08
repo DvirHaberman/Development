@@ -43,6 +43,7 @@ function clear_drill_down() {
     drill_down_table.classList.add(["m-auto"]);
     drill_down_div.classList.remove('card');
     drill_down_table_div.appendChild(drill_down_table);
+    drill_down_div.classList.remove('card');
 }
 // drill_down_div.appendChild(drill_down_header);
 // drill_down_div.appendChild(drill_down_function_name);
@@ -188,6 +189,7 @@ function load_results() {
             results_table.classList.add(["table-hover"]);
             results_table.classList.add(["col-10"]);
             results_table.classList.add(["m-auto"]);
+
             results_table_div.appendChild(results_table);
             if (result === null) {
                 ctx.hidden = true;

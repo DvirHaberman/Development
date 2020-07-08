@@ -3,12 +3,7 @@
 <link rel="stylesheet" href="../static/css/draggable_list.css"> {% endblock %} {% block content %}
 <!-- <center> -->
 <div dir="ltr" class="row col-12" id=main_form>
-    <div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
-        <strong id="dissmisable_alert_text"></strong>
-        <button type="button" class="close" data-hide="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
+
     <div class="card run-select-card">
         <div class="card-header run-select-card-header">
             <h2>Runs</h2>
@@ -86,8 +81,14 @@
                         <div>
                             <select class="form-control" id="mission_id_select"></select>
                         </div>
-                        <div>
+                        <div class="row ml-2">
                             <button class="btn btn-lg btn-success ml-1" id='display_button'>display</button>
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
+                                <strong id="dissmisable_alert_text"></strong>
+                                <button type="button" class="close" data-hide="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
                         </div>
 
 
@@ -110,6 +111,7 @@
 
     </div>
     <div id="results_table_div" class="mr-auto col-12">
+        <button id="export_to_excel_button" class="btn btn-sm btn-primary">Export to excel</button>
         <table id="results_table">
         </table>
     </div>
@@ -119,26 +121,26 @@
                 <div class="result-output-text card-body">
 
                     <h1 id="drill_down_header"></h1>
-                    <h2 id="drill_down_db_name"></h2>
+                    <h3 id="drill_down_db_name"></h3>
 
                     <!-- <div class="row col-10"> -->
                     <!-- <div class="results_divs m-2"> -->
-                    <h2 id="drill_down_function_name"></h2>
+                    <h3 id="drill_down_function_name"></h3>
                     <!-- </div> -->
                     <!-- <div class="results_divs m-2"> -->
-                    <h2 id="drill_down_run_id"></h2>
+                    <h3 id="drill_down_run_id"></h3>
                     <!-- </div> -->
                     <!-- </div> -->
                     <!-- <div class="row col-10"> -->
                     <!-- <div class="results_divs m-2"> -->
-                    <h2 id="result_status"></h2>
+                    <h3 id="result_status"></h3>
                     <!-- </div> -->
                     <!-- <div class="results_divs m-2"> -->
-                    <h2 id="result_text"></h2>
+                    <h3 id="result_text"></h3>
                     <!-- </div> -->
                     <!-- </div> -->
-                    <h2 id="function_owner"></h2>
-                    <h2 id="function_state"></h2>
+                    <h3 id="function_owner"></h3>
+                    <h3 id="function_state"></h3>
 
                 </div>
 
@@ -157,8 +159,11 @@
     <br>
     <br> {% endblock %} {% block scripts %}
     <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
+    <script src="../static/js/xlsx.full.min.js"></script>
+    <script src="../static/js/FileSaver.min.js"></script>
     <script src="../static/js/run_simple.js"></script>
     <script src="../static/js/display_results.js"></script>
+
     <!-- <script src="../static/js/draggble_list.js"></script> -->
 
     {% endblock %}

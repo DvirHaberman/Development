@@ -104,7 +104,6 @@ def run_matlab(conn, run_id, params):
         'results_arr' : None
     }
 
-
 def init_db():
     db = SQLAlchemy()
     return db
@@ -264,6 +263,7 @@ class DbConnector:
         conn = DbConnector.load_conn_by_name(db_name)
         data = conn.run_sql('select run_id, scenario_name from run_ids')
         return jsonify(status=1,run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
+
 
     @staticmethod
     def delete_conn_by_name(name):
@@ -1186,6 +1186,7 @@ class OctopusFunction(db.Model):
                     'run_id': run_id,
                     'db_conn': db_conn,
                     'result_status':1,
+
                     'result_text':"Error! Unexpected error while connecting to db",
                     'results_arr' : None,
                     'time_elapsed' : None
@@ -1193,6 +1194,7 @@ class OctopusFunction(db.Model):
             try:
                 parameters_list = self.get_parameters_list(conn, run_id)
             except:
+
                 return {
                     'run_id': run_id,
                     'db_conn': db_conn,

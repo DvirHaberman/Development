@@ -194,9 +194,8 @@ function get_all_groups() {
 function load_run_ids(db_name) {
     $.ajax({
         url: "/api/DbConnector/get_run_ids/" + db_name,
+
         success: function(result) {;
-
-
             var num_of_current_runs = run_ids_datalist.options.length;
             for (i = 0; i < num_of_current_runs; i++) {
                 run_ids_datalist.removeChild(run_ids_datalist.options[0]);
