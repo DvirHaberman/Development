@@ -108,6 +108,9 @@ function drill_down() {
                 case 4:
                     result_status_text = 'Success';
                     break;
+                case 5:
+                    result_status_text = 'Unknown';
+                    break;
                 default:
                     result_status_text = 'in process';
                     // td.bgColor = 'green';
@@ -225,6 +228,8 @@ function load_results() {
                     td = document.createElement('td');
                     td.addEventListener("click", drill_down);
                     if (result.schema.fields[j].name == 'function_name' ||
+                        result.schema.fields[j].name == 'function_state' ||
+                        result.schema.fields[j].name == 'requirement' ||
                         result.schema.fields[j].name == 'owner') {
                         var status = result.data[i][result.schema.fields[j].name];
                         status = '<br>' + status;
@@ -243,7 +248,7 @@ function load_results() {
                                     break;
                                 case 1:
                                     status = 'Error';
-                                    td.bgColor = 'gray';
+                                    td.bgColor = '#343a40';
                                     statistics.error += 1;
                                     break;
                                 case 2:
@@ -282,7 +287,7 @@ function load_results() {
                 }
             }
             ctx.hidden = false;
-            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
+            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata, statistics.unknown, statistics.in_process];
 
             myChart.update();
             clear_drill_down();

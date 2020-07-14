@@ -233,7 +233,7 @@ class Worker:
                         try:
                             # results = task.function_obj.run(task.db_conn_obj, task.run_id)
                             keys = ['run_id', 'result_status', 'result_text', 'time_elapsed', 'results_arr']
-                            final_result = {'run_id':'Unknown', 'result_status':5, 'result_text':'Missing', 'time_elapsed':'Unknown', 'results_arr':None}
+                            final_result = {'run_id':'Unknown', 'result_status':1, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
                             missing = [key for key in keys if key not in results]
                             for key, value in results.items():
                                 if key not in missing:

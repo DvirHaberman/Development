@@ -8,7 +8,7 @@ td {
     text-align: center;
 }
 
-#results_table_div td:nth-child(n+3) {
+#results_table_div td:nth-child(n+5) {
     color: white;
     font-weight: bolder;
 }

@@ -17,20 +17,22 @@ import importlib
 from pathlib import Path
 import sys
 import os
+from os import listdir
+from os.path import isfile, join
 import cx_Oracle
 from time import time
+from decimal import Decimal
 
 if sys.platform.startswith('win'):
     sep = '\\'
 else:
     sep = '/'
 
-def params_to_dict(params):
-    return {'&BBBB':'repBBBB', '&ZZZ':'repZZZ'}
-
 def run_sql(conn, run_id, query, params):
     try:
-        translator = params_to_dict(params.to_dict())
+        translator = {"&run_id":run_id}
+        for index, row in params.iterrows():
+            translator['&' + row.param_name] = row.value
     except:
         return {
                     'result_status':1,
@@ -40,7 +42,7 @@ def run_sql(conn, run_id, query, params):
 
     try:
         for key, value in translator.items():
-            query = query.replace(key,value)
+            query = query.replace(key,str(value))
     except:
         return {
                     'result_status':1,
@@ -60,33 +62,20 @@ def run_sql(conn, run_id, query, params):
     if len(result) == 0:
         return {
                         'result_status':1,
-                        'result_text':'Error! SQL returned a empty result',
+                        'result_text':'Error! SQL returned an empty result',
                         'results_arr' : None
-                    }
-    # try:
-    #     if len(result) == 1:
-    #         return {
-    #                         'result_status':result['Status'],
-    #                         'result_text':result['Text'],
-    #                         'results_arr' : None
-    #                     }
-    # except Exception as error:
-    #     return {
-    #                 'result_status':1,
-    #                 'result_text':"Error! something went wrong while extracting the result Text and Status",
-    #                 'results_arr' : None
-    #             }
+        }
 
     try:
         if len(result) > 0:
             result_status = list(result.head(1)['status'].values)[0]
             result_text = list(result.head(1)['text'].values)[0]
-            result.drop(columns=['status', 'text'])
+            result.drop(columns=['status', 'text'], inplace=True)
             return {
                             # 'result_status':result_first_line['Status'],
                             # 'result_text':result_first_line['Text'],
-                            'result_status':4,
-                            'result_text':'some text',
+                            'result_status':result_status,
+                            'result_text': result_text,
                             'results_arr' : result
                         }
     except Exception as error:
@@ -306,6 +295,15 @@ class OctopusUtils:
     def get_db_conn(db_name):
         return 'db_conn for'+ db_name
 
+    @staticmethod
+    def get_files_in_dir(json_data):
+        base_path = sep.join(json_data['path'].split(sep)[0:-1]+[''])
+        return jsonify(all=[join(base_path, f) for f in listdir(base_path)], files=[f for f in listdir(base_path) if isfile(join(base_path, f))])
+
+    @staticmethod
+    def get_functions_basedir():
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        return jsonify(dir=sep.join(basedir.split(sep)[0:-2]+['Functions','']))
 
 
 
@@ -1291,9 +1289,15 @@ class OctopusFunction(db.Model):
                         'time_elapsed' : None
                     }
                 time_elapsed = time() - start_time
+                # if str.find(str(time_elapsed),'.') > 0:
+                #     str_time_elapsed = str(time_elapsed)
+                #     if len(str_time_elapsed.split('.')[-1]) > 3:
+                #         str_time_elapsed = str_time_elapsed.split('.')
+                #         time_elapsed = float(str_time_elapsed[0]+'.'+str_time_elapsed[-1][0:3])
                 conn.close()
                 db_conn.connection.dispose()
                 db_conn.connection = None
+                result_dict['result_status'] = int(result_dict['result_status'])
                 result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
                 return result_dict
             except Exception as error:
@@ -1870,6 +1874,7 @@ class AnalyseResult(db.Model):
 
     def log(self, data_obj, error_queue):
         db.session.add(self)
+        self.time_elapsed = float(self.time_elapsed)
         db.session.commit()
         message = ''
         try:
@@ -1960,6 +1965,8 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
+                            'function_state':OctopusFunction.query.get(task.function_id).status,
+                            'requirement':OctopusFunction.query.get(task.function_id).requirement,
                             'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
                             task.db_conn_string+ ' - ' +str(task.run_id):{
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
@@ -1971,6 +1978,8 @@ class AnalyseResult(db.Model):
                             if task.status == 4
                             else
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
+                            'function_state':OctopusFunction.query.get(task.function_id).status,
+                            'requirement':OctopusFunction.query.get(task.function_id).requirement,
                             'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
                             task.db_conn_string+ ' - ' +str(task.run_id):-1}
                             for task in tasks]
@@ -3257,3 +3266,70 @@ class StageRunMani(db.Model):
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
+
+class RunList(db.Model):
+    __tablename__ = 'RunList'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    conn_id = db.Column(db.Integer)
+    run_id = db.Column(db.Integer)
+    scenario_name = db.Column(db.Text)
+    project = db.Column(db.Integer)
+
+    def __init__(self,name, conn_id, run_id, scenario_name, project):
+        self.name = name
+        self.conn_id = conn_id
+        self.run_id = run_id
+        self.scenario_name = scenario_name
+        self.project = project
+
+    def self_jsonify(self):
+        return jsonify(
+            name = self.name,
+            db_name = DbConnections.query.get(self.conn_id).name,
+            scenario_name = self.scenario_name,
+            project = Project.query.get(self.project).name
+        ).json
+
+    @staticmethod
+    def get_by_name(run_list_name):
+        try:
+            run_list = RunList.query.filter_by(name=run_list_name, project=session['current_project_id']).all()
+            return jsonify(status=1, message=None, data=[run.self_jsonify() for run in run_list])
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    def save(json_data):
+        if 'run_ids' not in json_data:
+            return jsonify(status=0,message="did not find 'run_ids' field in sent data")
+        if 'name' not in json_data:
+            return jsonify(status=0,message="did not find 'name' field in sent data")
+
+        project = session['current_project_id']
+        name = json_data['name']
+        names = [l_name for l_name in RunList.query.filter_by(name=name, project=project).with_entities(RunList.name).distinct()]
+        if name in list(*zip(*names)):
+            return jsonify(status=0,message="list name already exist!")
+        run_ids = json_data['run_ids']
+        try:
+            [db.session.add(RunList(name, 
+            DbConnections.query.filter_by(name=run['db_name'],project=project).with_entities(DbConnections.id).first().id, 
+                                          int(run['run_id']), run['scenario_name'], project=project)) for run in run_ids]
+            db.session.commit()
+            return jsonify(status=1,message="")
+        except:
+            return jsonify(status=0,message="something went wrong while logging the run_ids")
+
+    def get_names():
+        try: 
+            names = [run.name for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
