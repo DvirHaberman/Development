@@ -22,6 +22,7 @@ from os.path import isfile, join
 import cx_Oracle
 from time import time
 from decimal import Decimal
+import re
 
 if sys.platform.startswith('win'):
     sep = '\\'
@@ -124,6 +125,27 @@ ProjectsAndUsers = db.Table('ProjectsAndUsers',
                                         db.ForeignKey('Project.id')),
                               db.Column('user_id', db.Integer,
                                         db.ForeignKey('User.id'))
+                              )
+
+SetupsAndFunctions = db.Table('SetupsAndFunctions',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('function_id', db.Integer,
+                                        db.ForeignKey('OctopusFunctions.id'))
+                              )
+
+SetupsAndGroups = db.Table('SetupsAndGroups',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('group_id', db.Integer,
+                                        db.ForeignKey('FunctionsGroup.id'))
+                              )
+
+SetupsAndRunLists = db.Table('SetupsAndRunLists',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('run_list_id', db.Integer,
+                                        db.ForeignKey('RunList.id'))
                               )
 
 
@@ -3271,14 +3293,14 @@ class RunList(db.Model):
     __tablename__ = 'RunList'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    conn_id = db.Column(db.Integer)
+    db_name = db.Column(db.Text)
     run_id = db.Column(db.Integer)
     scenario_name = db.Column(db.Text)
     project = db.Column(db.Integer)
 
-    def __init__(self,name, conn_id, run_id, scenario_name, project):
+    def __init__(self,name, db_name, run_id, scenario_name, project):
         self.name = name
-        self.conn_id = conn_id
+        self.db_name = db_name
         self.run_id = run_id
         self.scenario_name = scenario_name
         self.project = project
@@ -3286,7 +3308,7 @@ class RunList(db.Model):
     def self_jsonify(self):
         return jsonify(
             name = self.name,
-            db_name = DbConnections.query.get(self.conn_id).name,
+            db_name = self.db_name,
             scenario_name = self.scenario_name,
             project = Project.query.get(self.project).name
         ).json
@@ -3314,9 +3336,14 @@ class RunList(db.Model):
             return jsonify(status=0,message="list name already exist!")
         run_ids = json_data['run_ids']
         try:
-            [db.session.add(RunList(name, 
-            DbConnections.query.filter_by(name=run['db_name'],project=project).with_entities(DbConnections.id).first().id, 
-                                          int(run['run_id']), run['scenario_name'], project=project)) for run in run_ids]
+            [db.session.add(RunList(
+                                    name=name,
+                                    db_name=run['db'], 
+                                    run_id=int(run['run_id']), 
+                                    scenario_name=run['scenario'], 
+                                    project=project
+                                    )) 
+             for run in run_ids]
             db.session.commit()
             return jsonify(status=1,message="")
         except:
@@ -3333,3 +3360,266 @@ class RunList(db.Model):
             status = 0
         finally:
             return jsonify(status=status,message=message ,data=names)
+
+class AnalyseSetup(db.Model):
+    __tablename__ = 'AnalyseSetup'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    functions = db.relationship('OctopusFunction', secondary=SetupsAndFunctions,
+                                backref=db.backref('functions', lazy='dynamic'))
+    groups = db.relationship('FunctionsGroup', secondary=SetupsAndGroups,
+                                backref=db.backref('groups', lazy='dynamic'))
+    run_lists = db.relationship('RunList', secondary=SetupsAndRunLists,
+                                backref=db.backref('run_lists', lazy='dynamic'))
+    project = db.Column(db.Integer)
+
+    def __init__(self,name,run_lists=[],functions=[], groups=[], project=None):
+        self.name = name
+        self.run_lists = run_lists
+        self.functions = functions
+        self.groups = groups
+        self.project = project
+        
+        
+    @staticmethod
+    def save(json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"name":None, "run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['name']) == 0:
+                return jsonify(status=0,message=["cannot update! name cannot be empty"], data=None)
+
+            # setting up error_messages and setup object
+            if extracted_data['name'] in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
+                return jsonify(status=0,message=["cannot save! name " + extracted_data['name'] + " already exist"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["name"]) or extracted_data["name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+            
+            if type(extracted_data["name"]) == type(str(1)):
+                if re.search('[^\w_-]',extracted_data["name"]):
+                     return jsonify(status=0,message=["error! name may only contain letters, numbers and the '-' and '_' signs"], data=None)
+            else:
+                return jsonify(status=0,message=["error! name must be a string"], data=None)
+            error_messages = []
+            setup = AnalyseSetup(name=json_data['name'], project=session['current_project_id'])
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if not key == "name":
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input run lists identifiers must be an array"], data=None)
+            
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+        
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"new_name":None ,"run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['new_name']) == 0:
+                return jsonify(status=0,message=["cannot update! new name cannot be empty"], data=None)
+            # setting up error_messages and setup object
+            if not name in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
+                return jsonify(status=0,message=["cannot update! no setup with this name"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+
+            error_messages = []
+            setup = AnalyseSetup.query.filter_by(name=json_data['name'], project=session['current_project_id']).first()
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if key not in ["name", "new_name"]:
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
+            
+            setup.name = extracted_data['new_name']
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+    
+    @staticmethod
+    def update_by_id(setup_id, json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"new_name":None ,"run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['new_name']) == 0:
+                return jsonify(status=0,message=["cannot update! new name cannot be empty"], data=None)
+            # setting up error_messages and setup object
+            setup = AnalyseSetup.query.get(setup_id)
+            if setup:
+                return jsonify(status=0,message=["cannot update! no setup with this id"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+
+            error_messages = []
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if key not in ["name", "new_name"]:
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
+            
+            setup.name = extracted_data['new_name']
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+
+    def append_object_by_identifier(self, identifer, obj_type):
+        message = None
+        if type(identifer) == type(str(1)):
+            if identifer.isdigit():
+                identifer = int(identifer)
+                method = 'get'
+            else:
+                method = 'filter'
+        elif type(identifer) == type(int(1)):
+            method = 'get'
+        else:
+            message = 'error! idnetifer must be the object id name'
+            return message
+        if obj_type == 'groups':
+            query_obj = FunctionsGroup.query
+        elif obj_type == 'functions':
+            query_obj = OctopusFunction.query
+        elif obj_type == 'run_lists':
+            query_obj = RunList.query
+        else:
+            message = 'error! unidentified object type'
+        if method == 'get':
+            obj_to_append = query_obj.get(identifer)
+        else:
+            if obj_type == 'run_lists':
+                obj_to_append = query_obj.filter_by(name=identifer, project=session['current_project_id']).all()
+            else:
+                obj_to_append = query_obj.filter_by(name=identifer, project=session['current_project_id']).first()
+        if obj_to_append:
+            if obj_type == 'groups':
+                self.groups.append(obj_to_append)
+            elif obj_type == 'functions':
+                self.functions.append(obj_to_append)
+            else:
+                [self.run_lists.append(obj) for obj in obj_to_append]
+        else:
+            message = 'error! no object with given identifier' + str(identifer)
+
+        return message
+
+    def get_names():
+        try: 
+            names = [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).with_entities(AnalyseSetup.name).all()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
+
+    @staticmethod
+    def delete_by_id(setup_id):
+        try:
+            setup = AnalyseSetup.query.get(int(setup_id))
+            if setup:
+                db.session.delete(setup)
+                db.session.commit()
+                return jsonify(status=1,msg='setup with id:' + setup_id + ' succefully deleted')
+            else:
+                return jsonify(status=0,message='Not deleted! No setup with this id')
+        except:
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            setup = AnalyseSetup.query.filter_by(name=name,project=session['current_project_id']).first()
+            if setup:
+                db.session.delete(setup)
+                db.session.commit()
+                return jsonify(status=1,msg='setup ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No setup with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
