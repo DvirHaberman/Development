@@ -28,13 +28,18 @@
       crossorigin="anonymous"
     ></script> -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="../static/css/dataTables.bootstrap4.min.css"> -->
     <link rel="stylesheet" href="../static/css/layout_style.css">
     <link rel="stylesheet" href="../static/css/charts.min.css">
     <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+    <link rel="stylesheet" type="text/css" href="../static/DataTables/datatables.min.css" />
+
     <script src="../static/js/popper.min.js"></script>
     <script src="../static/js/jquery_3_4_1_min.js"></script>
+    <!-- <script src="../static/js/jquery.dataTables.min.js"></script> -->
     <script src="../static/js/bootstrap.bundle.min.js"></script>
     <script src="../static/js/charts.bundle.js"></script>
+    <script type="text/javascript" src="../static/DataTables/datatables.min.js"></script>
     {% block css %}
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <link rel="stylesheet" href="../static/css/styles.css" /> -->
@@ -122,6 +127,7 @@
 
 
     {%block scripts%} {% endblock %} {%block footer%} {% endblock %}
+
     <script src="../static/js/layout.js"></script>
     <script src="../static/js/run_results_charts.js"></script>
 </body>

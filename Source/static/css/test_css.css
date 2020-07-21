@@ -1,0 +1,27 @@
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    /* justify-content: center; */
+    /* flex-wrap: wrap; */
+    align-items: center;
+}
+
+
+/* 
+.right-align {
+    align-self: flex-end;
+}
+
+.left-align {
+    align-self: ;
+} */
+
+.center-align {
+    /* align-self: center; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.inline-item {
+    display: inline-block;
+}

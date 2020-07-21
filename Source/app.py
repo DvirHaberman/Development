@@ -415,6 +415,14 @@ def Function_Analysis():
         session['current_window_name'] = 'Analysis Results'
         return render_template('Function_Analysis.html')
 
+@app.route('/new_analyse')
+def new_analyse():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'new_analyse'
+        return render_template('new_analyse.html')
+
 
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])
