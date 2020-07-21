@@ -45,3 +45,16 @@
 span.toggle-handle.btn.btn-default {
     background-color: whitesmoke;
 }
+
+.meta_alert{
+  margin-bottom: 0px;
+  margin-left: 78px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#main_alert_button{
+  margin-bottom: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}

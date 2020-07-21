@@ -47,7 +47,7 @@ function load_group(group_name) {
                 }
                 functions_modal_select.value = null;
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = result.message;
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
@@ -87,11 +87,11 @@ function save_group(group_name) {
         async: false,
         success: function(result) {
             if (result.status === 1) {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = 'group ' + group_name + ' was successfuly saved!';
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'group ' + group_name + ' was successfuly saved!';
                 $('#modal_alert')[0].hidden = false;
                 // alert('group ' + group_name + ' was successfuly saved!');
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = 'something went wrong';
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'something went wrong';
                 $('#modal_alert')[0].hidden = false;
                 // alert('something went wrong')
             }
@@ -130,11 +130,11 @@ function update_group(group_name) {
         async: false,
         success: function(result) {
             if (result.status === 1) {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = 'group ' + group_name + ' was successfuly updated!';
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'group ' + group_name + ' was successfuly updated!';
                 $('#modal_alert')[0].hidden = false;
                 // alert('group ' + group_name + ' was successfuly updated!');
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = 'something went wrong';
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'something went wrong';
                 $('#modal_alert')[0].hidden = false;
                 // alert('something went wrong')
             }
@@ -158,7 +158,7 @@ function delete_group(group_name) {
                 }
                 functions_modal_select.value = null;
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = result.message;
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
@@ -328,7 +328,7 @@ function get_functions_names() {
                     modal_datalist.appendChild(option);
                 }
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = result.message;
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
@@ -370,7 +370,7 @@ function get_groups_names() {
                 }
 
             } else {
-                $('#modal_dissmisable_alert_text')[0].innerHTML = result.message;
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
@@ -379,6 +379,7 @@ function get_groups_names() {
             functions_option.classList.remove('dropdown-selected')
             function_select_state = 'groups';
             functions_modal_select.value = null;
+
         }
 
     });

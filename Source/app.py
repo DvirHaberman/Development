@@ -76,6 +76,11 @@ def user_wizard():
         session['current_window_name'] = 'Define Users'
         return render_template('user_wizard.html')
 
+@app.route('/define_function')
+def define_function():
+    session['current_window_name'] = 'Define Function'
+    return render_template('define_func.html')
+
 @app.route('/whoops')
 def whoops():
     if session.get('username', None) is None:

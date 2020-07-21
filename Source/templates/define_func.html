@@ -1,0 +1,334 @@
+{% extends "metadata_layout.html" %}
+
+{% block main_form_css %}
+<link rel="stylesheet" href="../static/css/run_stage_definition.css">
+<link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+<link rel="stylesheet" href="../static/css/draggable_list.css">
+<link href="../static/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/metadata_layout.css" />
+<link rel="stylesheet" href="../static/css/define_func.css" />
+
+<link rel="stylesheet" href="../static/css/Function_Definition_Modal.css" />
+
+<!-- <link rel="stylesheet" href="../static/css/styles.css" /> -->
+{% endblock %}
+
+{% block main_form %}
+
+
+<div id="define_func_div">
+
+  <section id="main-from">
+
+      <!-- <div class="card bg-light mb-3 main-form-card"> -->
+          <!-- <div class="row card-body main-form-card-body"> -->
+          <div class = "row ">
+              <div class="input-function-data col-9">
+                  <div class="row marginTopLeft">
+
+                      <div class="function-input-row col-3">
+                          <label>Feature</label>
+                          <input class="form-control" type="text" name="feature"></input>
+                      </div>
+                      <div class="function-input-row col-3">
+                          <label>Requirement</label>
+                          <input class="form-control" type="text" name="requirement" value="some_link">
+                      </div>
+
+                      <div class="function-input-row col-5">
+                        <label>Tags</label>
+                        <input class="form-control" type="text" name="tags"></input>
+                      </div>
+
+                  </div>
+
+
+                  <div class="row marginTopLeft">
+                      <div class="function-input-row col-8">
+                          <label>Function Callback</label>
+                          <input class="form-control" type="text" id="functionCallback" name="callback"></input>
+                      </div>
+
+                      <div class="function-input-row col-3">
+                          <label>Kind</label>
+                          <select class="form-control" type="text" name="kind">
+                            <option value="Python">Python</option>
+                            <option value="Matlab">Matlab</option>
+                            <option value="Sql">Sql</option>
+                            <option value="Undefine">Undefine</option>
+                          </select>
+                      </div>
+                  </div>
+
+
+                  <div class="row marginTopLeft">
+                      <div class="function-input-row col-11">
+                          <label>Function Location</label>
+                          <input class="form-control" type="text" id="functionLocation" name="Location"></input>
+                      </div>
+                  </div>
+
+                  <div class="row marginTopLeft">
+                      <div class="function-input-row col-11">
+                          <label>Description</label>
+                          <textarea class="form-control" name="description" id="function_description" cols="125" rows="4"></textarea>
+                          <!-- <input class="form-control" type="text" name="description" cols="30" rows="5"></input> -->
+                      </div>
+                  </div>
+
+                  <div class="row marginTopLeft col-11">
+                      <label> Output </label>
+                  </div>
+
+                  <div class="row marginTopLeft">
+                      <div class="function-input-row col-3">
+                          <input type="checkbox" id="isOutputIsAClass" name="isOutputIsAClass" onclick="calc();">
+                          <label for="isOutputIsAClass"> Is a class </label><br>
+                      </div>
+
+                      <label class="mr-3"> Class Name: </label>
+                      <input class="form-control col-4" type="text" id="className" name="outputClassName"></input>
+
+                  </div>
+
+              </div>
+
+
+              <div class="marginTopLeft input-groups-data col-2">
+                  <div class="function-input-row col-12">
+                      <label for="group_input">Groups Membership</label>
+                      <button type="button" name="button" id="newGroupButton" data-toggle="modal" data-target="#defineGroupModal">   <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
+                  </div>
+
+
+                  <div class="function-input-row col-12 input-group mb-3">
+                      <input type="text" list="groups_datalist" id="group_input" class="form-control" placeholder="..." aria-describedby="basic-addon2">
+                      <div class="input-group-append">
+                          <button class="btn btn-outline-secondary addGroupButton" id="addGroupButton" type="button">Add</button>
+                      </div>
+                  </div>
+
+
+                  <!-- <input type="text" class="form-control ml-2"><span>+</span> -->
+                  <datalist id="groups_datalist">
+                    <option value="group1">group1</option>
+                    <option value="group2">group2</option>
+                    <option value="group3">group3</option>
+                  </datalist>
+                  <ul name="GroupsListNames" id="GroupsList">
+
+                  </ul>
+              </div>
+
+      </div>
+
+      <hr>
+      <hr>
+
+      <!-- <div id="input_parameters" class="card bg-light mb-3 main-form-card"> -->
+          <div class="row marginTopLeft col-11">
+              <label><strong>Function Parameters Inputs:</strong></label>
+              <button name="plus_param_row_button" class="ml-auto"> <i class="fas fa-plus-circle" aria-hidden="true"></i></button>
+              <!-- //plus_param_row_button -->
+
+              <table class="table table-hover" name="function_parameters">
+                  <thead>
+                      <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Kind</th>
+                          <th scope="col">Val</th>
+                          <th scope="col">Type</th>
+                          <th scope="col">Remove</th>
+
+                      </tr>
+                  </thead>
+                  <tbody>
+
+
+                  </tbody>
+              </table>
+
+
+          </div>
+
+          <hr>
+          <hr>
+
+          <div class="row marginTopLeft col-11">
+              <div>
+                <label><strong>Function Oper Line:</strong></label>
+                  <!-- <h5 class="mb-2">Function Oper Line:</h5> -->
+                  <h5 class="oper_line" name="funcOperLine">your_function(param1, param2, ...., paramN)</h5>
+              </div>
+          </div>
+      <!-- </div> -->
+
+  </section>
+
+</div>
+
+<!-- modal -->
+
+<div class="modal fade" id="defineGroupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title ml-auto" id="exampleModalLongTitle">Define Group</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+
+            <div class="modal-body" id="ModalGroupBody">
+                <div id="analyse_stage_div">
+
+                    <div class="row mx-auto layout-buttons-div">
+                        <input id="Group_toggle" type="checkbox" checked data-toggle="toggle" data-on="New"
+                        data-off="Existing" data-onstyle="primary" data-offstyle="secondary" data-width="92px">
+                        <button id="Save_Group" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
+                        <button id="Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
+                        <button id="Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
+                        <button id="Edit_Group"><i class="fa fa-pencil-alt adapt-icon-size"></i></button>
+
+                        <div id="modal_alert" class="alert alert-warning alert-dismissible fade show modal_alert_class" role="alert" hidden="hidden">
+                            <strong id="main_dissmisable_modal_alert_text"></strong>
+                            <button type="button" id = "main_modal_alert_button" class="close" data-hide="alert" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+
+                      <div class="row mx-auto">
+                        <div class="modal_meta_data card border-secondary">
+
+                            <div class="card-body">
+                              <div class="form-inline col-12">
+                                  <label for="Modal_Select_Group_Name" class="modal-fix-label"><h6>Name</h6></label>
+                                  <input list='Group_Function_Name' id="Modal_Select_Group_Name" type="text" class="form-control Modal_input" placeholder="..." />
+                              </div>
+                              <datalist id='Group_Function_Name'>
+                                  <option value="data1"></option>
+                                  <option value="data3"></option>
+                                  <option value="data4"></option>
+                                  <option value="data2"></option>
+                              </datalist>
+
+                              <div class="form-inline col-12">
+
+                                  <label for="modal_owner"  class="modal-fix-label"> <h6>Owner</h6></label>
+                                  <input list="modal_owner_datalist" type="text" class="form-control Modal_input" id="modal_owner">
+                                  <datalist id='modal_owner_datalist'>
+                                    <option value="ami">ami</option>
+                                    <option value="dvirh">dvirh</option>
+                                    <option value="ilans">ilans</option>
+                                  </datalist>
+
+                              </div>
+
+                              <div class="form-inline col 11 modal_seperator_line">
+                                  <label for="Modal_Group_Description"><h6>Description</h6></label>
+                                  <textarea id="Modal_Group_Description" class="form-control" name="description" cols="16" rows="5"></textarea>
+                              </div>
+
+
+                              <hr>
+                              <div class = "form-inline col-12">
+                                <label><h6>Changed Date</h6></label>
+                                <p class="font-italic modal-change-name" name="modal_changed_date"> &nbsp 02/02/2020 15:20</p>
+                                <!-- <input class="form-control" name="modal_changed_date" type="text" value="02/02/2020 15:20" disabled></input> -->
+                              </div>
+
+                              <div class = "form-inline col-12">
+                                <label><h6>Last Changed by:</h6> </label>
+                                <p class="font-italic modal-change-name"> &nbsp ami</p>
+                              </div>
+
+                            </div>
+                        </div>
+
+
+                        <!-- ////////////////// modal right card //////////////////-->
+
+                        <div class="modal_main_data card border-secondary">
+                          <div class="card-body">
+
+                                  <div class="form-inline col-12">
+                                      <label id="functions_select_label" for="functions_modal_select"><h6>select a function</h6></label>
+                                  </div>
+
+                                  <div class="form-inline col-12">
+                                    <label for="modal_filter_owner"  class="modal_filter_icon"> <i class="fa fa-filter modal_filter_icon" ></i></label>
+                                    <input list="modal_filter_owner_datalist" type="text" class="form-control Modal_filter"
+                                          id="modal_filter_owner" placeholder="Owenr">
+                                    <datalist id='modal_filter_owner_datalist'>
+                                      <option value="ami">ami</option>
+                                      <option value="dvirh">dvirh</option>
+                                      <option value="ilans">ilans</option>
+                                    </datalist>
+
+                                    <div class="">
+                                      <input class="form-control Modal_filter_Tags" type="text"  id="modal_filter_Tags" placeholder="Tags"></input>
+                                    </div>
+
+                                  </div>
+
+
+                                  <div class="form-inline col-12">
+                                      <div class="input-group mb-3">
+                                          <input list="modal_datalist" class="form-control input" name="functions" id="functions_modal_select" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                                          <div class="input-group-append">
+                                              <button class="btn btn-outline-secondary add" type="button" id="add_function_button">Add</button>
+                                          </div>
+                                          <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                              <span class="sr-only">Toggle Dropdown</span>
+                                            </button>
+                                          <div class="dropdown-menu">
+                                              <button id="functions_option" class="dropdown-item dropdown-selected">Function</button>
+                                              <div role="separator" class="dropdown-divider"></div>
+                                              <button id="groups_option" class="dropdown-item">Group</button>
+                                          </div>
+                                          <datalist id="modal_datalist">
+
+                                          </datalist>
+                                      </div>
+
+                                  </div>
+
+                                  <div class="form-inline col 11 modal_seperator_line">
+                                      <label for="Modal_GroupFunction_Description"><h6>Description</h6></label>
+                                      <textarea id="Modal_GroupFunction_Description" class="form-control" name="description" cols="8" rows="2"></textarea>
+                                  </div>
+
+                                  <hr>
+                                  <div class="col-12">
+                                      <label for="chosen_list" class=""><h6>Chosen list:</h6></label>
+                                      <ul class='draggble_ul list-div' id="modal_ul">
+
+                                      </ul>
+                                  </div>
+
+                            </div>
+
+                        </div>
+
+                    <!-- ////////////////// modal right card ////////////////// -->
+
+                      </div>
+
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+</div>
+
+
+{%endblock%} {%block scripts%}
+<!-- <script src="../static/js/draggble_list.js"></script> -->
+<script src="../static/js/OctoUtils.js"></script>
+<script src="../static/js/define_function.js"></script>
+<script src="../static/js/Functions_Definitions_Modal.js"></script>
+{%endblock%}
