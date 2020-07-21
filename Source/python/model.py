@@ -953,7 +953,7 @@ class OctopusFunction(db.Model):
                 is_class_method=1
             else:
                 is_class_method=0
-                
+
 
             if 'status' in data:
                 status = data['status']
@@ -969,12 +969,12 @@ class OctopusFunction(db.Model):
                 feature = data['feature']
             else:
                 feature = None
-            
+
             if 'requirement' in data:
                 requirement = data['requirement']
             else:
                 requirement = None
-            
+
             func = OctopusFunction(
                 name=data['name'],
                 callback=data['callback'],
@@ -990,9 +990,9 @@ class OctopusFunction(db.Model):
                 kind=data['kind'],
                 tags=data['tags'],
                 description=data['description'],
-                project=Project.query.filter_by(name=session['current_project']).first().id,
-                version=data['version'],
-                version_comments=data['version_comments'],
+                # project=row.project,
+                # version=data['version'],
+                # version_comments=data['version_comments'],
                 function_checksum=22,
                 handler_checksum=33
                 # is_locked=row.is_locked
@@ -1012,7 +1012,7 @@ class OctopusFunction(db.Model):
                 FunctionParameters.save(function_id = function_id,
                                         index = index, kind = kind,
                                         value = value, param_type = param_type)
-                
+
         except Exception as error:
             try:
                 FunctionParameters.query.filter_by(function_id = func.id).delete()
@@ -1037,7 +1037,7 @@ class OctopusFunction(db.Model):
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
             except:
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
-    
+
     @staticmethod
     def update(data):
         try:
@@ -1049,7 +1049,7 @@ class OctopusFunction(db.Model):
                     is_class_method=1
                 else:
                     is_class_method=0
-                    
+
 
                 if 'status' in data:
                     status = data['status']
@@ -1065,14 +1065,14 @@ class OctopusFunction(db.Model):
                     feature = data['feature']
                 else:
                     feature = None
-                
+
                 if 'requirement' in data:
                     requirement = data['requirement']
                 else:
                     requirement = None
-                
+
                 func = OctopusFunction.query.filter_by(name=data['name']).first()
-                
+
                 func.name=data['name']
                 func.callback=data['callback']
                 func.location=data['location']
@@ -1087,9 +1087,10 @@ class OctopusFunction(db.Model):
                 func.kind=data['kind']
                 func.tags=data['tags']
                 func.description=data['description']
+                func.changed_date = datetime.utcnow()
                 # project=row.project,
-                func.version=data['version']
-                func.version_comments=data['version_comments']
+                # func.version=data['version']
+                # func.version_comments=data['version_comments']
                 # func.function_checksum=22
                 # func.handler_checksum=33
                 # is_locked=row.is_locked
@@ -1110,7 +1111,7 @@ class OctopusFunction(db.Model):
                     FunctionParameters.save(function_id = function_id,
                                             index = index, kind = kind,
                                             value = value, param_type = param_type)
-                    
+
             except Exception as error:
                 # db.session.rollback()
                 return jsonify(f"Not Saved! Something went wrong while saving the parameters")
@@ -1482,7 +1483,7 @@ class FunctionsGroup(db.Model):
                         else:
                             messages.append('Error: No functions with name ' + func)
                 except Exception as error:
-                    messages.append('Error: something went wrong while exracting the function object with' + 
+                    messages.append('Error: something went wrong while exracting the function object with' +
                                     'identifier of ' + func)
             elif type(func) == type(int(1)):
                 is_identifier_str_flag = False
@@ -1494,11 +1495,11 @@ class FunctionsGroup(db.Model):
                     else:
                         messages.append('Error: No functions with id ' + func)
                 except Exception as error:
-                    messages.append('Error: something went wrong while exracting the function object with' + 
+                    messages.append('Error: something went wrong while exracting the function object with' +
                                     'identifier of ' + str(func))
             else:
                 messages.append('Error: unsupported function identifier in the ' + str(index) + 'th place. identifier must be id or name')
-            
+
             #stage 2 - append the functions to the group
             if identifier_resolved_flag:
                 identifier_resolved_flag=False
@@ -1508,9 +1509,9 @@ class FunctionsGroup(db.Model):
                     if is_identifier_str_flag:
                         messages.append('Error: something went wrong while adding the function with id or name ' + func)
                     if is_identifier_number_flag:
-                        messages.append('Error: something went wrong while adding the function with id ' + func) 
+                        messages.append('Error: something went wrong while adding the function with id ' + func)
         #stage 3 - commit changes to db and return the messages
-        db.session.commit() 
+        db.session.commit()
         return messages
     @staticmethod
     def save(json_data):
@@ -1942,7 +1943,7 @@ class AnalyseResult(db.Model):
         else:
             function_id = None
             user_name=None
-        
+
         return jsonify(
             id=self.id,
             task_id = self.task_id,
@@ -2596,7 +2597,7 @@ class ComplexNet(db.Model):
         self.config_id = config_id
         self.systems_id = systems_id
         self.changed_date = datetime.utcnow()
-    
+
     def self_jsonify(self):
         if self.config_id:
             config_data = self.config_id.self_jsonify()
@@ -2616,11 +2617,11 @@ class ComplexNet(db.Model):
                 systems_data = systems_data,
                 changed_date = self.changed_date
             ).json
-        
+
     def jsonify_all():
 
         nets = ComplexNet.query.all()
-        
+
         return jsonify([net.self_jsonify() for net in nets])
 
     @staticmethod
@@ -2770,8 +2771,8 @@ class ComplexNet(db.Model):
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
-            
-            
+
+
 class NetConfig(db.Model):
     __tablename__ = 'NetConfig'
     id = db.Column(db.Integer, primary_key=True)
@@ -2885,7 +2886,7 @@ class NetConfig(db.Model):
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
-            
+
 class NetSystem(db.Model):
     __tablename__ = 'NetSystem'
     id = db.Column(db.Integer, primary_key=True)
@@ -2923,7 +2924,7 @@ class NetSystem(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            
+
             system_type = json_data['system_type']
             system_num = int(json_data['system_num'])
             kind = json_data['kind']
@@ -3055,7 +3056,7 @@ class StageRunMani(db.Model):
         else:
             site_name = None
 
-        
+
         return jsonify(
                 id = self.id,
                 name  = self.name,
@@ -3288,6 +3289,7 @@ class StageRunMani(db.Model):
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
         finally:
             db.session.close()
+
 
 class RunList(db.Model):
     __tablename__ = 'RunList'
