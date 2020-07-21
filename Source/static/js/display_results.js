@@ -32,6 +32,8 @@ function clear_drill_down() {
     drill_down_db_name.innerHTML = null;
     result_status.innerHTML = null;
     result_text.innerHTML = null;
+    function_owner.innerHTML = null;
+    function_state.innerHTML = null;
     drill_down_table_div.removeChild(drill_down_table)
     drill_down_table = document.createElement('table');
     drill_down_table.id = 'drill_down_table';
@@ -39,6 +41,7 @@ function clear_drill_down() {
     drill_down_table.classList.add(["table-hover"]);
     drill_down_table.classList.add(["col-10"]);
     drill_down_table.classList.add(["m-auto"]);
+    drill_down_div.classList.remove('card');
     drill_down_table_div.appendChild(drill_down_table);
     drill_down_div.classList.remove('card');
 }
@@ -66,7 +69,7 @@ function get_mission_ids() {
                 opt.text = result[i]
                 select_obj.appendChild(opt);
             }
-            sleep(2000).then(() => {
+            sleep(500).then(() => {
                 load_results();
             });
 
@@ -104,6 +107,9 @@ function drill_down() {
                     break;
                 case 4:
                     result_status_text = 'Success';
+                    break;
+                case 5:
+                    result_status_text = 'Unknown';
                     break;
                 default:
                     result_status_text = 'in process';
@@ -190,7 +196,6 @@ function load_results() {
             results_table_div.appendChild(results_table);
             if (result === null) {
                 ctx.hidden = true;
-                // myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
                 myChart.update();
                 clear_drill_down();
                 $('#dissmisable_alert_text')[0].innerHTML = 'no data';
@@ -215,12 +220,16 @@ function load_results() {
             statistics.fail = 0;
             statistics.error = 0;
             statistics.nodata = 0;
+            statistics.unknown = 0;
+            statistics.in_process = 0;
             for (i = 0; i < num_of_rows; i++) {
                 newRow = results_table.insertRow(-1);
                 for (j = 0; j < num_of_cols; j++) {
                     td = document.createElement('td');
                     td.addEventListener("click", drill_down);
                     if (result.schema.fields[j].name == 'function_name' ||
+                        result.schema.fields[j].name == 'function_state' ||
+                        result.schema.fields[j].name == 'requirement' ||
                         result.schema.fields[j].name == 'owner') {
                         var status = result.data[i][result.schema.fields[j].name];
                         status = '<br>' + status;
@@ -239,7 +248,7 @@ function load_results() {
                                     break;
                                 case 1:
                                     status = 'Error';
-                                    td.bgColor = 'gray';
+                                    td.bgColor = '#343a40';
                                     statistics.error += 1;
                                     break;
                                 case 2:
@@ -257,9 +266,15 @@ function load_results() {
                                     td.bgColor = 'green';
                                     statistics.success += 1;
                                     break;
+                                case 5:
+                                    status = 'Unknown';
+                                    td.bgColor = '#17a2b8';
+                                    statistics.unknown += 1;
+                                    break;
                                 default:
                                     status = 'in process';
-                                    // td.bgColor = 'green';
+                                    statistics.in_process += 1;
+                                    td.bgColor = '#6c757d';
                                     break;
                             }
                             if (time_elapsed !== null) {
@@ -272,7 +287,7 @@ function load_results() {
                 }
             }
             ctx.hidden = false;
-            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata];
+            myChart.data.datasets[0].data = [statistics.success, statistics.warning, statistics.fail, statistics.error, statistics.nodata, statistics.unknown, statistics.in_process];
 
             myChart.update();
             clear_drill_down();

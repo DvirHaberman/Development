@@ -9,11 +9,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///OctopusDB.db"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dvirh@localhost:5432/OctopusDB"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1
@@ -178,17 +176,16 @@ def run_functions():
     groups_names = json_input['groups']
     additional_names = []
     for group_name in groups_names:
-        group = FunctionsGroup.query.filter_by(name=group_name).first()
+        group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
         additional_names = additional_names + [func.name for func in group.functions]
     function_names = list(set(function_names + additional_names))
     functions_ids = db.session.query(OctopusFunction).filter(OctopusFunction.name.in_( function_names)).with_entities(OctopusFunction.id).all()
     functions_ids = list(*zip(*functions_ids))
     runs = json_input['runs']
-    db_name = json_input['db_name']
-    db_id = DbConnections.query.filter_by(name=db_name).first().id
+    # db_name = json_input['db_name']
+    # db_id = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first().id
     json_data = {'user_id':user_id,'mission_name':mission_name,
-                'functions':functions_ids,'runs':runs,
-                 'conn_id':db_id, 'db_name':db_name}
+                'functions':functions_ids,'runs':runs}
     try:
         return jsonify(Mission.create_mission(json_data,tasks_queue))
         # return 'done'
@@ -247,6 +244,15 @@ def validate_user():
         if user:
             session['username'] = username
             session['userrole'] = Role.query.get(user.role).name
+            session['projects'] = [project.name for project in user.projects]
+            if session['projects']:
+                session['current_project'] = session['projects'][0]
+                session['current_project_id'] = Project.query.filter_by(name=session['current_project']).first().id
+
+            else:  
+                session['current_project'] = None
+                session['current_project_id'] = None
+
             return redirect('/welcome')
         else:
             flash('Invalid username or password!')
@@ -254,6 +260,41 @@ def validate_user():
     else:
         return redirect('/login')
 
+@app.route('/change_project/<int:index>')
+def change_project(index):
+    session['current_project'] = session['projects'][index-1]
+    session['current_project_id'] = Project.query.filter_by(name=session['current_project']).first().id
+    if session['current_window_name'] == 'Run Functions':
+        return redirect('/run_simple')
+
+    if  session['current_window_name'] == 'Welcome':
+        return redirect('/welcome')
+
+    if session['current_window_name'] == 'Define Process':
+        return redirect('/define_process')
+
+    if session['current_window_name'] == 'Define Stage':
+        return redirect('/run_stage_define')
+
+    if session['current_window_name'] == 'Run Functions':
+        return redirect('/run_function')
+
+    if session['current_window_name'] == 'Define Complex Net':
+        return redirect('/define_complex_net')
+
+    if session['current_window_name'] == 'Infras':
+        return redirect('/infras')
+
+    if session['current_window_name'] == 'Define Connections':
+        return redirect('/db_conn_wizard')
+
+    if session['current_window_name'] == 'Define Functions':
+        return redirect('/Function_Definition')
+
+    if session['current_window_name'] == 'Define Users':
+        return redirect('/user_wizard')
+    
+    
 @app.route('/run_simple')
 def run_simple():
     if session.get('username', None) is None:
@@ -322,12 +363,12 @@ def db_conn_wizard():
 
 @app.route('/api/get_conn_data')
 def get_conn_data():
-    connections = DbConnections.query.all()
+    connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
     return jsonify([conn.self_jsonify() for conn in connections])
 
 @app.route('/api/delete_conn_by_name/<string:conn_name>', methods=["POST"])
 def delete_connection(conn_name):
-    conn_to_delete = DbConnections.query.filter_by(name=conn_name).first()
+    conn_to_delete = DbConnections.query.filter_by(name=conn_name,project=session['current_project_id']).first()
     if conn_to_delete:
         try:
             db.session.delete(conn_to_delete)
@@ -339,16 +380,22 @@ def delete_connection(conn_name):
 
 @app.route('/api/save_connection', methods = ['POST'])
 def save_connection():
-    data = request.get_json()
-    conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
-                hostname=data['hostname'], port=data['port'], schema=data['schema'], name=data['name'])
-    conn.save()
-    if conn.status == 'valid':
-        connections = DbConnections.query.all()
-        conn_data = [conn.self_jsonify() for conn in connections]
-        return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
-    else:
-        return jsonify(status=0, msg='Failed saving the connection!\n' + conn.message)
+    try:
+        data = request.get_json()
+        conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
+                    hostname=data['hostname'], port=data['port'], schema=data['schema'], 
+                    name=data['name'])
+        conn.save()
+        if conn.status == 'valid':
+            connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
+            conn_data = [conn.self_jsonify() for conn in connections]
+            return jsonify(status = 1, msg='connection successfuly saved!', connections=conn_data)
+        else:
+            return jsonify(status=0, msg='Failed saving the connection!\n' + conn.message)
+    except:
+        return jsonify(status=0, msg='Failed saving the connection!')
+    finally:
+        db.session.close()
 
 @app.route('/Function_Definition')
 def Function_Definition():
@@ -368,6 +415,14 @@ def Function_Analysis():
         session['current_window_name'] = 'Analysis Results'
         return render_template('Function_Analysis.html')
 
+@app.route('/new_analyse')
+def new_analyse():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'new_analyse'
+        return render_template('new_analyse.html')
+
 
 
 @app.route('/api/<string:class_name>/<string:class_method>/<string:args>', methods = ['GET','POST'])
@@ -376,21 +431,26 @@ def api_methods_with_args(class_name,class_method,args):
         data = request.get_json()
     except:
         data = None
-    module = importlib.import_module('python.model')
-    req_class = getattr(module,class_name)
-    class_method = getattr(req_class, class_method)
-    method_args = [arg for arg in args.split(',')]
-    if type(method_args) == type([1]):
-        if data:
-            return class_method(*method_args, data)
+    try:
+        module = importlib.import_module('python.model')
+        req_class = getattr(module,class_name)
+        class_method = getattr(req_class, class_method)
+        method_args = [arg for arg in args.split(',')]
+        if type(method_args) == type([1]):
+            if data:
+                output = class_method(*method_args, data)
+            else:
+                output = class_method(*method_args)
         else:
-            return class_method(*method_args)
-    else:
-        if data:
-            return class_method(method_args, data)
-        else:
-            return class_method(method_args)
-
+            if data:
+                output = class_method(method_args, data)
+            else:
+                output = class_method(method_args)
+        return output
+    except Exception as error:
+        return jsonify(status=0, message='something went wrong')
+    finally:
+        db.session.close()
 
 @app.route('/api/<string:class_name>/<string:class_method>', methods = ['GET','POST'])
 def api_methods_no_args(class_name,class_method):
@@ -405,16 +465,15 @@ def api_methods_no_args(class_name,class_method):
         req_class = getattr(module,class_name)
         class_method = getattr(req_class, class_method)
         if data:
-            return class_method(data)
+            output = class_method(data)
         else:
-            return class_method()
+            output = class_method()
+        return output
     except:
-        db.session.close()
         return jsonify(status=0, message='something went wrong')
+    finally:
+        db.session.close()
 
-@app.route('/api', methods = ['GET','POST'])
-def api():
-    return jsonify(data = [num for num in range(10)])
 
 
 if __name__ == "__main__":

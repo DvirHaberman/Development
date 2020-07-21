@@ -4,6 +4,53 @@
     top: 76px;
     z-index: 1;
 }
+
 body {
     height: 70%;
+}
+
+.selected_project {
+    background-color: aquamarine;
+}
+
+.unselected_project {
+    background-color: white;
+}
+
+.jumbotron>.row {
+    margin-top: 5px;
+}
+
+.jumbotron {
+    padding-top: 30px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.project_li {
+    /* width: auto;
+    border-color: black;
+    border-width: 2px;
+    height: 30px; */
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 5px 20px 5px 20px;
+}
+
+.project_li .row {
+    border-color: black;
+    border-width: 2px;
+}
+
+.project-ul {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: antiquewhite;
+}
+
+.project_ul_div {
+    overflow: auto;
+    height: 180px;
 }
