@@ -10,8 +10,8 @@ app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 db.init_app(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 num_of_analyser_workers = 1
@@ -254,7 +254,7 @@ def validate_user():
                 session['current_project'] = session['projects'][0]
                 session['current_project_id'] = Project.query.filter_by(name=session['current_project']).first().id
 
-            else:  
+            else:
                 session['current_project'] = None
                 session['current_project_id'] = None
 
@@ -298,8 +298,8 @@ def change_project(index):
 
     if session['current_window_name'] == 'Define Users':
         return redirect('/user_wizard')
-    
-    
+
+
 @app.route('/run_simple')
 def run_simple():
     if session.get('username', None) is None:
@@ -388,7 +388,7 @@ def save_connection():
     try:
         data = request.get_json()
         conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
-                    hostname=data['hostname'], port=data['port'], schema=data['schema'], 
+                    hostname=data['hostname'], port=data['port'], schema=data['schema'],
                     name=data['name'])
         conn.save()
         if conn.status == 'valid':

@@ -628,10 +628,35 @@ function Function_Definition_form_controls_handler() {
             });
         }
 }
+
+
 form_handler = new Function_Definition_form_controls_handler();
 modal_form_controls_handler = new form_controls_handler();
-// form_handler.clear_form();
 
+
+// form_handler.clear_form();
+form_controls.location.addEventListener("input", function() {
+    $.ajax({
+        type: "POST",
+        url: "/api/OctopusUtils/get_files_in_dir",
+        dataType: "json",
+        data: JSON.stringify({ "path": form_controls.location.value }),
+        contentType: 'application/json',
+        success: function(result) {
+            var datalistObj = $('#location_datalist')[0]
+            var numOfEle = datalistObj.children.length;
+            for (i = 0; i < numOfEle; i++) {
+                datalistObj.removeChild(datalistObj.options[0]);
+            }
+            for (i = 0; i < result.all.length; i++) {
+                // insert
+                var option = document.createElement("option");
+                option.value = result.all[i];
+                datalistObj.appendChild(option);
+            }
+        }
+    });
+});
 
 $('#NewExist_toggle').change(function()  {
   $('.alert')[0].hidden = true;
@@ -646,6 +671,12 @@ $('#NewExist_toggle').change(function()  {
         form_controls.kind.selectedIndex = 0;
         form_controls.status.selectedIndex = 0;
         functionFormDisable(false);
+        $.ajax({
+            url: "/api/OctopusUtils/get_functions_basedir",
+            success: function(result) {
+                form_controls.location.value = result.dir;
+            }
+        });
 
       } else { //exist
         Stage = "update";

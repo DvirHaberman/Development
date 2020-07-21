@@ -85,7 +85,7 @@ def run_sql(conn, run_id, query, params):
                     'result_text':"Error! something went wrong while extracting the result Text, Status and array",
                     'results_arr' : None
                 }
-    
+
 
 def run_matlab(conn, run_id, params):
     return {
@@ -101,8 +101,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -167,7 +167,7 @@ class DbConnector:
         self.port = port
         self.connection = None
         self.message = ''
-        
+
         # assinging name - if no name is given then the name is composed of the type and schema
         if name or name == '':
             self.name = name
@@ -874,14 +874,15 @@ class OctopusFunction(db.Model):
     feature = db.Column(db.Text)
     requirement = db.Column(db.Text)
     project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    changed_by = db.Column(db.Text)
 
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
                  kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(),
-                 is_locked=0, feature=None, requirement=None, project=None):
+                 is_locked=0, feature=None, requirement=None, project=None, changed_by=None):
         self.name = name
-        self.callback = callback
         self.file_name = file_name
+        self.callback = callback
         self.location = location
         self.owner = owner
         self.status = status
@@ -901,6 +902,7 @@ class OctopusFunction(db.Model):
         self.feature = feature
         self.requirement = requirement
         self.project = project
+        self.changed_by = changed_by
 
     def self_jsonify(self):
         try:
@@ -940,6 +942,7 @@ class OctopusFunction(db.Model):
             is_locked=self.is_locked,
             feature = self.feature,
             requirement = self.requirement,
+            changed_by = self.changed_by,
             function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
 
@@ -975,11 +978,16 @@ class OctopusFunction(db.Model):
             else:
                 requirement = None
 
+            if 'owner' in data:
+                owner = data['owner']
+            else:
+                owner=User.query.filter_by(name=session['username'])[0].id
+
             func = OctopusFunction(
                 name=data['name'],
                 callback=data['callback'],
                 location=data['location'],
-                owner=User.query.filter_by(name=session['username'])[0].id,
+                owner=owner,
                 file_name = data['location'].split(sep)[-1],
                 class_name = data['class_name'],
                 is_class_method = is_class_method,
@@ -994,7 +1002,8 @@ class OctopusFunction(db.Model):
                 # version=data['version'],
                 # version_comments=data['version_comments'],
                 function_checksum=22,
-                handler_checksum=33
+                handler_checksum=33,
+                changed_by = User.query.filter_by(name=session['username'])[0].name
                 # is_locked=row.is_locked
             )
             db.session.add(func)
@@ -1070,13 +1079,16 @@ class OctopusFunction(db.Model):
                     requirement = data['requirement']
                 else:
                     requirement = None
-
+                    
                 func = OctopusFunction.query.filter_by(name=data['name']).first()
-
+                if 'owner' in data:
+                    owner = data['owner']
+                else:
+                    owner = func.owner
                 func.name=data['name']
                 func.callback=data['callback']
                 func.location=data['location']
-                func.owner=User.query.filter_by(name=session['username'])[0].id
+                func.owner=owner
                 func.file_name = data['location'].split(sep)[-1]
                 func.class_name = data['class_name']
                 func.is_class_method = is_class_method
@@ -1088,6 +1100,7 @@ class OctopusFunction(db.Model):
                 func.tags=data['tags']
                 func.description=data['description']
                 func.changed_date = datetime.utcnow()
+                func.changed_by = User.query.filter_by(name=session['username'])[0].name
                 # project=row.project,
                 # func.version=data['version']
                 # func.version_comments=data['version_comments']
@@ -1270,7 +1283,7 @@ class OctopusFunction(db.Model):
                                 'results_arr' : None,
                                 'time_elapsed' : None
                             }
-            
+
                         if len(parameters_list) > 0:
                             if 'Tests Params' in parameters_list:
                                 index = parameters_list.index('Tests Params')
@@ -3340,11 +3353,11 @@ class RunList(db.Model):
         try:
             [db.session.add(RunList(
                                     name=name,
-                                    db_name=run['db'], 
-                                    run_id=int(run['run_id']), 
-                                    scenario_name=run['scenario'], 
+                                    db_name=run['db'],
+                                    run_id=int(run['run_id']),
+                                    scenario_name=run['scenario'],
                                     project=project
-                                    )) 
+                                    ))
              for run in run_ids]
             db.session.commit()
             return jsonify(status=1,message="")
@@ -3352,7 +3365,7 @@ class RunList(db.Model):
             return jsonify(status=0,message="something went wrong while logging the run_ids")
 
     def get_names():
-        try: 
+        try:
             names = [run.name for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
             message = ""
             status = 1
@@ -3381,8 +3394,8 @@ class AnalyseSetup(db.Model):
         self.functions = functions
         self.groups = groups
         self.project = project
-        
-        
+
+
     @staticmethod
     def save(json_data):
         try:
@@ -3401,10 +3414,10 @@ class AnalyseSetup(db.Model):
             # setting up error_messages and setup object
             if extracted_data['name'] in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0,message=["cannot save! name " + extracted_data['name'] + " already exist"], data=None)
-            
+
             if re.search('[^\w_-]',extracted_data["name"]) or extracted_data["name"][0].isdigit():
                 return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
-            
+
             if type(extracted_data["name"]) == type(str(1)):
                 if re.search('[^\w_-]',extracted_data["name"]):
                      return jsonify(status=0,message=["error! name may only contain letters, numbers and the '-' and '_' signs"], data=None)
@@ -3420,12 +3433,12 @@ class AnalyseSetup(db.Model):
                 if not key == "name":
                     if type(extracted_data[key]) == type([]):
                         [
-                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
                         ]
                     else:
                         return jsonify(status=0,message=["input run lists identifiers must be an array"], data=None)
-            
+
             # clearing None entries from error_messages
             error_messages = [message for message in error_messages if message]
 
@@ -3439,7 +3452,7 @@ class AnalyseSetup(db.Model):
         except:
             db.session.rollback()
             return jsonify(status=0,message=["something went wrong"], data=None)
-        
+
     @staticmethod
     def update_by_name(name, json_data):
         try:
@@ -3457,7 +3470,7 @@ class AnalyseSetup(db.Model):
             # setting up error_messages and setup object
             if not name in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0,message=["cannot update! no setup with this name"], data=None)
-            
+
             if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
                 return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
 
@@ -3471,12 +3484,12 @@ class AnalyseSetup(db.Model):
                 if key not in ["name", "new_name"]:
                     if type(extracted_data[key]) == type([]):
                         [
-                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
                         ]
                     else:
                         return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
-            
+
             setup.name = extracted_data['new_name']
             # clearing None entries from error_messages
             error_messages = [message for message in error_messages if message]
@@ -3491,7 +3504,7 @@ class AnalyseSetup(db.Model):
         except:
             db.session.rollback()
             return jsonify(status=0,message=["something went wrong"], data=None)
-    
+
     @staticmethod
     def update_by_id(setup_id, json_data):
         try:
@@ -3510,7 +3523,7 @@ class AnalyseSetup(db.Model):
             setup = AnalyseSetup.query.get(setup_id)
             if setup:
                 return jsonify(status=0,message=["cannot update! no setup with this id"], data=None)
-            
+
             if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
                 return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
 
@@ -3523,12 +3536,12 @@ class AnalyseSetup(db.Model):
                 if key not in ["name", "new_name"]:
                     if type(extracted_data[key]) == type([]):
                         [
-                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
                         ]
                     else:
                         return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
-            
+
             setup.name = extracted_data['new_name']
             # clearing None entries from error_messages
             error_messages = [message for message in error_messages if message]
@@ -3585,7 +3598,7 @@ class AnalyseSetup(db.Model):
         return message
 
     def get_names():
-        try: 
+        try:
             names = [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).with_entities(AnalyseSetup.name).all()]
             message = ""
             status = 1
