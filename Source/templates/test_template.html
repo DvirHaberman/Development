@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tests</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/test_css.css">
+    <link rel="stylesheet" href="../static/css/charts.min.css">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+    <script src="../static/js/popper.min.js"></script>
+    <script src="../static/js/jquery_3_4_1_min.js"></script>
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/charts.bundle.js"></script>
+</head>
+
+<body>
+
+    <div class="fixed-top">
+        <!-- Nav Bar -->
+        <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark flex-container ">
+            <div class="left-align">
+                <div class="flex-container">
+                    <a class="navbar-brand" href="/welcome"><span style='font-size:30px;'>&#128025;</span>
+                        
+                    </a>
+                    <h6 class="navbar-brand">username</h6>
+                    <a class="nav-link dropdown-toggle navbar-brand" href="#" id="ProjectsDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Projects(proj1)
+                      </a>
+                    <div class="dropdown-menu bg-dark border-light" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item text-light bg-success border-light" href="">project1</a>
+                        <a class="dropdown-item bg-dark text-light border-light" href="">project2</a>
+                    </div>
+
+                    <a href="/logout" class="text-primary flex-container">
+                        <h6 class="navbar-brand">logout</h6>
+                    </a>
+                </div>
+            </div>
+            <div id="window-title-div" class="center-align">
+                <a class="navbar-brand" id="window-title" href="">window name</a>
+            </div>
+            <div class="right-align">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo2" aria-controls="navbarTogglerDemo2" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo2">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="Function_Definition">Define</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="run_simple">Run</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="user_wizard">Users</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="db_conn_wizard">Connections</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="flex-container">
+
+    </div>
+
+
+
+    <!-- scripts -->
+</body>
+
+</html>

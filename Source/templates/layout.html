@@ -28,13 +28,18 @@
       crossorigin="anonymous"
     ></script> -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="../static/css/dataTables.bootstrap4.min.css"> -->
     <link rel="stylesheet" href="../static/css/layout_style.css">
     <link rel="stylesheet" href="../static/css/charts.min.css">
     <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+    <link rel="stylesheet" type="text/css" href="../static/DataTables/datatables.min.css" />
+
     <script src="../static/js/popper.min.js"></script>
     <script src="../static/js/jquery_3_4_1_min.js"></script>
+    <!-- <script src="../static/js/jquery.dataTables.min.js"></script> -->
     <script src="../static/js/bootstrap.bundle.min.js"></script>
     <script src="../static/js/charts.bundle.js"></script>
+    <script type="text/javascript" src="../static/DataTables/datatables.min.js"></script>
     {% block css %}
     <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
     <link rel="stylesheet" href="../static/css/styles.css" /> -->
@@ -48,12 +53,25 @@
             <!-- Nav Bar -->
             <nav class="my-navbar navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="col-4">
-                    <a class="navbar-brand" href="/welcome"><img data-toggle="tooltip" data-placement="left" title="Tooltip on left" class="octopus-img" src="../static/images/octopus-gentelman-1.png" alt="" />
+                    <a class="navbar-brand" href="/welcome"><span style='font-size:30px;'>&#128025;</span>
+                        <!-- <img data-toggle="tooltip" data-placement="left" title="Tooltip on left" class="octopus-img" src="../static/images/octopus-gentelman-1.png" alt="" /> -->
                         <h6 class="user-name">{{session['username']}}</h6>
                     </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="ProjectsDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Projects({{session['current_project']}})
+                      </a>
+                    <div class="dropdown-menu bg-dark border-light" aria-labelledby="navbarDropdownMenuLink">
+                        {% for project in session['projects'] %} {% if project == session['current_project'] %}
+                        <a class="dropdown-item text-light bg-success border-light" href="{{'/change_project/' ~ loop.index}}">{{project}}</a> {%else%}
+                        <a class="dropdown-item bg-dark text-light border-light" href="{{'/change_project/' ~ loop.index}}">{{project}}</a> {%endif%}
+                        <!-- <div class="dropdown-divider bg-light"></div> -->
+                        {% endfor %}
+                    </div>
+
                     <a href="/logout" class="text-primary">
                         <h6>logout</h6>
                     </a>
+
                 </div>
                 <div id="window-title-div" class="mx-auto">
                     <a class="navbar-brand mx-auto" id="window-title" href="">{{session['current_window_name']}}</a>
@@ -109,6 +127,7 @@
 
 
     {%block scripts%} {% endblock %} {%block footer%} {% endblock %}
+
     <script src="../static/js/layout.js"></script>
     <script src="../static/js/run_results_charts.js"></script>
 </body>

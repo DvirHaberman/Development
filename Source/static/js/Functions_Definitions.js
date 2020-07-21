@@ -581,6 +581,12 @@ $("input[name='callback']")[0].addEventListener("change", function() {
 $("a[name='new_function_button']")[0].addEventListener("click", function() {
     Stage = "new";
     form_handler.clear_form(["function_select", "owner", "version", "function_checksum", "version_comments", "changed_date", "status"]);
+    $.ajax({
+        url: "/api/OctopusUtils/get_functions_basedir",
+        success: function(result) {
+            form_controls.location.value = result.dir;
+        }
+    });
 });
 
 
@@ -599,7 +605,28 @@ $("a[name='delete_function_button']")[0].addEventListener("click", function() {
 
 });
 
-
+form_controls.location.addEventListener("input", function() {
+    $.ajax({
+        type: "POST",
+        url: "/api/OctopusUtils/get_files_in_dir",
+        dataType: "json",
+        data: JSON.stringify({ "path": form_controls.location.value }),
+        contentType: 'application/json',
+        success: function(result) {
+            var datalistObj = $('#location_datalist')[0]
+            var numOfEle = datalistObj.children.length;
+            for (i = 0; i < numOfEle; i++) {
+                datalistObj.removeChild(datalistObj.options[0]);
+            }
+            for (i = 0; i < result.all.length; i++) {
+                // insert
+                var option = document.createElement("option");
+                option.value = result.all[i];
+                datalistObj.appendChild(option);
+            }
+        }
+    });
+});
 $("a[name='save_function_button']")[0].addEventListener("click", function() {
     data = form_handler.get_form_data();
 

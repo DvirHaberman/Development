@@ -17,7 +17,82 @@ import importlib
 from pathlib import Path
 import sys
 import os
+from os import listdir
+from os.path import isfile, join
 import cx_Oracle
+from time import time
+from decimal import Decimal
+import re
+
+if sys.platform.startswith('win'):
+    sep = '\\'
+else:
+    sep = '/'
+
+def run_sql(conn, run_id, query, params):
+    try:
+        translator = {"&run_id":run_id}
+        for index, row in params.iterrows():
+            translator['&' + row.param_name] = row.value
+    except:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! parameters extaction error!",
+                    'results_arr' : None
+                }
+
+    try:
+        for key, value in translator.items():
+            query = query.replace(key,str(value))
+    except:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! parameters replacement error!",
+                    'results_arr' : None
+                }
+    try:
+        result = pd.read_sql(query,con=conn)
+        result['status'] = 4
+        result['text'] = 'some text'
+    except Exception as error:
+        return {
+                        'result_status':1,
+                        'result_text':"Error! SQL didn't run properly!",
+                        'results_arr' : None
+                    }
+    if len(result) == 0:
+        return {
+                        'result_status':1,
+                        'result_text':'Error! SQL returned an empty result',
+                        'results_arr' : None
+        }
+
+    try:
+        if len(result) > 0:
+            result_status = list(result.head(1)['status'].values)[0]
+            result_text = list(result.head(1)['text'].values)[0]
+            result.drop(columns=['status', 'text'], inplace=True)
+            return {
+                            # 'result_status':result_first_line['Status'],
+                            # 'result_text':result_first_line['Text'],
+                            'result_status':result_status,
+                            'result_text': result_text,
+                            'results_arr' : result
+                        }
+    except Exception as error:
+        return {
+                    'result_status':1,
+                    'result_text':"Error! something went wrong while extracting the result Text, Status and array",
+                    'results_arr' : None
+                }
+    
+
+def run_matlab(conn, run_id, params):
+    return {
+        'result_status':4,
+        'result_text':"Well you just did nothing",
+        'results_arr' : None
+    }
 
 def init_db():
     db = SQLAlchemy()
@@ -26,9 +101,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:MySQLPass@localhost:3306/octopusdb2"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb3"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -44,6 +118,34 @@ FunctionsAndGroups = db.Table('FunctionsAndGroups',
                                         db.ForeignKey('OctopusFunctions.id')),
                               db.Column('group_id', db.Integer,
                                         db.ForeignKey('FunctionsGroup.id'))
+                              )
+
+ProjectsAndUsers = db.Table('ProjectsAndUsers',
+                              db.Column('project_id', db.Integer,
+                                        db.ForeignKey('Project.id')),
+                              db.Column('user_id', db.Integer,
+                                        db.ForeignKey('User.id'))
+                              )
+
+SetupsAndFunctions = db.Table('SetupsAndFunctions',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('function_id', db.Integer,
+                                        db.ForeignKey('OctopusFunctions.id'))
+                              )
+
+SetupsAndGroups = db.Table('SetupsAndGroups',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('group_id', db.Integer,
+                                        db.ForeignKey('FunctionsGroup.id'))
+                              )
+
+SetupsAndRunLists = db.Table('SetupsAndRunLists',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('run_list_id', db.Integer,
+                                        db.ForeignKey('RunList.id'))
                               )
 
 
@@ -65,7 +167,7 @@ class DbConnector:
         self.port = port
         self.connection = None
         self.message = ''
-
+        
         # assinging name - if no name is given then the name is composed of the type and schema
         if name or name == '':
             self.name = name
@@ -126,13 +228,14 @@ class DbConnector:
             return
 
         # checking if the name exists - names must be unique
-        if DbConnections.query.filter_by(name=self.name).first():
+        if DbConnections.query.filter_by(name=self.name,project=session['current_project_id']).first():
             self.message = 'cannot save - db name already exist'
             self.status = 'invalid'
             return
         # saving connection data to DB
         try:
-            conn = DbConnections(self.db_type, self.user, self.password, self.hostname, self.port, self.schema, self.name, self.conn_string)
+            conn = DbConnections(self.db_type, self.user, self.password, self.hostname,
+                                 self.port, self.schema, self.name, self.conn_string, project=session['current_project_id'])
             db.session.add(conn)
             db.session.commit()
         except Exception as error:
@@ -161,7 +264,7 @@ class DbConnector:
 
     @staticmethod
     def load_conn_by_name(db_name):
-        conn_data = DbConnections.query.filter_by(name=db_name).first()
+        conn_data = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first()
         return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                          password=conn_data.password, hostname=conn_data.hostname,
                          schema=conn_data.schema, port=conn_data.port,
@@ -169,13 +272,14 @@ class DbConnector:
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
-        run_ids = conn.run_sql('select run_id from run_ids')
-        return jsonify([int(x) for x in list(run_ids['run_id'].values)])
+        data = conn.run_sql('select run_id, scenario_name from run_ids')
+        return jsonify(status=1,run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
+
 
     @staticmethod
     def delete_conn_by_name(name):
         try:
-            conn = DbConnections.query.filter_by(name=name).first()
+            conn = DbConnections.query.filter_by(name=name,project=session['current_project_id']).first()
             if conn:
                 db.session.delete(conn)
                 db.session.commit()
@@ -213,6 +317,15 @@ class OctopusUtils:
     def get_db_conn(db_name):
         return 'db_conn for'+ db_name
 
+    @staticmethod
+    def get_files_in_dir(json_data):
+        base_path = sep.join(json_data['path'].split(sep)[0:-1]+[''])
+        return jsonify(all=[join(base_path, f) for f in listdir(base_path)], files=[f for f in listdir(base_path) if isfile(join(base_path, f))])
+
+    @staticmethod
+    def get_functions_basedir():
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        return jsonify(dir=sep.join(basedir.split(sep)[0:-2]+['Functions','']))
 
 
 
@@ -327,7 +440,7 @@ class Role(db.Model):
 #########################################
 
 class User(db.Model):
-    __tablename__ = "Users"
+    __tablename__ = "User"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     first_name = db.Column(db.Text)
@@ -338,10 +451,13 @@ class User(db.Model):
     functions = db.relationship('OctopusFunction', backref='User', lazy=True)
     max_priority = db.Column(db.Integer)
     state = db.Column(db.Integer)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    # project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    projects = db.relationship('Project', secondary=ProjectsAndUsers,
+                                backref=db.backref('users', lazy='dynamic'))
+    default_project = db.Column(db.Integer)
 
     def __init__(self, name=None, first_name=None, last_name=None, password_sha=None, state=None,
-                 role=None, team=None, functions=[], max_priority=None, project=None):
+                 role=None, team=None, functions=[], max_priority=None, projects=[], default_project=None):
         self.name = name
         self.first_name = first_name
         self.last_name = last_name
@@ -351,7 +467,8 @@ class User(db.Model):
         self.team = team
         self.functions = functions
         self.max_priority = max_priority
-        self.project = project
+        self.projects = projects
+        self.default_project = default_project
 
     def self_jsonify(self):
         return jsonify(
@@ -365,7 +482,8 @@ class User(db.Model):
             functions=jsonify([func.self_jsonify()
                                for func in self.functions]).json,
             max_priority=self.max_priority,
-            project=Project.query.get(self.project).name
+            projects=jsonify([project.name
+                               for project in self.projects]).json
         ).json
 
     @staticmethod
@@ -385,11 +503,18 @@ class User(db.Model):
             k+=1
         team_id = Team.query.filter_by(name=data['team']).first().id
         role_id = Role.query.filter_by(name=data['role']).first().id
-        project_id = Project.query.filter_by(name=data['project']).first().id
+        projects = db.session.query(Project).filter(Project.name.in_(data['projects'])).all()
         user = User(name=data['first_name']+data['last_name'][:k+1], first_name=data['first_name'], last_name=data['last_name'], password_sha='123456', state=0,
-                 role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), project=project_id)
+                 role=role_id, team=team_id, functions=[], max_priority=int(data['max_priority']), projects=projects)
         db.session.add(user)
         db.session.commit()
+        session['projects'] = data['projects']
+        if session['projects']:
+            if session['current_project'] not in session['projects']:
+                session['current_project'] = session['projects'][0]
+        else:
+            session['current_project'] = None
+
         return jsonify(status=1, msg='user ' + user.name +' was successfuly saved')
 
     @staticmethod
@@ -398,9 +523,16 @@ class User(db.Model):
         user.max_priority = data['max_priority']
         user.team = Team.query.filter_by(name=data['team']).first().id
         user.role = Role.query.filter_by(name=data['role']).first().id
-        user.project = Project.query.filter_by(name=data['project']).first().id
+        user.projects = []
+        user.projects = db.session.query(Project).filter(Project.name.in_(data['projects'])).all()
         db.session.add(user)
         db.session.commit()
+        session['projects'] = data['projects']
+        if session['projects']:
+            if session['current_project'] not in session['projects']:
+                session['current_project'] = session['projects'][0]
+        else:
+            session['current_project'] = None
         return jsonify(status=1,msg='user updated!')
     @staticmethod
     def delete_user_by_name(name):
@@ -469,7 +601,7 @@ class User(db.Model):
 
     @staticmethod
     def get_user_by_id(user_id):
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         return jsonify(user.self_jsonify())
 
     # def __repr__(self):
@@ -494,14 +626,22 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     output_dir = db.Column(db.Text)
-    users = db.relationship('User', backref='Project', lazy=True)
+    repository_root = db.Column(db.Text)
+    # users = db.relationship('User', backref='Project', lazy=True)
     sites = db.relationship('Site', backref='Project', lazy=True)
+    functions = db.relationship(
+        'OctopusFunction', backref='Project', lazy=True, uselist=True)
+    functions_groups = db.relationship(
+        'FunctionsGroup', backref='Project', lazy=True, uselist=True)
+    db_connections = db.relationship(
+        'DbConnections', backref='Project', lazy=True, uselist=True)
 
-    def __init__(self, name, output_dir, users=[], sites=[]):
+    def __init__(self, name, output_dir=None, repository_root=None, sites=[]):
         self.name = name
         # self.version = version
         self.output_dir = output_dir
-        self.users = users
+        self.repository_root = repository_root
+        # self.users = users
         self.sites = sites
 
     def self_jsonify(self):
@@ -509,7 +649,8 @@ class Project(db.Model):
             id=self.id,
             name=self.name,
             output_dir=self.output_dir,
-            users=jsonify([user.name for user in self.users]).json,
+            # users=jsonify([user.name for user in self.users]).json,
+            users=jsonify([user.self_jsonify() for user in self.users]).json,
             sites=jsonify([site.self_jsonify() for site in self.sites]).json,
             sites_names=jsonify([site.name for site in self.sites]).json
         ).json
@@ -713,7 +854,7 @@ class OctopusFunction(db.Model):
     callback = db.Column(db.Text)
     file_name = db.Column(db.Text)
     location = db.Column(db.Text)
-    owner = db.Column(db.Integer, db.ForeignKey('Users.id'))
+    owner = db.Column(db.Integer, db.ForeignKey('User.id'))
     status = db.Column(db.Integer)
     tree = db.relationship(
         'Trees', backref='OctopusFunction', lazy=True, uselist=False)
@@ -732,10 +873,12 @@ class OctopusFunction(db.Model):
         'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
     feature = db.Column(db.Text)
     requirement = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
                  kind=None, tags=None, description=None, version_comments=None,  is_class_method=1, class_name='Calc',
                  function_checksum=None, version=None, handler_checksum=None, function_parameters=[], changed_date=datetime.utcnow(),
-                 is_locked=0, feature=None, requirement=None):
+                 is_locked=0, feature=None, requirement=None, project=None):
         self.name = name
         self.callback = callback
         self.file_name = file_name
@@ -757,6 +900,7 @@ class OctopusFunction(db.Model):
         self.function_parameters = function_parameters
         self.feature = feature
         self.requirement = requirement
+        self.project = project
 
     def self_jsonify(self):
         try:
@@ -836,7 +980,7 @@ class OctopusFunction(db.Model):
                 callback=data['callback'],
                 location=data['location'],
                 owner=User.query.filter_by(name=session['username'])[0].id,
-                file_name = data['location'].split('\\')[-1],
+                file_name = data['location'].split(sep)[-1],
                 class_name = data['class_name'],
                 is_class_method = is_class_method,
                 status=status,
@@ -933,7 +1077,7 @@ class OctopusFunction(db.Model):
                 func.callback=data['callback']
                 func.location=data['location']
                 func.owner=User.query.filter_by(name=session['username'])[0].id
-                func.file_name = data['location'].split('\\')[-1]
+                func.file_name = data['location'].split(sep)[-1]
                 func.class_name = data['class_name']
                 func.is_class_method = is_class_method
                 func.status=status
@@ -990,13 +1134,13 @@ class OctopusFunction(db.Model):
             db.session.close()
     @staticmethod
     def jsonify_all():
-        table = OctopusFunction.query.all()
+        table = OctopusFunction.query.filter_by(project=session['current_project_id']).all()
         return jsonify([row.self_jsonify() for row in table])
 
     @staticmethod
     def delete_by_name(name):
         try:
-            func = OctopusFunction.query.filter_by(name=name).first()
+            func = OctopusFunction.query.filter_by(name=name,project=session['current_project_id']).first()
             if func:
                 db.session.delete(func)
                 db.session.commit()
@@ -1019,7 +1163,7 @@ class OctopusFunction(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = OctopusFunction.query.with_entities(OctopusFunction.name).all()
+            names = OctopusFunction.query.filter_by(project=session['current_project_id']).with_entities(OctopusFunction.name).all()
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1046,86 +1190,172 @@ class OctopusFunction(db.Model):
                     'db_conn': db_conn.name,
                     'result_status':1,
                     'result_text':'Error! Function module is not in the specified location',
-                    'result_arr' : None
+                    'results_arr' : None,
+                    'time_elapsed' : None
                 }
-            #import module
-            if self.file_name == None:
-                file_name = self.location.split('\\')[-1]
-                module = importlib.import_module(file_name.split('.')[0])
-            else:
-                module = importlib.import_module(self.file_name.split('.')[0])
-            #if class - check for method
-
-            if self.is_class_method:
+            try:
+                db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
+                conn = db_conn.connection.connect()
+            except:
                 try:
-                    req_class = getattr(module, self.class_name)
-                    req_method = getattr(req_class, self.callback)
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
                 except:
+                    db_conn.connection = None
+                return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1,
+
+                    'result_text':"Error! Unexpected error while connecting to db",
+                    'results_arr' : None,
+                    'time_elapsed' : None
+                }
+            try:
+                parameters_list = self.get_parameters_list(conn, run_id)
+            except:
+
+                return {
+                    'run_id': run_id,
+                    'db_conn': db_conn,
+                    'result_status':1,
+                    'result_text':"Error! Unexpected error while extracting method's parameters",
+                    'results_arr' : None,
+                    'time_elapsed' : None
+                }
+            try:
+                if self.kind.lower() == 'python':
+                    #import module
+                    try:
+                        if self.file_name == None:
+                            self.file_name = self.location.split(sep)[-1]
+                            module = importlib.import_module(file_name.split('.')[-2])
+                        else:
+                            module = importlib.import_module(self.file_name.split('.')[-2])
+                    except:
+                        return {
+                            'run_id': run_id,
+                            'db_conn': db_conn.name,
+                            'result_status':1,
+                            'result_text':'Error! Error while getting the module (file)',
+                            'results_arr' : None,
+                            'time_elapsed' : None
+                        }
+                    #if class - check for method
+
+                    if self.is_class_method:
+                        try:
+                            req_class = getattr(module, self.class_name)
+                            req_method = getattr(req_class, self.callback)
+                        except:
+                            return {
+                            'run_id': run_id,
+                            'db_conn': db_conn.name,
+                            'result_status':1,
+                            'result_text':'Error! The specified module does not contain the given class or method',
+                            'results_arr' : None,
+                            'time_elapsed' : None
+                            }
+                    #else - check for function
+                    else:
+                        try:
+                            req_method = getattr(module, self.callback)
+                        except:
+                            return {
+                                'run_id': run_id,
+                                'db_conn': db_conn.name,
+                                'result_status':1,
+                                'result_text':'Error! Unexpected error while extracting the method',
+                                'results_arr' : None,
+                                'time_elapsed' : None
+                            }
+            
+                        if len(parameters_list) > 0:
+                            if 'Tests Params' in parameters_list:
+                                index = parameters_list.index('Tests Params')
+                                parameters_list[index] = tests_params
+                            start_time = time()
+                            result_dict = req_method(conn, run_id, *parameters_list)
+                        else:
+                            start_time = time()
+                            result_dict = req_method(conn, run_id)
+                elif self.kind.lower() == 'sql':
+                    if len(parameters_list) > 0:
+                        if 'Tests Params' in parameters_list:
+                            index = parameters_list.index('Tests Params')
+                            parameters_list[index] = tests_params
+                        query = open(self.location,'r').read()
+                        start_time = time()
+                        result_dict = run_sql(conn, run_id, query, *parameters_list)
+                    else:
+                        start_time = time()
+                        result_dict = run_sql(conn, run_id)
+
+                elif self.kind.lower() == 'matlab':
+                    if len(parameters_list) > 0:
+                        if 'Tests Params' in parameters_list:
+                            index = parameters_list.index('Tests Params')
+                            parameters_list[index] = tests_params
+                        start_time = time()
+                        result_dict = run_matlab(conn, run_id, *parameters_list)
+                    else:
+                        start_time = time()
+                        result_dict = run_matlab(conn, run_id)
+                else:
                     return {
+                        'run_id': run_id,
+                        'db_conn': db_conn.name,
+                        'result_status':1,
+                        'result_text':'Error! Function kind must be python, sql or matlab',
+                        'results_arr' : None,
+                        'time_elapsed' : None
+                    }
+                time_elapsed = time() - start_time
+                # if str.find(str(time_elapsed),'.') > 0:
+                #     str_time_elapsed = str(time_elapsed)
+                #     if len(str_time_elapsed.split('.')[-1]) > 3:
+                #         str_time_elapsed = str_time_elapsed.split('.')
+                #         time_elapsed = float(str_time_elapsed[0]+'.'+str_time_elapsed[-1][0:3])
+                conn.close()
+                db_conn.connection.dispose()
+                db_conn.connection = None
+                result_dict['result_status'] = int(result_dict['result_status'])
+                result_dict.update([('run_id', run_id), ('db_conn', db_conn.name), ('time_elapsed', time_elapsed)])
+                return result_dict
+            except Exception as error:
+                try:
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
+                except:
+                    db_conn.connection = None
+
+                return {
                     'run_id': run_id,
                     'db_conn': db_conn.name,
                     'result_status':1,
-                    'result_text':'Error! The specified module does not contain the given class or method',
-                    'result_arr' : None
+                    'result_text':'Error! Unexpected error while activating the method',
+                    'results_arr' : None,
+                    'time_elapsed' : None
                 }
-            #else - check for function
-            else:
-                req_method = getattr(module, self.callback)
         except:
             return {
                 'run_id': run_id,
                 'db_conn': db_conn.name,
                 'result_status':1,
-                'result_text':'Error! Unexpected error while extracting the method',
-                'result_arr' : None
+                'result_text':'Error! Unexpected error while handling the method',
+                'results_arr' : None,
+                'time_elapsed' : None
             }
-        try:
-            db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
-            conn = db_conn.connection.connect()
-            parameters_list = self.get_parameters_list(conn, run_id)
-        except:
-            try:
-                conn.close()
-                db_conn.connection.dispose()
-                db_conn.connection = None
-            except:
-                db_conn.connection = None
-            return {
-                'run_id': run_id,
-                'db_conn': db_conn,
-                'result_status':1,
-                'result_text':"Error! Unexpected error while extracting method's parameters",
-                'result_arr' : None
-            }
-        try:
-            if len(parameters_list) > 0:
-                if 'Tests Params' in parameters_list:
-                    index = parameters_list.index('Tests Params')
-                    parameters_list[index] = tests_params
-                result_dict = req_method(conn, run_id, *parameters_list)
-            else:
-                result_dict = req_method(conn, run_id)
-            conn.close()
-            db_conn.connection.dispose()
-            db_conn.connection = None
-            result_dict.update([('run_id', run_id), ('db_conn', db_conn.name)])
-            return result_dict
-        except Exception as error:
-            try:
-                conn.close()
-                db_conn.connection.dispose()
-                db_conn.connection = None
-            except:
-                db_conn.connection = None
-
-            return {
-                'run_id': run_id,
-                'db_conn': db_conn.name,
-                'result_status':1,
-                'result_text':'Error! Unexpected error while activating the method',
-                'result_arr' : None
-            }
-
+        finally:
+            if db_conn.connection:
+                try:
+                    conn.close()
+                    db_conn.connection.dispose()
+                    db_conn.connection = None
+                except:
+                    db_conn.connection = None
     # def __repr__(self):
     #     print(f'my name is {self.name} and my owner is {self.owner}')
 
@@ -1210,23 +1440,24 @@ class FunctionsGroup(db.Model):
     __tablename__ = 'FunctionsGroup'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
-
-    def __init__(self, name=None, functions=[]):
+    def __init__(self, name=None, project=None, functions=[]):
         self.name = name
-        self. functions = functions
+        self.functions = functions
+        self.project = project
 
     def self_jsonify(self):
         return jsonify(
             id=self.id,
             name=self.name,
-            functions=jsonify([func.name for func in self.functions]).json
+            functions=jsonify([func.name for func in self.functions if func.project==session['current_project_id']]).json
         ).json
 
     @staticmethod
     def jsonify_all():
-        table = FunctionsGroup.query.all()
+        table = FunctionsGroup.query.filter_by(project=session['current_project_id']).all()
         return jsonify([row.self_jsonify() for row in table])
 
     def add_functions(self, functions_list):
@@ -1245,7 +1476,7 @@ class FunctionsGroup(db.Model):
                         else:
                             messages.append('Error: No functions with id ' + func)
                     else:
-                        func_obj = OctopusFunction.query.filter_by(name=func).first()
+                        func_obj = OctopusFunction.query.filter_by(name=func,project=session['current_project_id']).first()
                         if func_obj:
                             func_obj = func_obj
                             identifier_resolved_flag=True
@@ -1287,9 +1518,9 @@ class FunctionsGroup(db.Model):
         try:
             messages = []
             name = json_data['name']
-            if name in [group.name for group in FunctionsGroup.query.all()]:
+            if name in [group.name for group in FunctionsGroup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
-            group = FunctionsGroup(name=name)
+            group = FunctionsGroup(name=name, project=session['current_project_id'])
             db.session.add(group)
             db.session.commit()
             functions = json_data['functions']
@@ -1313,7 +1544,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = FunctionsGroup.query.with_entities(FunctionsGroup.name).all()
+            names = FunctionsGroup.query.filter_by(project=session['current_project_id']).with_entities(FunctionsGroup.name).all()
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1333,7 +1564,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def get_by_name(group_name):
         try:
-            group = FunctionsGroup.query.filter_by(name=group_name).first()
+            group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
             return jsonify(status=1, message=None, data=group.self_jsonify())
         except:
             return jsonify(status=0, message='something went wrong', data=None)
@@ -1343,7 +1574,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            group = FunctionsGroup.query.filter_by(name=name).first()
+            group = FunctionsGroup.query.filter_by(name=name, project=session['current_project_id']).first()
             if group:
                 db.session.delete(group)
                 db.session.commit()
@@ -1373,7 +1604,7 @@ class FunctionsGroup(db.Model):
     @staticmethod
     def update_by_name(name, json_data):
         try:
-            group = FunctionsGroup.query.filter_by(name=name).first()
+            group = FunctionsGroup.query.filter_by(name=name,project=session['current_project_id']).first()
             if group:
                 updated_functions = json_data['functions']
                 if not type(updated_functions) == type([1]):
@@ -1438,9 +1669,9 @@ class DbConnections(db.Model):
     port = db.Column(db.Text)
     schema = db.Column(db.Text)
     conn_string = db.Column(db.Text)
+    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
 
-
-    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string):
+    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string, project=None):
         self.db_type = db_type
         self.schema = schema
         self.user = user
@@ -1449,6 +1680,7 @@ class DbConnections(db.Model):
         self.port = port
         self.name = name
         self.conn_string = conn_string
+        self.project = project
 
     def self_jsonify(self):
         return jsonify(
@@ -1464,7 +1696,7 @@ class DbConnections(db.Model):
 
     @staticmethod
     def get_names():
-        connections = DbConnections.query.all()
+        connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
         return jsonify([conn.name for conn in connections])
 ##################################################
 ########### ERRORLOG MODEL CLASS ####################
@@ -1557,23 +1789,20 @@ class Mission(db.Model):
         functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_( json_data['functions'])).all()
         names = [func.name for func in functions]
         runs = json_data['runs']
-        if not type(runs) == type(list()):
-            runs = [runs]
-        conn = DbConnector.load_conn_by_id(int(json_data['conn_id']))
-        # conn = DbConnector(json_data['db_name'], 'postgres', 'dvirh', 'localhost', '5432', 'octopusdb')
-        if not (runs and functions):
-            return jsonify(None)
+
         mission = Mission(json_data['mission_name'])
         db.session.add(mission)
         db.session.commit()
         user_id = json_data['user_id']
-        for run in runs:
-            for func in functions:
-                task = Task(mission.id, conn, run, func.id, user_id)
-                tasks_queue.put_nowait(task)
-                # task.log()
-                # task.run()
-                # task.update()
+        for db_name in runs:
+            conn = DbConnector.load_conn_by_name(db_name)
+            run_ids = [run for run in runs[db_name]]
+            if not type(run_ids) == type(list()):
+                run_ids = run_ids
+            for run in run_ids:
+                for func in functions:
+                    task = Task(mission.id, conn, run, func.id, user_id)
+                    tasks_queue.put_nowait(task)
 
         return str(mission.id)
 
@@ -1613,7 +1842,7 @@ class OverView(db.Model):
             analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
                                            result_status=result['result_status'],
                                            result_text=result['result_text'],
-                                           result_array=result['result_arr'])#,
+                                           result_array=result['results_arr'])#,
                                         #    result_array_header=[],#result['result_array_header'],
                                         #    result_array_types=[])#=result['result_array_types'])
 
@@ -1632,9 +1861,10 @@ class AnalyseResult(db.Model):
     result_array = db.relationship('ResultArray', backref='AnalyseResult', lazy=True, uselist=True)
     result_array_header = db.Column(db.Text)
     result_array_types = db.Column(db.Text)
+    time_elapsed = db.Column(db.Float)
 
     def __init__(self, task_id, run_id,  result_status, result_text,
-                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None):
+                db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None, time_elapsed=None):
         self.task_id = task_id
         self.run_id = run_id
         self.db_conn = db_conn_string
@@ -1642,6 +1872,7 @@ class AnalyseResult(db.Model):
         self.result_text = result_text
         self.result_array = []
         self.result_array_types = result_array_types
+        self.time_elapsed = time_elapsed
         # db.session.add(self)
         # db.session.commit()
 
@@ -1666,6 +1897,7 @@ class AnalyseResult(db.Model):
 
     def log(self, data_obj, error_queue):
         db.session.add(self)
+        self.time_elapsed = float(self.time_elapsed)
         db.session.commit()
         message = ''
         try:
@@ -1756,16 +1988,23 @@ class AnalyseResult(db.Model):
         # # ids = list(zip(*ids))
         # data = AnalyseResult.jsonify_by_ids(*list((*zip(*ids)))).json
         mission_results = [{'function_name':OctopusFunction.query.get(task.function_id).name,
-                            task.run_id:{
+                            'function_state':OctopusFunction.query.get(task.function_id).status,
+                            'requirement':OctopusFunction.query.get(task.function_id).requirement,
+                            'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
+                            task.db_conn_string+ ' - ' +str(task.run_id):{
                                             'result_id':AnalyseResult.query.filter_by(task_id=task.id)[0].id,
-                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status
+                                            'status':AnalyseResult.query.filter_by(task_id=task.id)[0].result_status,
+                                            'time_elapsed' : AnalyseResult.query.filter_by(task_id=task.id)[0].time_elapsed
                                         }
                             }
 
                             if task.status == 4
                             else
                             {'function_name':OctopusFunction.query.get(task.function_id).name,
-                            task.run_id:-1}
+                            'function_state':OctopusFunction.query.get(task.function_id).status,
+                            'requirement':OctopusFunction.query.get(task.function_id).requirement,
+                            'owner' : User.query.get(OctopusFunction.query.get(task.function_id).owner).name,
+                            task.db_conn_string+ ' - ' +str(task.run_id):-1}
                             for task in tasks]
         res_df = pd.DataFrame(mission_results)
         if res_df.empty:
@@ -2444,7 +2683,7 @@ class ComplexNet(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            complex_net = ComplexNet.query.filter_by(name=name).first()
+            complex_net = ComplexNet.query.filter_by(name=name,project=session['current_project_id']).first()
             if complex_net:
                 db.session.delete(complex_net)
                 db.session.commit()
@@ -2942,7 +3181,7 @@ class StageRunMani(db.Model):
     @staticmethod
     def delete_by_name(name):
         try:
-            stage_run_mani = StageRunMani.query.filter_by(name=name).first()
+            stage_run_mani = StageRunMani.query.filter_by(name=name,project=session['current_project_id']).first()
             if stage_run_mani:
                 db.session.delete(stage_run_mani)
                 db.session.commit()
@@ -3048,5 +3287,341 @@ class StageRunMani(db.Model):
 
         except Exception as error:
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+        finally:
+            db.session.close()
+
+
+class RunList(db.Model):
+    __tablename__ = 'RunList'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    db_name = db.Column(db.Text)
+    run_id = db.Column(db.Integer)
+    scenario_name = db.Column(db.Text)
+    project = db.Column(db.Integer)
+
+    def __init__(self,name, db_name, run_id, scenario_name, project):
+        self.name = name
+        self.db_name = db_name
+        self.run_id = run_id
+        self.scenario_name = scenario_name
+        self.project = project
+
+    def self_jsonify(self):
+        return jsonify(
+            name = self.name,
+            db_name = self.db_name,
+            scenario_name = self.scenario_name,
+            project = Project.query.get(self.project).name
+        ).json
+
+    @staticmethod
+    def get_by_name(run_list_name):
+        try:
+            run_list = RunList.query.filter_by(name=run_list_name, project=session['current_project_id']).all()
+            return jsonify(status=1, message=None, data=[run.self_jsonify() for run in run_list])
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    def save(json_data):
+        if 'run_ids' not in json_data:
+            return jsonify(status=0,message="did not find 'run_ids' field in sent data")
+        if 'name' not in json_data:
+            return jsonify(status=0,message="did not find 'name' field in sent data")
+
+        project = session['current_project_id']
+        name = json_data['name']
+        names = [l_name for l_name in RunList.query.filter_by(name=name, project=project).with_entities(RunList.name).distinct()]
+        if name in list(*zip(*names)):
+            return jsonify(status=0,message="list name already exist!")
+        run_ids = json_data['run_ids']
+        try:
+            [db.session.add(RunList(
+                                    name=name,
+                                    db_name=run['db'], 
+                                    run_id=int(run['run_id']), 
+                                    scenario_name=run['scenario'], 
+                                    project=project
+                                    )) 
+             for run in run_ids]
+            db.session.commit()
+            return jsonify(status=1,message="")
+        except:
+            return jsonify(status=0,message="something went wrong while logging the run_ids")
+
+    def get_names():
+        try: 
+            names = [run.name for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
+
+class AnalyseSetup(db.Model):
+    __tablename__ = 'AnalyseSetup'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    functions = db.relationship('OctopusFunction', secondary=SetupsAndFunctions,
+                                backref=db.backref('functions', lazy='dynamic'))
+    groups = db.relationship('FunctionsGroup', secondary=SetupsAndGroups,
+                                backref=db.backref('groups', lazy='dynamic'))
+    run_lists = db.relationship('RunList', secondary=SetupsAndRunLists,
+                                backref=db.backref('run_lists', lazy='dynamic'))
+    project = db.Column(db.Integer)
+
+    def __init__(self,name,run_lists=[],functions=[], groups=[], project=None):
+        self.name = name
+        self.run_lists = run_lists
+        self.functions = functions
+        self.groups = groups
+        self.project = project
+        
+        
+    @staticmethod
+    def save(json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"name":None, "run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['name']) == 0:
+                return jsonify(status=0,message=["cannot update! name cannot be empty"], data=None)
+
+            # setting up error_messages and setup object
+            if extracted_data['name'] in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
+                return jsonify(status=0,message=["cannot save! name " + extracted_data['name'] + " already exist"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["name"]) or extracted_data["name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+            
+            if type(extracted_data["name"]) == type(str(1)):
+                if re.search('[^\w_-]',extracted_data["name"]):
+                     return jsonify(status=0,message=["error! name may only contain letters, numbers and the '-' and '_' signs"], data=None)
+            else:
+                return jsonify(status=0,message=["error! name must be a string"], data=None)
+            error_messages = []
+            setup = AnalyseSetup(name=json_data['name'], project=session['current_project_id'])
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if not key == "name":
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input run lists identifiers must be an array"], data=None)
+            
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+        
+    @staticmethod
+    def update_by_name(name, json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"new_name":None ,"run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['new_name']) == 0:
+                return jsonify(status=0,message=["cannot update! new name cannot be empty"], data=None)
+            # setting up error_messages and setup object
+            if not name in [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).all()]:
+                return jsonify(status=0,message=["cannot update! no setup with this name"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+
+            error_messages = []
+            setup = AnalyseSetup.query.filter_by(name=json_data['name'], project=session['current_project_id']).first()
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if key not in ["name", "new_name"]:
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
+            
+            setup.name = extracted_data['new_name']
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+    
+    @staticmethod
+    def update_by_id(setup_id, json_data):
+        try:
+            # setting up expected data structure
+            extracted_data = {"new_name":None ,"run_lists": [], "functions":[], "groups":[]}
+
+            # extracting data - return error message if one of the keys is not found
+            for key in extracted_data.keys():
+                if key in json_data:
+                    extracted_data[key] = json_data[key]
+                else:
+                    return jsonify(status=0,message=["did not find " + key + " in sent data"], data=None)
+            if len(extracted_data['new_name']) == 0:
+                return jsonify(status=0,message=["cannot update! new name cannot be empty"], data=None)
+            # setting up error_messages and setup object
+            setup = AnalyseSetup.query.get(setup_id)
+            if setup:
+                return jsonify(status=0,message=["cannot update! no setup with this id"], data=None)
+            
+            if re.search('[^\w_-]',extracted_data["new_name"]) or extracted_data["new_name"][0].isdigit():
+                return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
+
+            error_messages = []
+            setup.run_lists = []
+            setup.functions = []
+            setup.groups = []
+            # extracting object from identifiers and appending to setup object
+            for key in extracted_data.keys():
+                if key not in ["name", "new_name"]:
+                    if type(extracted_data[key]) == type([]):
+                        [
+                            error_messages.append(setup.append_object_by_identifier(obj, key)) 
+                            for obj in extracted_data[key]
+                        ]
+                    else:
+                        return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
+            
+            setup.name = extracted_data['new_name']
+            # clearing None entries from error_messages
+            error_messages = [message for message in error_messages if message]
+
+            #commit if there are no error messages. otherwise, return error
+            if error_messages:
+                db.session.rollback()
+                return jsonify(status=0,message=error_messages, data=None)
+            db.session.add(setup)
+            db.session.commit()
+            return jsonify(status=1,message=[], data=None)
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message=["something went wrong"], data=None)
+
+    def append_object_by_identifier(self, identifer, obj_type):
+        message = None
+        if type(identifer) == type(str(1)):
+            if identifer.isdigit():
+                identifer = int(identifer)
+                method = 'get'
+            else:
+                method = 'filter'
+        elif type(identifer) == type(int(1)):
+            method = 'get'
+        else:
+            message = 'error! idnetifer must be the object id name'
+            return message
+        if obj_type == 'groups':
+            query_obj = FunctionsGroup.query
+        elif obj_type == 'functions':
+            query_obj = OctopusFunction.query
+        elif obj_type == 'run_lists':
+            query_obj = RunList.query
+        else:
+            message = 'error! unidentified object type'
+        if method == 'get':
+            obj_to_append = query_obj.get(identifer)
+        else:
+            if obj_type == 'run_lists':
+                obj_to_append = query_obj.filter_by(name=identifer, project=session['current_project_id']).all()
+            else:
+                obj_to_append = query_obj.filter_by(name=identifer, project=session['current_project_id']).first()
+        if obj_to_append:
+            if obj_type == 'groups':
+                self.groups.append(obj_to_append)
+            elif obj_type == 'functions':
+                self.functions.append(obj_to_append)
+            else:
+                [self.run_lists.append(obj) for obj in obj_to_append]
+        else:
+            message = 'error! no object with given identifier' + str(identifer)
+
+        return message
+
+    def get_names():
+        try: 
+            names = [setup.name for setup in AnalyseSetup.query.filter_by(project=session['current_project_id']).with_entities(AnalyseSetup.name).all()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
+
+    @staticmethod
+    def delete_by_id(setup_id):
+        try:
+            setup = AnalyseSetup.query.get(int(setup_id))
+            if setup:
+                db.session.delete(setup)
+                db.session.commit()
+                return jsonify(status=1,msg='setup with id:' + setup_id + ' succefully deleted')
+            else:
+                return jsonify(status=0,message='Not deleted! No setup with this id')
+        except:
+            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def delete_by_name(name):
+        try:
+            setup = AnalyseSetup.query.filter_by(name=name,project=session['current_project_id']).first()
+            if setup:
+                db.session.delete(setup)
+                db.session.commit()
+                return jsonify(status=1,msg='setup ' + name + ' succefully deleted')
+            else:
+                return jsonify(status=0,msg='Not deleted! No setup with this name')
+        except:
+            return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()

@@ -1,0 +1,72 @@
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* justify-content: flex-start; */
+}
+
+.content-flex-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.row-header {
+    background-color: aquamarine;
+}
+
+.collapse-button,
+.tab-button {
+    background-color: inherit;
+    border: none;
+}
+
+#SetupContent .nav-link {
+    color: black;
+}
+
+.normal-margin {
+    margin-left: 16px;
+}
+
+.action-buttons button,
+.fas-button {
+    background-color: white;
+    border: none;
+}
+
+.normal-size {
+    font-size: 2.5rem;
+    margin-left: 10px;
+    color: black;
+}
+
+.adapt-icon-size {
+    font-size: 2.2rem;
+    margin-left: 10px;
+    color: black;
+    margin-top: 2px;
+}
+
+span.toggle-handle.btn.btn-default {
+    background-color: whitesmoke;
+}
+
+.statistics-div {
+    color: gray;
+    font-style: italic;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#SetupHeader .run-button {
+    margin-left: auto;
+}
+
+#AnalyseContent table td .status {
+    font-size: 3rem;
+    padding-left: 20px;
+}
+
+button:focus {
+    outline: 0;
+}
