@@ -1,0 +1,33 @@
+/* div {
+    height: 300px;
+    width: 300px;
+    margin: 5px;
+}
+
+.div1 {
+    background-color: red;
+}
+
+.div2 {
+    background-color: blue;
+}
+
+.div3 {
+    background-color: green;
+} */
+
+.align-center-1 {
+    display: flex;
+}
+
+@media (max-width: 900px) {
+    .align-center-1 {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 901px) {
+    .align-center-1 {
+        flex-direction: row;
+    }
+}

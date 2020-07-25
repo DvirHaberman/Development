@@ -6,46 +6,37 @@ var status_icons = {
     "Error": '<div class="status"><i class="fas fa-skull-crossbones text-secondary"></i></div>',
     "NoData": '<div class="status"><i class="far fa-circle text-primary"></i></div>'
 }
-var dataSet = [
-    ['func1', 'needed', 'dvir', '1234'],
-    ['func2', 'InDev', 'dvir', '1234'],
-    ['func3', 'Completed', 'dvir', '1234']
-]
 
 var dataSet2 = [
     ['func1', 'needed', 'dvir', '1234', status_icons.Success, status_icons.Fail, status_icons.Error, status_icons.Warning, status_icons.InProcess, status_icons.Error],
     ['func2', 'InDev', 'dvir', '1234', status_icons.NoData, status_icons.InProcess, status_icons.Success, status_icons.Success, status_icons.InProcess, status_icons.Warning],
     ['func3', 'Completed', 'dvir', '1234', status_icons.Error, status_icons.NoData, status_icons.Fail, status_icons.Fail, status_icons.InProcess, status_icons.InProcess]
 ]
-var dataSet3 = [
-    ['1111', 'bla1', 'nana', 'nana', 'banana'],
-    ['2222', 'blabla', 'damdam', 'damdam', 'damndam'],
-    ['3333', 'papapa', 'zzzz', 'aaa', 'pumpum']
-]
+
 $(document).ready(function() {
-    $('#functions_table').DataTable({
-        data: dataSet,
+    functions_table = $('#functions_table').DataTable({
+        // data: dataSet,
+        ajax: { url: "/api/OctopusFunction/get_names_json" },
         columns: [
-            { title: "Function" },
-            { title: "State" },
-            { title: "Owner" },
-            { title: "Feature" }
+            { title: "Function", "data": "name" },
+            { title: "Status", "data": "status" },
+            { title: "Owner", "data": "owner" },
+            { title: "Feature", "data": "feature" }
         ]
     });
-    $('#runs_table').DataTable({
-        data: dataSet3,
+    runs_table = $('#runs_table').DataTable({
+        // data: dataSet3,
+        // dataSrc: "",
         columns: [
-            { title: "Run ID" },
-            { title: "Scenario Name" },
-            { title: "stuff1" },
-            { title: "stuff2" },
-            { title: "stuff3" }
+            { title: "Run ID", "data": "run_id" },
+            { title: "Scenario", "data": "scenario_name" }
         ]
+
     });
 });
 
 $(document).ready(function() {
-    $('#results_table').DataTable({
+    results_table = $('#results_table').DataTable({
         data: dataSet2,
         columns: [
             { title: "Function" },

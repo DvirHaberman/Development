@@ -2,45 +2,77 @@ var runs_tab = $('#runs_tab')[0];
 var functions_tab = $('#functions_tab')[0];
 var functions_table_div = $('#functions_table_div')[0];
 var runs_table_div = $('#runs_table_div')[0];
-
-var results_tab = $('#results_tab')[0];
-var statistics_tab = $('#statistics_tab')[0];
-var results_div = $('#results_div')[0];
-var statistics_table_div = $('#statistics_table_div')[0];
-
+var setup_toggle = $('#setup_toggle')[0];
+var database_select = $('#database_select')[0];
 var collapse_setup_button = $('#collapse_setup_button')[0];
-// var functions_table = $('#functions_tab')[0];
-// var functions_table = $('#functions_tab')[0];
 
-$('#collapse_setup_button').click(function() {
-    $('#collapse_setup_button i').toggleClass("fa-minus-square");
-    $('#collapse_setup_button i').toggleClass("fa-plus-square");
-});
+var connections = null;
+var dbs_list = {};
+var selected_run_ids = {};
 
-runs_tab.addEventListener('click', () => {
-    functions_tab.classList.remove('active')
-    functions_table_div.hidden = true;
-    runs_tab.classList.add('active')
-    runs_table_div.hidden = false;
-});
 
-functions_tab.addEventListener('click', () => {
-    runs_tab.classList.remove('active');
-    runs_table_div.hidden = true;
-    functions_tab.classList.add('active');
-    functions_table_div.hidden = false;
-});
+function load_run_ids(db_name) {
+    runs_table.ajax.url("/api/DbConnector/get_run_ids_json/" + db_name).load();
+}
 
-results_tab.addEventListener('click', () => {
-    statistics_tab.classList.remove('active')
-    statistics_table_div.hidden = true;
-    results_tab.classList.add('active')
-    results_div.hidden = false;
-});
+function get_db_names() {
+    var num_of_options = database_select.options.length;
+    for (i = 0; i < num_of_options; i++) {
+        database_select.remove(0);
+    }
+    $.ajax({
+        url: "/api/DbConnections/get_names",
+        async: false,
+        success: function(conn_names) {
+            connections = conn_names;
+            var num_of_conns = conn_names.length;
+            for (i = 0; i < num_of_conns; i++) {
+                var option = document.createElement("option");
+                option.text = conn_names[i];
+                database_select.add(option);
 
-statistics_tab.addEventListener('click', () => {
-    results_tab.classList.remove('active');
-    results_div.hidden = true;
-    statistics_tab.classList.add('active');
-    statistics_table_div.hidden = false;
+                dbs_list[conn_names[i]] = {};
+                selected_run_ids[conn_names[i]] = {};
+
+                // load_run_ids(database_select.options[0].text);
+                // get_all_functions();
+            }
+        }
+    });
+}
+
+//getting all initial data - functions, dbs list+run_ids
+function load_init_data() {
+    get_db_names();
+    setTimeout(200);
+    load_run_ids(connections[0]);
+    // get_all_functions();
+}
+
+function assign_event_listeners() {
+    database_select.addEventListener('change', () => { load_run_ids(database_select.options[database_select.selectedIndex].text) });
+    $('#collapse_setup_button').click(() => {
+        $('#collapse_setup_button i').toggleClass("fa-minus-square");
+        $('#collapse_setup_button i').toggleClass("fa-plus-square");
+    });
+
+    runs_tab.addEventListener('click', () => {
+        functions_tab.classList.remove('active')
+        functions_table_div.hidden = true;
+        runs_tab.classList.add('active')
+        runs_table_div.hidden = false;
+    });
+
+    functions_tab.addEventListener('click', () => {
+        runs_tab.classList.remove('active');
+        runs_table_div.hidden = true;
+        functions_tab.classList.add('active');
+        functions_table_div.hidden = false;
+    });
+}
+
+//Start from here
+$(document).ready(() => {
+    load_init_data();
+    assign_event_listeners();
 });

@@ -101,8 +101,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -274,6 +274,13 @@ class DbConnector:
         conn = DbConnector.load_conn_by_name(db_name)
         data = conn.run_sql('select run_id, scenario_name from run_ids')
         return jsonify(status=1,run_ids=[int(x) for x in list(data["run_id"].values)],scenarios=list(data["scenario_name"].values))
+
+    @staticmethod
+    def get_run_ids_json(db_name):
+        conn = DbConnector.load_conn_by_name(db_name)
+        data = conn.run_sql('select run_id, scenario_name from run_ids')
+        data_json = [{"run_id":row['run_id'], 'scenario_name':row["scenario_name"]} for _,row in data.iterrows()]
+        return jsonify(status=1, data=data_json)
 
 
     @staticmethod
@@ -979,7 +986,7 @@ class OctopusFunction(db.Model):
                 requirement = None
 
             if 'owner' in data:
-                owner = data['owner']
+                owner = User.query.filter_by(name=data['owner'])[0].id
             else:
                 owner=User.query.filter_by(name=session['username'])[0].id
 
@@ -1082,7 +1089,7 @@ class OctopusFunction(db.Model):
                     
                 func = OctopusFunction.query.filter_by(name=data['name']).first()
                 if 'owner' in data:
-                    owner = data['owner']
+                    owner = User.query.filter_by(name=data['owner'])[0].id
                 else:
                     owner = func.owner
                 func.name=data['name']
@@ -1182,6 +1189,19 @@ class OctopusFunction(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
+
+    def get_names_json():
+        try:
+            function_status = ['Needed', 'InDev', 'Completed']
+            functions = OctopusFunction.query.filter_by(project=session['current_project_id']).all()
+            names_json = [{"name":func.name,
+                           "status": function_status[func.status],
+                           "owner":User.query.get(func.owner).name,
+                           "feature": func.feature}
+                           for func in functions]
+            return jsonify(status=1, message=None, data=names_json)
+        except:
+            return jsonify(status=0, message='something went wrong', data=[])
 
 
     def run(self, db_conn, run_id, tests_params=None):

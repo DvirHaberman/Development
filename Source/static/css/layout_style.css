@@ -31,6 +31,10 @@ h6 {
     margin: 0 10px 0;
 }
 
+button:focus {
+    outline: 0;
+}
+
 
 /* #window-title-div{
   margin: auto;
