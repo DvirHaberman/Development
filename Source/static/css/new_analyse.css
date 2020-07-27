@@ -8,6 +8,7 @@
 .content-flex-container {
     display: flex;
     flex-direction: row;
+    align-items: flex-start;
 }
 
 .row-header {
@@ -65,4 +66,21 @@ span.toggle-handle.btn.btn-default {
 #AnalyseContent table td .status {
     font-size: 3rem;
     padding-left: 20px;
+}
+
+select[multiple] {
+    overflow-y: auto;
+}
+
+.table-controls-div {
+    font-size: 2.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: right;
+    flex-direction: column;
+    padding-right: 30px;
+}
+
+.table-controls-div .fa-calendar-check {
+    margin-top: 40px;
 }

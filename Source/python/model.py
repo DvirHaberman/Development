@@ -282,6 +282,10 @@ class DbConnector:
         data_json = [{"run_id":row['run_id'], 'scenario_name':row["scenario_name"]} for _,row in data.iterrows()]
         return jsonify(status=1, data=data_json)
 
+    @staticmethod
+    def get_empty():
+        return jsonify(status=1, data=[])
+
 
     @staticmethod
     def delete_conn_by_name(name):
@@ -1581,6 +1585,17 @@ class FunctionsGroup(db.Model):
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_names_json():
+        try:
+            names = FunctionsGroup.query.filter_by(project=session['current_project_id']).with_entities(FunctionsGroup.name).all()
+            names_json = [{"name":name} for name in names]
+            return jsonify(status=1, message=None, data=names_json)
+        except:
+            return jsonify(status=0, message='something went wrong', data=[])
         finally:
             db.session.close()
 

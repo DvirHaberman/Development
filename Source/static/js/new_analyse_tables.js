@@ -1,3 +1,7 @@
+var select_all_button = $('#select_all_button');
+var remove_selection_button = $('#remove_selection_button');
+var add_selected_button = $('#add_selected_button');
+
 var status_icons = {
     "InProcess": "<div class='spinner-border' role='status'><span class='sr-only'>Loading...</span>  </div>",
     "Success": '<div class="status"><i class="fas fa-check-circle text-success"></i></div>',
@@ -15,8 +19,7 @@ var dataSet2 = [
 
 $(document).ready(function() {
     functions_table = $('#functions_table').DataTable({
-        // data: dataSet,
-        ajax: { url: "/api/OctopusFunction/get_names_json" },
+        ajax: { url: "/api/OctopusFunction/get_names_json", async: false },
         columns: [
             { title: "Function", "data": "name" },
             { title: "Status", "data": "status" },
@@ -24,20 +27,25 @@ $(document).ready(function() {
             { title: "Feature", "data": "feature" }
         ]
     });
+    groups_table = $('#groups_table').DataTable({
+        select: true,
+        ajax: { url: "/api/FunctionsGroup/get_names_json", async: false },
+        columns: [
+            { title: "Group", "data": "name" }
+        ]
+    });
     runs_table = $('#runs_table').DataTable({
-        // data: dataSet3,
-        // dataSrc: "",
+        ajax: { url: 'api/DbConnector/get_empty', async: false },
+        select: true,
         columns: [
             { title: "Run ID", "data": "run_id" },
             { title: "Scenario", "data": "scenario_name" }
         ]
 
     });
-});
-
-$(document).ready(function() {
     results_table = $('#results_table').DataTable({
         data: dataSet2,
+        select: true,
         columns: [
             { title: "Function" },
             { title: "State" },
@@ -51,4 +59,57 @@ $(document).ready(function() {
             { title: "db1 - 333" },
         ]
     });
+    //event listeners makes tables row highliht on click
+    $('#functions_table tbody').on('click', 'tr', function() {
+        $(this).toggleClass('selected');
+    });
+    $('#runs_table tbody').on('click', 'tr', function() {
+        $(this).toggleClass('selected');
+    });
+    $('#groups_table tbody').on('click', 'tr', function() {
+        $(this).toggleClass('selected');
+    });
+    // $('#results_table tbody').on('click', 'tr', function() {
+    //     $(this).toggleClass('selected');
+    // });
+
+    $("#functions_table").selectable({
+        distance: 10,
+        stop: function() {
+            $(this).find("tr.ui-selected").each(
+                function() {
+                    if ($(this).hasClass('ui-selectee'))
+                        $(this).toggleClass('selected');
+                    // else
+                    //     $(this).removeClass('selected');
+                });
+        }
+    });
+
+    $("#groups_table").selectable({
+        distance: 10,
+        stop: function() {
+            $(this).find("tr.ui-selected").each(
+                function() {
+                    if ($(this).hasClass('ui-selectee'))
+                        $(this).toggleClass('selected');
+                    // else
+                    //     $(this).removeClass('selected');
+                });
+        }
+    });
+
+    $("#runs_table").selectable({
+        distance: 10,
+        stop: function() {
+            $(this).find("tr.ui-selected").each(
+                function() {
+                    if ($(this).hasClass('ui-selectee'))
+                        $(this).toggleClass('selected');
+                    // else
+                    //     $(this).removeClass('selected');
+                });
+        }
+    });
+
 });
