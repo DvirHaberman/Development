@@ -282,6 +282,10 @@ class DbConnector:
         data_json = [{"run_id":row['run_id'], 'scenario_name':row["scenario_name"]} for _,row in data.iterrows()]
         return jsonify(status=1, data=data_json)
 
+    @staticmethod
+    def get_empty():
+        return jsonify(status=1, data=[])
+
 
     @staticmethod
     def delete_conn_by_name(name):
@@ -596,9 +600,15 @@ class User(db.Model):
 
     @staticmethod
     def get_names():
-        names = User.query.with_entities(User.name).all()
-        return jsonify(list(*zip(*names)))
-
+        try:
+            names = User.query.with_entities(User.name).all()
+            names = list(*zip(*names))
+            status = 1
+            
+        except:
+            names = []
+            status = 0
+        return jsonify(status=status, data=names)
     @staticmethod
     def get_names_and_ids():
         users = User.query.with_entities(User.name, User.id).all()
@@ -1589,6 +1599,17 @@ class FunctionsGroup(db.Model):
             return jsonify(status=1, message=None, data=list(*zip(*names)))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_names_json():
+        try:
+            names = FunctionsGroup.query.filter_by(project=session['current_project_id']).with_entities(FunctionsGroup.name).all()
+            names_json = [{"name":name} for name in names]
+            return jsonify(status=1, message=None, data=names_json)
+        except:
+            return jsonify(status=0, message='something went wrong', data=[])
         finally:
             db.session.close()
 
@@ -3395,6 +3416,18 @@ class RunList(db.Model):
     def get_names():
         try:
             names = [run.name for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
+
+    def get_names_json():
+        try:
+            names = [{"name":run.name} for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
             message = ""
             status = 1
         except:
