@@ -31,9 +31,18 @@ $(document).ready(function() {
         select: true,
         ajax: { url: "/api/FunctionsGroup/get_names_json", async: false },
         columns: [
-            { title: "Group", "data": "name" }
+            { title: "Group Name", "data": "name" }
         ]
     });
+
+    lists_table = $('#lists_table').DataTable({
+        select: true,
+        ajax: { url: "/api/RunList/get_names_json", async: false },
+        columns: [
+            { title: "List Name", "data": "name" }
+        ]
+    });
+
     runs_table = $('#runs_table').DataTable({
         ajax: { url: 'api/DbConnector/get_empty', async: false },
         select: true,
@@ -69,47 +78,42 @@ $(document).ready(function() {
     $('#groups_table tbody').on('click', 'tr', function() {
         $(this).toggleClass('selected');
     });
+
+    $('#lists_table tbody').on('click', 'tr', function() {
+        $(this).toggleClass('selected');
+    });
     // $('#results_table tbody').on('click', 'tr', function() {
     //     $(this).toggleClass('selected');
     // });
 
     $("#functions_table").selectable({
         distance: 10,
-        stop: function() {
-            $(this).find("tr.ui-selected").each(
-                function() {
-                    if ($(this).hasClass('ui-selectee'))
-                        $(this).toggleClass('selected');
-                    // else
-                    //     $(this).removeClass('selected');
-                });
-        }
+        stop: enable_drag_select
     });
 
     $("#groups_table").selectable({
         distance: 10,
-        stop: function() {
-            $(this).find("tr.ui-selected").each(
-                function() {
-                    if ($(this).hasClass('ui-selectee'))
-                        $(this).toggleClass('selected');
-                    // else
-                    //     $(this).removeClass('selected');
-                });
-        }
+        stop: enable_drag_select
     });
 
     $("#runs_table").selectable({
         distance: 10,
-        stop: function() {
-            $(this).find("tr.ui-selected").each(
-                function() {
-                    if ($(this).hasClass('ui-selectee'))
-                        $(this).toggleClass('selected');
-                    // else
-                    //     $(this).removeClass('selected');
-                });
-        }
+        stop: enable_drag_select
     });
+
+    $("#lists_table").selectable({
+        distance: 10,
+        stop: enable_drag_select
+    });
+
+    function enable_drag_select() {
+        $(this).find("tr.ui-selected").each(
+            function() {
+                if ($(this).hasClass('ui-selectee'))
+                    $(this).toggleClass('selected');
+                // else
+                //     $(this).removeClass('selected');
+            });
+    }
 
 });

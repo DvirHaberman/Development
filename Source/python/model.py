@@ -600,9 +600,15 @@ class User(db.Model):
 
     @staticmethod
     def get_names():
-        names = User.query.with_entities(User.name).all()
-        return jsonify(list(*zip(*names)))
-
+        try:
+            names = User.query.with_entities(User.name).all()
+            names = list(*zip(*names))
+            status = 1
+            
+        except:
+            names = []
+            status = 0
+        return jsonify(status=status, data=names)
     @staticmethod
     def get_names_and_ids():
         users = User.query.with_entities(User.name, User.id).all()
@@ -3402,6 +3408,18 @@ class RunList(db.Model):
     def get_names():
         try:
             names = [run.name for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
+            message = ""
+            status = 1
+        except:
+            names = []
+            message = "something went wrong"
+            status = 0
+        finally:
+            return jsonify(status=status,message=message ,data=names)
+
+    def get_names_json():
+        try:
+            names = [{"name":run.name} for run in RunList.query.filter_by(project=session['current_project_id']).with_entities(RunList.name).distinct()]
             message = ""
             status = 1
         except:

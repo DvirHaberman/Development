@@ -84,3 +84,9 @@ select[multiple] {
 .table-controls-div .fa-calendar-check {
     margin-top: 40px;
 }
+
+.flex-button-column {
+    display: flex;
+    flex-direction: column-reverse;
+    /* justify-content: flex-end; */
+}
