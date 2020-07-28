@@ -32,7 +32,8 @@ var form_controls = {
     is_class_method: $("input[name='isOutputIsAClass']")[0],
     class_name: $("input[name='outputClassName']")[0],
     function_parameters: $("table[name='function_parameters']")[0],
-    groups: $("ul[name='GroupsListNames']")[0]
+    groups: $("ul[name='GroupsListNames']")[0],
+    changed_by: $("#function_last_changed_by")[0]
 
 };
 
@@ -364,6 +365,9 @@ function clear_object(obj) {
         for (i = 0; i < num_of_rows - 1; i++) {
             obj.deleteRow(1);
         }
+    } else if (obj.tagName === 'P') {
+      obj.innerHTML = "";
+        
     } else if (obj.type === "select-one") {
         var num_of_options = obj.options.length;
         for (i = 0; i < num_of_options; i++) {
@@ -417,6 +421,8 @@ function fill_object(obj, value, header) {
             GroupsList.appendChild(create_li_element(value[i], 'group'));
             selected_Groups.push(value[i]);
         }
+    } else if (obj.tagName === "P") {
+            obj.innerHTML = value;
 
     } else {
         obj.value = value;
@@ -454,6 +460,20 @@ function GetParameterDataTbl(id, kind, val, type) {
 // this class is holding all the form object controls and is in charge of //
 // clearing and filling the form                                          //
 ////////////////////////////////////////////////////////////////////////////
+function getAllUsers(){
+    var Users = "";
+    $.ajax({
+        url: "/api/User/get_names",
+        async: false,
+        success: function(result) {
+                if (result.status === 1) {
+                    Users = result.data;
+                } //if
+            } // function
+    });
+    return Users;
+}
+
 
 function getAllGroups(groupListID) {
     var groups = "";
@@ -661,6 +681,7 @@ form_controls.location.addEventListener("input", function() {
 $('#NewExist_toggle').change(function()  {
   $('.alert')[0].hidden = true;
   if (action === "saveNewFunction"){
+    action='';
     return;
   } else {
 
@@ -677,6 +698,8 @@ $('#NewExist_toggle').change(function()  {
                 form_controls.location.value = result.dir;
             }
         });
+
+        Users = getAllUsers()
 
       } else { //exist
         Stage = "update";

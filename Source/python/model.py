@@ -101,8 +101,8 @@ def init_db():
 def create_process_app(db):
     process_app = Flask(__name__)
     db.init_app(process_app)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     return process_app
 
@@ -986,9 +986,13 @@ class OctopusFunction(db.Model):
                 requirement = None
 
             if 'owner' in data:
-                owner = User.query.filter_by(name=data['owner'])[0].id
+                owner = User.query.filter_by(name=data['owner']).first()
+                if owner:
+                    owner = owner.id
+                else:
+                    owner=User.query.filter_by(name=session['username']).first().id
             else:
-                owner=User.query.filter_by(name=session['username'])[0].id
+                owner=User.query.filter_by(name=session['username']).first().id
 
             func = OctopusFunction(
                 name=data['name'],
@@ -1005,7 +1009,7 @@ class OctopusFunction(db.Model):
                 kind=data['kind'],
                 tags=data['tags'],
                 description=data['description'],
-                # project=row.project,
+                project=session['current_project_id'],
                 # version=data['version'],
                 # version_comments=data['version_comments'],
                 function_checksum=22,
@@ -1086,10 +1090,14 @@ class OctopusFunction(db.Model):
                     requirement = data['requirement']
                 else:
                     requirement = None
-                    
+
                 func = OctopusFunction.query.filter_by(name=data['name']).first()
                 if 'owner' in data:
-                    owner = User.query.filter_by(name=data['owner'])[0].id
+                    owner = User.query.filter_by(name=data['owner']).first()
+                    if owner:
+                        owner = owner.id
+                    else:
+                        owner = func.owner
                 else:
                     owner = func.owner
                 func.name=data['name']
