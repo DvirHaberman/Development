@@ -8,10 +8,10 @@
         <div class="flex-container mt-2">
             <button id="collapse_setup_button" class="collapse-button" data-toggle="collapse" data-target="#SetupContent"><i class="far fa-plus-square"></i></button>
             <input id="setup_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
-            <input type="text" class="form-control normal-margin col-2">
-
-            <div id="statistics_div" class="row statistics-div col-5 normal-margin">
-                20 functions on 10 runs : 200 tests
+            <input id="setup_name" type="text" class="form-control normal-margin col-2">
+            <datalist id="setups_datalist"></datalist>
+            <div id="statistics_text" class="row statistics-div col-5 normal-margin">
+                0 functions on 0 runs : 0 tests
             </div>
             <button class="btn btn-primary normal-margin run-button">
                 Run
@@ -24,9 +24,9 @@
         <div class="row ml-3 mb-3">
             <h3 class="">setup content</h3>
             <div class="action-buttons ml-auto mr-4 row">
-                <button id="meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
-                <button id="meta_duplicate"><i class="far fa-file-alt adapt-icon-size"></i></button>
-                <button id="meta_delete"><i class="far fa-trash-alt adapt-icon-size"></i></button>
+                <button id="save_setup" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
+                <button id="duplicate_setup"><i class="far fa-file-alt adapt-icon-size"></i></button>
+                <button id="delete_setup"><i class="far fa-trash-alt adapt-icon-size"></i></button>
             </div>
         </div>
 
@@ -67,7 +67,7 @@
                 </table>
             </div>
             <div class="table-controls-div">
-                <button id="select_all_button" class="fas-button mb-2" data-toggle="tooltip" data-placement="bottom" title="Select All"><i class="far fa-calendar-check"></i></button>
+                <button id="select_all_button" class="fas-button mb-4" data-toggle="tooltip" data-placement="bottom" title="Select All"><i class="far fa-calendar-check"></i></button>
                 <button id="remove_selection_button" class="fas-button my-2" data-toggle="tooltip" data-placement="bottom" title="Remove selections"><i class="far fa-calendar-times"></i></button>
                 <button id="add_selected_button" class="fas-button mt-4"><i class="fa fa-chevron-circle-right" data-toggle="tooltip" data-placement="bottom" title="Add to chosen"></i></button>
             </div>
@@ -79,24 +79,32 @@
                         <select multiple id="chosen_functions_select" size="6">
                             <option value="bla" disabled>----------------------chosen functions-----------------</option>
                         </select>
-                        <span><button id="remove_function_button" class=" fas-button"><i class="far fa-trash-alt"></i></span></button>
+                        <span><button id="remove_function_button" class=" fas-button" data-toggle="tooltip" data-placement="right" title="Remove functions/groups"><i class="far fa-trash-alt"></i></span></button>
                         <br>
-                        <h6><span class="badge badge-secondary">Total: 0 Functions</span></h6>
+                        <h6><span id="num_of_functions" class="badge badge-secondary">Total: 0 Functions</span></h6>
                     </div>
                     <div id="chosen_runs_div">
                         <div class="row col-12">
-                            <h4> Chosen Runs &nbsp;&nbsp;</h4>
-                            <button class="fas-button"><i class="far fa-save"></i></button>
+                            <h4 class="col-12"> Chosen Runs &nbsp;&nbsp;</h4>
+
                         </div>
                         <select multiple id="chosen_runs_select" size="6">
                             <option value="bla" disabled>-----------------------chosen runs---------------------</option>
                         </select>
-                        <span><button id="remove_run_button" class="fas-button"><i class="far fa-trash-alt"></i></button></span>
+                        <span><button id="remove_run_button" class="fas-button" data-toggle="tooltip" data-placement="right" title="Remove runs\lists"><i class="far fa-trash-alt"></i></button></span>
                         <br>
-                        <h6><span class="badge badge-secondary">Total: 0 Runs</span></h6>
+                        <div></div>
+                        <div class="col-12 row">
+                            <label for="list_name" class="form-label mt-2 ml-2">List Name:&nbsp;&nbsp;</label>
+                            <input id="list_name" type="text" class="form-control mr-2 mb-2 col-6" placeholder="list name">
+                            <button id="save_list_button" class="fas-button"><i class="far fa-save" data-toggle="tooltip" data-placement="right" title="save list"></i></button>
+                        </div>
+                        <h6><span id="num_of_runs" class="badge badge-secondary mt-2">Total: 0 Runs</span></h6>
+
+
                     </div>
                 </div>
-                <h4><span class="badge badge-success">Total : 0 tests</span></h4>
+                <h4><span id="num_of_tests" class="badge badge-success">Total : 0 tests</span></h4>
             </div>
         </div>
     </div>
