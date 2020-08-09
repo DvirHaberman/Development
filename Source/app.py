@@ -474,7 +474,7 @@ def api_methods_no_args(class_name,class_method):
         else:
             output = class_method()
         return output
-    except:
+    except Exception as error:
         return jsonify(status=0, message='something went wrong')
     finally:
         db.session.close()

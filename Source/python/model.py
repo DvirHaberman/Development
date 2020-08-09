@@ -148,7 +148,12 @@ SetupsAndRunLists = db.Table('SetupsAndRunLists',
                                         db.ForeignKey('RunList.id'))
                               )
 
-
+SetupsAndRuns = db.Table('SetupsAndRuns',
+                              db.Column('setup_id', db.Integer,
+                                        db.ForeignKey('AnalyseSetup.id')),
+                              db.Column('run_id', db.Integer,
+                                        db.ForeignKey('SetupRuns.id'))
+                              )
 
 ################################################
 ########### DBCONNECTOR CLASS ###############
@@ -1645,6 +1650,16 @@ class FunctionsGroup(db.Model):
         try:
             group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
             return jsonify(status=1, message=None, data=group.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_num_of_functions_by_name(group_name):
+        try:
+            group = FunctionsGroup.query.filter_by(name=group_name,project=session['current_project_id']).first()
+            return jsonify(status=1, message=None, data=len(group.functions))
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
@@ -3404,6 +3419,16 @@ class RunList(db.Model):
         finally:
             db.session.close()
 
+    @staticmethod
+    def get_num_of_runs_by_name(run_list_name):
+        try:
+            run_list = RunList.query.filter_by(name=run_list_name, project=session['current_project_id']).all()
+            return jsonify(status=1, message=None, data=len(run_list))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
     def save(json_data):
         if 'run_ids' not in json_data:
             return jsonify(status=0,message="did not find 'run_ids' field in sent data")
@@ -3413,7 +3438,8 @@ class RunList(db.Model):
         project = session['current_project_id']
         name = json_data['name']
         names = [l_name for l_name in RunList.query.filter_by(name=name, project=project).with_entities(RunList.name).distinct()]
-        if name in list(*zip(*names)):
+        names = list(*zip(*names))
+        if name in names:
             return jsonify(status=0,message="list name already exist!")
         run_ids = json_data['run_ids']
         try:
@@ -3425,10 +3451,31 @@ class RunList(db.Model):
                                     project=project
                                     ))
              for run in run_ids]
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message="something went wrong while logging the run_ids")
+        try:
+            if 'lists' in json_data:
+                lists = json_data['lists']
+                for curr_list in lists:
+                    list_data = RunList.query.filter_by(name=curr_list, project=project).all()
+                    [db.session.add(RunList(
+                                    name=name,
+                                    db_name=run.db_name,
+                                    run_id=int(run.run_id),
+                                    scenario_name=run.scenario_name,
+                                    project=project
+                                    ))
+                    for run in list_data]
+        except:
+            db.session.rollback()
+            return jsonify(status=0,message="something went wrong while logging the run_ids from a given list")
+        try:      
             db.session.commit()
             return jsonify(status=1,message="")
         except:
-            return jsonify(status=0,message="something went wrong while logging the run_ids")
+            db.session.rollback()
+            return jsonify(status=0,message="something went wrong while commiting to db")
 
     def get_names():
         try:
@@ -3462,23 +3509,53 @@ class AnalyseSetup(db.Model):
                                 backref=db.backref('functions', lazy='dynamic'))
     groups = db.relationship('FunctionsGroup', secondary=SetupsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
+    runs = db.relationship('SetupRuns', secondary=SetupsAndRuns,
+                                backref=db.backref('AnalyseSetup', lazy='dynamic'))
     run_lists = db.relationship('RunList', secondary=SetupsAndRunLists,
-                                backref=db.backref('run_lists', lazy='dynamic'))
+                                backref=db.backref('AnalyseSetup', lazy='dynamic'))
     project = db.Column(db.Integer)
 
-    def __init__(self,name,run_lists=[],functions=[], groups=[], project=None):
+    def __init__(self,name,run_lists=[],runs=[],functions=[], groups=[], project=None):
         self.name = name
+        self.runs = runs
         self.run_lists = run_lists
         self.functions = functions
         self.groups = groups
         self.project = project
 
 
+
+    def self_jsonify(self):
+        runs = {}
+        for run in self.runs:
+            if run.db_name in runs:
+                runs[run.db_name][str(run.run_id)] = run.scenario_name
+            else:
+                runs[run.db_name] = {}
+                runs[run.db_name][str(run.run_id)] = run.scenario_name
+        return jsonify(
+            name = self.name,
+            runs = runs,
+            run_lists = list(set([run_list.name for run_list in self.run_lists])),
+            functions = [function.name for function in self.functions],
+            groups = [group.name for group in self.groups]
+        ).json
+
+    @staticmethod
+    def get_by_name(setup_name):
+        try:
+            project = AnalyseSetup.query.filter_by(name=setup_name, project=session['current_project_id']).first()
+            return jsonify(status=1, message=None, data=project.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
     @staticmethod
     def save(json_data):
         try:
             # setting up expected data structure
-            extracted_data = {"name":None, "run_lists": [], "functions":[], "groups":[]}
+            extracted_data = {"name":None, "runs":[], "run_lists": [], "functions":[], "groups":[]}
 
             # extracting data - return error message if one of the keys is not found
             for key in extracted_data.keys():
@@ -3506,10 +3583,13 @@ class AnalyseSetup(db.Model):
             setup.run_lists = []
             setup.functions = []
             setup.groups = []
+            setup.runs = []
             # extracting object from identifiers and appending to setup object
             for key in extracted_data.keys():
                 if not key == "name":
-                    if type(extracted_data[key]) == type([]):
+                    if key == "runs":
+                        setup.append_runs(extracted_data[key])
+                    elif type(extracted_data[key]) == type([]):
                         [
                             error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
@@ -3535,7 +3615,7 @@ class AnalyseSetup(db.Model):
     def update_by_name(name, json_data):
         try:
             # setting up expected data structure
-            extracted_data = {"new_name":None ,"run_lists": [], "functions":[], "groups":[]}
+            extracted_data = {"new_name":None, "runs":[] ,"run_lists": [], "functions":[], "groups":[]}
 
             # extracting data - return error message if one of the keys is not found
             for key in extracted_data.keys():
@@ -3553,21 +3633,25 @@ class AnalyseSetup(db.Model):
                 return jsonify(status=0,message=["error! name may only start with a letter, contain letters, numbers and the '-' and '_' signs"], data=None)
 
             error_messages = []
-            setup = AnalyseSetup.query.filter_by(name=json_data['name'], project=session['current_project_id']).first()
+            setup = AnalyseSetup.query.filter_by(name=name, project=session['current_project_id']).first()
             setup.run_lists = []
             setup.functions = []
             setup.groups = []
+            setup.runs = []
             # extracting object from identifiers and appending to setup object
             for key in extracted_data.keys():
                 if key not in ["name", "new_name"]:
-                    if type(extracted_data[key]) == type([]):
+                    if key == "runs":
+                        setup.append_runs(extracted_data[key])
+                    elif type(extracted_data[key]) == type([]):
                         [
                             error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
                         ]
                     else:
                         return jsonify(status=0,message=["input " + key + " identifiers must be an array"], data=None)
-
+                elif key == "runs":
+                    setup.append_runs(extracted_data[key])
             setup.name = extracted_data['new_name']
             # clearing None entries from error_messages
             error_messages = [message for message in error_messages if message]
@@ -3609,10 +3693,13 @@ class AnalyseSetup(db.Model):
             setup.run_lists = []
             setup.functions = []
             setup.groups = []
+            setup.runs = []
             # extracting object from identifiers and appending to setup object
             for key in extracted_data.keys():
                 if key not in ["name", "new_name"]:
-                    if type(extracted_data[key]) == type([]):
+                    if key == "runs":
+                        setup.append_runs(extracted_data[key])
+                    elif type(extracted_data[key]) == type([]):
                         [
                             error_messages.append(setup.append_object_by_identifier(obj, key))
                             for obj in extracted_data[key]
@@ -3630,10 +3717,24 @@ class AnalyseSetup(db.Model):
                 return jsonify(status=0,message=error_messages, data=None)
             db.session.add(setup)
             db.session.commit()
+
             return jsonify(status=1,message=[], data=None)
         except:
             db.session.rollback()
             return jsonify(status=0,message=["something went wrong"], data=None)
+
+    def append_runs(self, runs):
+        for run in runs:
+            run_obj = SetupRuns.query.filter_by(run_id=run['run_id'], db_name=run['db_name'],
+                                                project=session['current_project_id']).first()
+            if run_obj:
+                self.runs.append(run_obj)
+            else:
+                run_obj = SetupRuns(run_id=run['run_id'], db_name=run['db_name'], 
+                                    scenario_name=run['scenario_name'], 
+                                    project=session['current_project_id'])
+                db.session.add(run_obj)
+                self.runs.append(run_obj)
 
     def append_object_by_identifier(self, identifer, obj_type):
         message = None
@@ -3716,3 +3817,25 @@ class AnalyseSetup(db.Model):
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
+
+class SetupRuns(db.Model):
+    __tablename__ = 'SetupRuns'
+    id = db.Column(db.Integer, primary_key=True)
+    db_name = db.Column(db.Text)
+    run_id = db.Column(db.Integer)
+    scenario_name = db.Column(db.Text)
+    project = db.Column(db.Integer)
+
+    def __init__(self, db_name, run_id, scenario_name, project):
+        self.db_name = db_name
+        self.run_id = run_id
+        self.scenario_name = scenario_name
+        self.project = project
+
+    def self_jsonify(self):
+        return jsonify(
+            run_id = self.run_id,
+            db_name = self.db_name,
+            scenario_name = self.scenario_name,
+            project = Project.query.get(self.project).name
+        ).json

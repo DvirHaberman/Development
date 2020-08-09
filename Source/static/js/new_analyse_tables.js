@@ -3,12 +3,12 @@ var remove_selection_button = $('#remove_selection_button');
 var add_selected_button = $('#add_selected_button');
 
 var status_icons = {
-    "InProcess": "<div class='spinner-border' role='status'><span class='sr-only'>Loading...</span>  </div>",
+    "InProcess": "<div class='spinner-border center-spinner' role='status'><span class='sr-only'>Loading...</span>  </div>",
     "Success": '<div class="status"><i class="fas fa-check-circle text-success"></i></div>',
     "Warning": '<div class="status"><i class="fas fa-exclamation-triangle text-warning"></i></div>',
     "Fail": '<div class="status"><i class="fas fa-times-circle text-danger"></i></div>',
     "Error": '<div class="status"><i class="fas fa-skull-crossbones text-secondary"></i></div>',
-    "NoData": '<div class="status"><i class="far fa-circle text-primary"></i></div>'
+    "NoData": '<div class="status"><i class="fab fa-creative-commons-zero text-primary"></i></div>'
 }
 
 var dataSet2 = [
