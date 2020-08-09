@@ -123,10 +123,18 @@ class Worker:
                         except:
                             continue
                         try:
-                            function_obj = OctopusFunction.query.get(task.function_id)
-                            results = function_obj.run(task.db_conn_obj, task.run_id, tests_params)
-                            status=4
-                            message=''
+                            if task.run_status > 0:
+                                function_obj = OctopusFunction.query.get(task.function_id)
+                                results = function_obj.run(task.db_conn_obj, task.run_id, tests_params)
+                                status=results['result_status']
+                                message=''
+                            else:
+                                status = task.run_status
+                                results = {}
+                                if status == -1:
+                                    message = 'db conn is invalid'
+                                else:
+                                    message = 'run not in db'
                             print(f'done with preforming task {task.id} in {datetime.utcnow()}')
                         except Exception as error:
                             status=3
@@ -184,7 +192,7 @@ class Worker:
                                 to_do_queue.put_nowait(task)
                                 # tasks_queue.task_done()
                             except Exception as error:
-                                status=1
+                                status=-4
                                 message='failed pushing to tasks queue'
                                 updates_queue.put_nowait((task.id, status, message))
                                 # tasks_queue.task_done()
@@ -199,11 +207,12 @@ class Worker:
                     if not updates_queue.empty():
                         try:
                             #db.session.expire_all()
-                            task_id, status, message = updates_queue.get_nowait()
+                            task_id, status, time_elapsed,message = updates_queue.get_nowait()
                             try:
                                 task = AnalyseTask.query.filter_by(id=task_id).first()
                                 task.status = status
                                 task.message = message
+                                task.time_elapsed = time_elapsed
                                 db.session.add(task)
                                 db.session.commit()
                                 print(f'done with updating task {task.id} in {datetime.utcnow()}')
@@ -232,17 +241,37 @@ class Worker:
                         task, results, status, message = done_queue.get_nowait()
                         try:
                             # results = task.function_obj.run(task.db_conn_obj, task.run_id)
-                            keys = ['run_id', 'result_status', 'result_text', 'time_elapsed', 'results_arr']
-                            final_result = {'run_id':'Unknown', 'result_status':1, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
-                            missing = [key for key in keys if key not in results]
-                            for key, value in results.items():
-                                if key not in missing:
-                                    final_result[key] = value
-                            if missing:
-                                # status = 5
-                                message = 'fields' + ', '.join(missing) + 'are missing in the returned result'
-                                
-                            analyse_result = AnalyseResult(task_id=task.id,run_id=final_result['run_id'],
+                            sleep(0.1)
+                            if status > -1:
+                                keys = ['run_id', 'result_status', 'result_text', 'time_elapsed', 'results_arr']
+                                final_result = {'run_id':'Unknown', 'result_status':1, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
+                                missing = [key for key in keys if key not in results]
+                                for key, value in results.items():
+                                    if key not in missing:
+                                        final_result[key] = value
+                                if missing:
+                                    # status = 5
+                                    message = 'fields' + ', '.join(missing) + 'are missing in the returned result'
+                                    final_result = {'run_id':final_result['run_id'], 'result_status':1, 'result_text':message, 'time_elapsed':0, 'results_arr':None}
+                                status = final_result['result_status']
+                            else:
+                                final_result = {'run_id':task.run_id, 'result_status':8-status, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
+
+                            # analyse_result = AnalyseResult(mission_id=task.mission_id,
+                            #                     task_id=task.id,
+                            #                     run_id=final_result['run_id'],
+                            #                     function_id = task.function_id,
+                            #                     db_conn_string=task.db_conn_obj.name,
+                            #                     result_status=final_result['result_status'],
+                            #                     result_text=final_result['result_text'],
+                            #                     time_elapsed = final_result['time_elapsed'])
+
+                            analyse_result = AnalyseResult(mission_id=task.mission_id,
+                                                task_id=task.id, 
+                                                run_id=final_result['run_id'],
+                                                scenario_name=task.scenario_name,
+                                                run_status=task.run_status,
+                                                function_id=task.function_id, 
                                                 db_conn_string=task.db_conn_obj.name,
                                                 result_status=final_result['result_status'],
                                                 result_text=final_result['result_text'],
@@ -250,11 +279,12 @@ class Worker:
                             # db.session.add(analyse_result)
                             # db.session.commit()
                             # done_queue.task_done()
+
                             message = analyse_result.log(final_result['results_arr'], error_queue)
-                            updates_queue.put_nowait((task.id,status,message))
+                            updates_queue.put_nowait((task.id,status,final_result['time_elapsed'],message))
                             print(f'done with logging result {task.id} in {datetime.utcnow()}')
                         except Exception as error:
-                            status=5
+                            status=-5
                             message='error logging results'
                             updates_queue.put_nowait((task.id,status,message))
                             # done_queue.task_done()

@@ -79,6 +79,10 @@ def define_function():
     session['current_window_name'] = 'Define Function'
     return render_template('define_func.html')
 
+@app.route('/test_worker')
+def test_worker():
+    return render_template('worker.html')
+
 @app.route('/whoops')
 def whoops():
     if session.get('username', None) is None:
@@ -196,6 +200,22 @@ def run_functions():
         # return 'done'
     except:
         return 'something went wrong'
+
+@app.route('/api/run_setup/<string:setup_name>')
+def run_setup(setup_name):
+    try:
+        setup = AnalyseSetup.query.filter_by(name=setup_name,project=session['current_project_id']).first()
+        if not setup:
+            return jsonify(status=0, message = ['no setup with this name'], data=None)
+        result = setup.create_mission(tasks_queue)
+        if result['status']:
+            return jsonify(status=1, message = result['message'], data=None)
+        else:
+            return jsonify(status=0, message = 'something went wrong', data=None)
+    except Exception as error:
+        db.session.rollback()
+    finally:
+        db.session.close()
 
 @app.route('/')
 def index():

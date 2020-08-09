@@ -13,6 +13,7 @@ var lists_table_div = $('#lists_table_div')[0];
 var setup_toggle = $('#setup_toggle')[0];
 var database_select = $('#database_select')[0];
 var collapse_setup_button = $('#collapse_setup_button')[0];
+var run_setup_button = $('#run_setup_button')[0];
 
 var connections = null;
 var dbs_list = {};
@@ -29,6 +30,7 @@ var chosen_runs_select = $('#chosen_runs_select')[0];
 var database_select = $('#database_select')[0];
 
 var setup_names = [];
+var curr_setup_name = '';
 var action = '';
 
 function save_list(list_name) {
@@ -282,7 +284,7 @@ function calculate_list_num_of_runs(list_name) {
     return list_num_of_runs;
 }
 //getting all initial data - functions, dbs list+run_ids
-function load_init_data() {
+function load_init_setup_data() {
     get_db_names();
     setTimeout(200);
     load_run_ids(connections[0]);
@@ -349,10 +351,14 @@ function clear_setup() {
     $('#num_of_tests')[0].innerHTML = 'Total : 0 tests';
     $('#statistics_text')[0].innerHTML = String(num_of_functions) + ' functions on ' + String(num_of_runs) + ' runs : ' + String(num_of_runs * num_of_functions) + ' tests';
     $('#setup_name')[0].value = '';
+    $('#curr_setup_name')[0].innerHTML = ''
+    curr_setup_name = ''
 }
 
 function load_setup(setup_name) {
     $('#setup_name')[0].value = setup_name;
+    curr_setup_name = setup_name;
+    $('#curr_setup_name')[0].innerHTML = curr_setup_name;
     $.ajax({
         url: 'api/AnalyseSetup/get_by_name/' + setup_name,
         async: false,
@@ -385,9 +391,11 @@ function load_setup(setup_name) {
 
             $("#runs_table").find('tr').each((index) => {
                 db_name = $('#database_select')[0].options[database_select.options.selectedIndex].text;
-                runs = Object.keys(current_setup.runs[db_name]);
-                if (runs.includes($("#runs_table").find('tr')[index].cells[0].innerHTML)) {
-                    $("#runs_table").find('tr')[index].classList.add('selected');
+                if (Object.keys(current_setup.runs).includes(db_name)) {
+                    runs = Object.keys(current_setup.runs[db_name]);
+                    if (runs.includes($("#runs_table").find('tr')[index].cells[0].innerHTML)) {
+                        $("#runs_table").find('tr')[index].classList.add('selected');
+                    }
                 }
             });
             add_selected_runs();
@@ -490,7 +498,7 @@ function add_selected_lists() {
     $('#num_of_runs')[0].innerHTML = 'Total : ' + String(num_of_runs) + ' runs';
 }
 
-function assign_event_listeners() {
+function assign_event_setup_listeners() {
     $('#setup_name').change(() => {
         if (!$('#setup_toggle')[0].checked) {
             name = $('#setup_name')[0].value;
@@ -509,6 +517,8 @@ function assign_event_listeners() {
             } else {
                 $('#setup_name')[0].setAttribute('list', 'setups_datalist');
                 load_setup_names();
+                curr_setup_name = $('#setup_name')[0].value;
+                $('#curr_setup_name')[0].innerHTML = curr_setup_name;
                 if (action !== 'save') {
                     clear_setup();
                     load_setup(setup_names[0]);
@@ -517,9 +527,27 @@ function assign_event_listeners() {
         } else {
             $('#setup_name')[0].setAttribute('list', null);
             $('#setup_name')[0].value = '';
+            $('#curr_setup_name')[0].innerHTML = ''
+            curr_setup_name = '';
         }
         action = '';
     });
+
+    $('#run_setup_button').click(() => {
+        if (!$('#setup_toggle')[0].checked) {
+            $.ajax({
+                url: 'api/run_setup/' + curr_setup_name,
+                success: (response) => {
+                    alert("running!");
+                    get_mission_names();
+                    load_mission(mission_names[0])
+                }
+            });
+        } else {
+            //save the setup as temp and run it
+        }
+    });
+
 
     $('#save_list_button').click(() => {
         save_list($('#list_name')[0].value);
@@ -545,6 +573,21 @@ function assign_event_listeners() {
             }
         }
     });
+
+    $('#delete_setup').click(() => {
+        if (!$('#setup_toggle')[0].checked) {
+            name = $('#setup_name')[0].value;
+            $.ajax({
+                url: '/api/AnalyseSetup/delete_by_name/' + name,
+                async: false,
+                success: (response) => {
+                    alert('setup ' + name + ' was deleted')
+                }
+            });
+            $('#setup_toggle').bootstrapToggle('off');
+        }
+    });
+
     database_select.addEventListener('change', () => { load_run_ids(database_select.options[database_select.selectedIndex].text) });
     // runs_tab.addEventListener('click', () => { load_run_ids(database_select.options[database_select.selectedIndex].text) });
     $('#collapse_setup_button').click(() => {
@@ -696,7 +739,7 @@ function assign_event_listeners() {
             }
             delete selected_functions[option_name]
         }
-        $('#num_of_functions')[0].innerHTML = 'Total : ' + String(num_of_functions) + ' runs';
+        $('#num_of_functions')[0].innerHTML = 'Total : ' + String(num_of_functions) + ' functions';
         $('#num_of_tests')[0].innerHTML = 'Total : ' + String(num_of_runs * num_of_functions) + ' tests';
         $('#statistics_text')[0].innerHTML = String(num_of_functions) + ' functions on ' + String(num_of_runs) + ' runs : ' + String(num_of_runs * num_of_functions) + ' tests';
     });
@@ -741,6 +784,6 @@ function assign_event_listeners() {
 
 //Start from here
 $(document).ready(() => {
-    load_init_data();
-    assign_event_listeners();
+    load_init_setup_data();
+    assign_event_setup_listeners();
 });

@@ -270,10 +270,16 @@ class DbConnector:
     @staticmethod
     def load_conn_by_name(db_name):
         conn_data = DbConnections.query.filter_by(name=db_name,project=session['current_project_id']).first()
-        return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
-                         password=conn_data.password, hostname=conn_data.hostname,
-                         schema=conn_data.schema, port=conn_data.port,
-                         name=conn_data.name)
+        if conn_data:
+            return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
+                            password=conn_data.password, hostname=conn_data.hostname,
+                            schema=conn_data.schema, port=conn_data.port,
+                            name=conn_data.name)
+        else:
+            return DbConnector(db_type='', user='',
+                            password='', hostname='',
+                            schema='', port='',
+                            name=db_name)
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
@@ -352,11 +358,13 @@ class OctopusUtils:
 
 class Task:
 
-    def __init__(self, mission_id, db_conn_obj, run_id, function_id, user_id, task_id=0, priority=1, status=0):
+    def __init__(self, mission_id, db_conn_obj, run_id, run_status, scenario_name, function_id, user_id, task_id=0, priority=1, status=0):
         self.id=task_id
         self.mission_id=mission_id
         self.db_conn_obj = db_conn_obj
         self.run_id = run_id
+        self.run_status = run_status
+        self.scenario_name = scenario_name
         self.function_id = function_id
         self.user_id = user_id
         self.priority = priority
@@ -364,8 +372,8 @@ class Task:
 
     def log(self):
         task = AnalyseTask(mission_id=self.mission_id, mission_type=0, function_id=self.function_id,
-                 run_id=self.run_id, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.name,
-                 priority=1, user_id=self.user_id, status=0)
+                 run_id=self.run_id, run_status=self.run_status, scenario_name=self.scenario_name, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.name,
+                 priority=1, user_id=self.user_id, status=-3)
         db.session.add(task)
         db.session.commit()
         self.id = task.id
@@ -865,7 +873,7 @@ class FunctionParameters(db.Model):
 
         return self.value
 #####################################################
-########### OCTOPUSFUNCTIONS MODEL CLASS ############
+########### OCTOPUSFUNCTION MODEL CLASS ############
 #####################################################
 
 
@@ -1221,6 +1229,12 @@ class OctopusFunction(db.Model):
                            "status": function_status[func.status],
                            "owner":User.query.get(func.owner).name,
                            "feature": func.feature}
+                           if func.owner
+                           else
+                           {"name":func.name,
+                           "status": function_status[func.status],
+                           "owner":"deleted user",
+                           "feature": func.feature}
                            for func in functions]
             return jsonify(status=1, message=None, data=names_json)
         except:
@@ -1247,7 +1261,7 @@ class OctopusFunction(db.Model):
                     'result_status':1,
                     'result_text':'Error! Function module is not in the specified location',
                     'results_arr' : None,
-                    'time_elapsed' : None
+                    'time_elapsed' : 0
                 }
             try:
                 db_conn.connection = create_engine(db_conn.conn_string, connect_args={'connect_timeout': 5})
@@ -1266,7 +1280,7 @@ class OctopusFunction(db.Model):
 
                     'result_text':"Error! Unexpected error while connecting to db",
                     'results_arr' : None,
-                    'time_elapsed' : None
+                    'time_elapsed' : 0
                 }
             try:
                 parameters_list = self.get_parameters_list(conn, run_id)
@@ -1278,7 +1292,7 @@ class OctopusFunction(db.Model):
                     'result_status':1,
                     'result_text':"Error! Unexpected error while extracting method's parameters",
                     'results_arr' : None,
-                    'time_elapsed' : None
+                    'time_elapsed' : 0
                 }
             try:
                 if self.kind.lower() == 'python':
@@ -1296,7 +1310,7 @@ class OctopusFunction(db.Model):
                             'result_status':1,
                             'result_text':'Error! Error while getting the module (file)',
                             'results_arr' : None,
-                            'time_elapsed' : None
+                            'time_elapsed' : 0
                         }
                     #if class - check for method
 
@@ -1311,7 +1325,7 @@ class OctopusFunction(db.Model):
                             'result_status':1,
                             'result_text':'Error! The specified module does not contain the given class or method',
                             'results_arr' : None,
-                            'time_elapsed' : None
+                            'time_elapsed' : 0
                             }
                     #else - check for function
                     else:
@@ -1324,7 +1338,7 @@ class OctopusFunction(db.Model):
                                 'result_status':1,
                                 'result_text':'Error! Unexpected error while extracting the method',
                                 'results_arr' : None,
-                                'time_elapsed' : None
+                                'time_elapsed' : 0
                             }
 
                         if len(parameters_list) > 0:
@@ -1365,7 +1379,7 @@ class OctopusFunction(db.Model):
                         'result_status':1,
                         'result_text':'Error! Function kind must be python, sql or matlab',
                         'results_arr' : None,
-                        'time_elapsed' : None
+                        'time_elapsed' : 0
                     }
                 time_elapsed = time() - start_time
                 # if str.find(str(time_elapsed),'.') > 0:
@@ -1393,7 +1407,7 @@ class OctopusFunction(db.Model):
                     'result_status':1,
                     'result_text':'Error! Unexpected error while activating the method',
                     'results_arr' : None,
-                    'time_elapsed' : None
+                    'time_elapsed' : 0
                 }
         except:
             return {
@@ -1402,7 +1416,7 @@ class OctopusFunction(db.Model):
                 'result_status':1,
                 'result_text':'Error! Unexpected error while handling the method',
                 'results_arr' : None,
-                'time_elapsed' : None
+                'time_elapsed' : 0
             }
         finally:
             if db_conn.connection:
@@ -1706,6 +1720,11 @@ class FunctionsGroup(db.Model):
         finally:
             db.session.close()
 
+    def get_functions_ids(self):
+        if self.functions:
+            return [func.id for func in self.functions]
+        return None
+
     @staticmethod
     def update_by_id(group_id, json_data):
         try:
@@ -1806,6 +1825,8 @@ class AnalyseTask(db.Model):
     mission_type = db.Column(db.Integer)
     function_id = db.Column(db.Integer)
     run_id = db.Column(db.Integer)
+    run_status = db.Column(db.Integer)
+    scenario_name = db.Column(db.Text)
     scenario_id = db.Column(db.Integer)
     ovr_file_location = db.Column(db.Text)
     db_conn_string = db.Column(db.Text)
@@ -1813,15 +1834,18 @@ class AnalyseTask(db.Model):
     user_id = db.Column(db.Integer)
     status = db.Column(db.Integer)
     message = db.Column(db.Text)
+    time_elapsed = db.Column(db.Float)
 
     def __init__(self, mission_id=None, mission_type=0, function_id=None,
-                 run_id=None, scenario_id=None, ovr_file_location=None, db_conn_string=None,
-                 priority=1, user_id=None, status=0, message=None):
+                 run_id=None, run_status=None,scenario_name=None ,scenario_id=None, ovr_file_location=None, db_conn_string=None,
+                 priority=1, user_id=None, status=-3, message=None,time_elapsed=0):
 
         self.mission_id = mission_id
         self.mission_type = mission_type
         self.function_id = function_id
         self.run_id = run_id
+        self.run_status = run_status
+        self.scenario_name = scenario_name
         self.scenario_id = scenario_id
         self.ovr_file_location = ovr_file_location
         self.db_conn_string = db_conn_string
@@ -1829,6 +1853,7 @@ class AnalyseTask(db.Model):
         self.user_id = user_id
         self.status = status
         self.message = message
+        self.time_elapsed = time_elapsed
 
         #status
         #0 - created
@@ -1844,16 +1869,63 @@ class AnalyseTask(db.Model):
         global tasks_queue
         tasks_queue.put_nowait((self, OctopusFunction.query.get(self.function_id), datetime.utcnow(), self.id))
 
+    @staticmethod
+    def get_mission_results(mission_identifier):
+        statistics = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        if type(mission_identifier) == type("1"):
+            if mission_identifier.isdigit():
+                mission_id = int(mission_identifier)
+            else:
+                mission_id = mission_identifier.split('_')[-1]
+        else:
+            mission_id = mission_identifier
+        tasks = AnalyseTask.query.filter_by(mission_id=mission_id).all()
+        for task in tasks:
+            statistics[task.status]+=1
+        is_done = True
+        if [True for task in tasks if task.status == -3]:
+            is_done = False
+        table_columns = list(set([task.db_conn_string + '-' + str(task.run_id) + '-' + task.scenario_name
+                   for task in tasks]))
+        table_columns = ["function name","function state","requirement","owner"] + table_columns
+        table_columns = [{ "title": col, "data": col } for col in table_columns]
+        functions_ids = list(set([tasks.function_id for tasks in tasks]))
+        functions_dict = {}
+        [functions_dict.update({func_id:None}) for func_id in functions_ids]
+        functions = db.session.query(OctopusFunction).filter(OctopusFunction.id.in_(functions_ids)).all()
+        [functions_dict.update({func.id:{
+                                        "function name":func.name,
+                                        "function state" : func.status,
+                                        "requirement": func.requirement,
+                                        "owner" : User.query.get(func.owner).name
+                                        }})
+         if func.owner else 
+         functions_dict.update({func.id:{
+                                        "function name":func.name,
+                                        "function state" : func.status,
+                                        "requirement": func.requirement,
+                                        "owner" : 'deleted user'
+                                        }})                               
+                                        for func in functions]
+        [functions_dict[task.function_id].update({
+            task.db_conn_string + '-' + str(task.run_id) + '-' + task.scenario_name: task.status
+        }) for task in tasks]
+        report = {"table_data":[functions_dict[key] for key in functions_dict.keys()],
+                  "table_columns": table_columns,
+                  "is_done":is_done, "statistics":statistics
+                  }
+        return jsonify(status = 1, message=None, data=report)
 class Mission(db.Model):
     __tablename__ = 'Mission'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-
-    def __init__(self, name=None):
+    project = db.Column(db.Integer)
+    def __init__(self, name=None, project=None):
         if name:
             self.name=name
         else:
             self.name='mission'+str(self.id)
+        self.project = project
 
     # @staticmethod
     # def push_task(user_id, function, run_id, db_conn)
@@ -1867,7 +1939,7 @@ class Mission(db.Model):
         names = [func.name for func in functions]
         runs = json_data['runs']
 
-        mission = Mission(json_data['mission_name'])
+        mission = Mission(json_data['mission_name'], project=session['current_project_id'])
         db.session.add(mission)
         db.session.commit()
         user_id = json_data['user_id']
@@ -1900,6 +1972,17 @@ class Mission(db.Model):
         ids = [row.id for row in table]
         ids.sort(reverse=True)
         return jsonify(ids)
+
+    @staticmethod
+    def get_names():
+        table = Mission.query.all()
+        names = [row.name for row in table]
+        ids_dict = {}
+        ids = [row.id for row in table]
+        ids.sort(reverse=True)
+        [ids_dict.update({row.id:row.name}) for row in table]
+        names = [ids_dict[index] for index in ids]
+        return jsonify(names)
 class OverView(db.Model):
     __tablename__ = 'OverView'
     id = db.Column(db.Integer, primary_key=True)
@@ -1908,18 +1991,18 @@ class OverView(db.Model):
     # result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
     elapsed_time = db.Column(db.Float)
 
-    def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
-        self.mission_id = mission_id
-        self.overall_status = overall_status
-        # self.result_id = result_id
-        self.time_elapsed = time_elapsed
-        db.session.add(self)
-        db.session.commit()
-        for result in results:
-            analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
-                                           result_status=result['result_status'],
-                                           result_text=result['result_text'],
-                                           result_array=result['results_arr'])#,
+    # def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
+    #     self.mission_id = mission_id
+    #     self.overall_status = overall_status
+    #     # self.result_id = result_id
+    #     self.time_elapsed = time_elapsed
+    #     db.session.add(self)
+    #     db.session.commit()
+    #     for result in results:
+    #         analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
+    #                                        result_status=result['result_status'],
+    #                                        result_text=result['result_text'],
+    #                                        result_array=result['results_arr'])#,
                                         #    result_array_header=[],#result['result_array_header'],
                                         #    result_array_types=[])#=result['result_array_types'])
 
@@ -1929,9 +2012,13 @@ class OverView(db.Model):
 class AnalyseResult(db.Model):
     __tablename__ = 'AnalyseResult'
     id = db.Column(db.Integer, primary_key=True)
+    mission_id = db.Column(db.Integer)
     # overview_id = db.Column(db.Integer, db.ForeignKey('OverView.id'))
     task_id = db.Column(db.Integer)
     run_id = db.Column(db.Integer)
+    scenario_name = db.Column(db.Text)
+    run_status = db.Column(db.Integer)
+    function_id = db.Column(db.Integer)
     db_conn = db.Column(db.Text)
     result_status = db.Column(db.Integer)
     result_text = db.Column(db.Text)
@@ -1940,10 +2027,14 @@ class AnalyseResult(db.Model):
     result_array_types = db.Column(db.Text)
     time_elapsed = db.Column(db.Float)
 
-    def __init__(self, task_id, run_id,  result_status, result_text,
+    def __init__(self, mission_id, task_id, run_id,scenario_name, run_status, function_id, result_status, result_text,
                 db_conn_string=None, result_array=None, result_array_header=None, result_array_types=None, time_elapsed=None):
+        self.mission_id = mission_id
         self.task_id = task_id
         self.run_id = run_id
+        self.scenario_name = scenario_name
+        self.run_status = run_status
+        self.function_id = function_id
         self.db_conn = db_conn_string
         self.result_status = result_status
         self.result_text = result_text
@@ -2008,7 +2099,7 @@ class AnalyseResult(db.Model):
         else:
             result_array = None
 
-        function_obj = OctopusFunction.query.get(AnalyseTask.query.get(self.task_id).function_id)
+        function_obj = OctopusFunction.query.get(self.function_id)
         if function_obj:
             function_id = function_obj.id
             function_status = function_obj.status
@@ -2052,6 +2143,30 @@ class AnalyseResult(db.Model):
         return jsonify([result.self_jsonify().json for result in results])
 
     @staticmethod
+    def get_by_mission_id(mission_id):
+        results = AnalyseResult.query.filter_by(mission_id = mission_id).all()
+        if results:
+            return jsonify(status=1, data=[result.id for result in results],message=None)
+        else:
+            return jsonify(status=0, data=None,message=['no results for this mission id'])
+
+    @staticmethod
+    def get_by_mission_name(mission_name):
+        mission = Mission.query.filter_by(name=mission_name,project=session['current_project_id']).first()
+        if mission:
+            mission_id = mission.id
+        else:
+            return jsonify(status=0, data=None,message=['no mission with this name'])
+
+        results = AnalyseResult.query.filter_by(mission_id = mission_id).with_entities('AnalyseResult.id').all()
+        
+        if results:
+            return jsonify(status=1, data=[result.id for result in results],message=None)
+        else:
+            return jsonify(status=0, data=None,message=['no results for this mission id'])
+
+
+    @staticmethod
     def jsonify_by_mission_id(id):
         tasks = AnalyseTask.query.filter_by(mission_id=int(id)).all()
         # mission_results = [{'task_status':task.status,'run_id':task.run_id,
@@ -2089,7 +2204,6 @@ class AnalyseResult(db.Model):
         res_df = res_df.set_index('function_name').groupby(level=0).last()
         return jsonify(json.loads(res_df.to_json(orient='table')))
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
-
 
 class ResultArray(db.Model):
     __tablename__ = 'ResultArray'
@@ -3791,16 +3905,72 @@ class AnalyseSetup(db.Model):
         try:
             setup = AnalyseSetup.query.filter_by(name=name,project=session['current_project_id']).first()
             if setup:
+                setup.run_lists = []
+                setup.functions = []
+                setup.groups = []
+                setup.runs = []
+                db.session.commit()
                 db.session.delete(setup)
                 db.session.commit()
                 return jsonify(status=1,msg='setup ' + name + ' succefully deleted')
             else:
                 return jsonify(status=0,msg='Not deleted! No setup with this name')
         except:
+            db.session.rollback()
             return jsonify(status=0,msg='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
+        # finally:
+        #     db.session.close()
 
+    def get_func_ids(self):
+        group_func_ids = []
+        for group in self.groups:
+            curr_ids = group.get_functions_ids()
+            if curr_ids:
+                group_func_ids += curr_ids
+        func_ids = [func.id for func in self.functions]
+
+        return list(set(func_ids+group_func_ids))
+    
+    def get_dbs_and_runs(self):
+        dbs = {}
+        return [{"db_name":run.db_name, "run_id":run.run_id, "scenario_name":run.scenario_name}
+        for run in self.run_lists+self.runs]
+        
+    def create_mission(self, tasks_queue):
+        # creating the mission
+        project = project=session['current_project_id']
+        user_name = session['username']
+        user_id = User.query.filter_by(name=user_name).first().id
+        mission = Mission(self.name + '_' + user_name, project=project)
+        db.session.add(mission)
+        db.session.commit()
+        mission.name = mission.name + '_' + str(mission.id)
+        db.session.commit()
+        # getting functions ids
+        functions_ids = self.get_func_ids()
+        
+        # getting runs and connections
+        functions_dict = {"run_id":list, "scenario_name":list}
+        df=pd.DataFrame(self.get_dbs_and_runs()).groupby('db_name').aggregate(functions_dict)
+
+        for db_name, row in df.iterrows():
+            conn = DbConnector.load_conn_by_name(db_name)
+            if conn.status == 'valid':
+                db_status = 1
+                db_run_ids = conn.get_run_ids(db_name).json['run_ids']
+            else:
+                db_status = -1
+            for index, run_id in enumerate(row.run_id):
+                for func_id in functions_ids:
+                    scenario_name = row.scenario_name[index]
+                    run_status = db_status
+                    if run_status > 0:
+                        if run_id not in db_run_ids:
+                            run_status = -2
+                    task = Task(mission.id, conn, run_id, run_status, scenario_name, func_id, user_id)
+                    tasks_queue.put_nowait(task)
+
+        return {"status":1,"message":'task id is'+str(mission.id)}
 class SetupRuns(db.Model):
     __tablename__ = 'SetupRuns'
     id = db.Column(db.Integer, primary_key=True)
