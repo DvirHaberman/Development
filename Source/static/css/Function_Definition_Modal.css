@@ -1,3 +1,8 @@
+@media (min-width: 576px)
+.form-inline .form-control {
+    width: non-auto;
+}
+
 .main-selectors-div {
     margin-top: 30px;
     /* margin-bottom: 10px; */
@@ -163,7 +168,7 @@
     padding-bottom: 15px;
     margin-right: 10px;
     background-color: whitesmoke;
-    /* width: 200px; */
+    width: 250px;
     height: 500px;
 }
 
@@ -185,9 +190,6 @@
   padding-bottom: 5px;
 }
 
-.modal_filter{
-  margin-left: 5px;
-}
 
 .modal_filter_icon{
   background-color: whitesmoke;
@@ -202,7 +204,7 @@
     margin-right: 10px;
     margin-left: 10px;
     background-color: whitesmoke;
-    width: 420px;
+    width: 480px;
     height: 500px;
 }
 
@@ -219,7 +221,7 @@
 
 .Modal_filter_Tags{
   margin-left: 15px;
-  width: 180px;
+  width: 220px;
   font-size: 14px;
 }
 
@@ -310,4 +312,8 @@ toggle.btn.btn-default {
 
 .Modal_GroupFunctionName_Select {
     margin-left: -10px;
+}
+
+#Modal_Group_Description{
+    margin-left: 5px;
 }

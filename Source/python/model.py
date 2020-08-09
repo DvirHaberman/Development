@@ -1207,6 +1207,23 @@ class OctopusFunction(db.Model):
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
+        
+    @staticmethod
+    def get_names_by_filter(json_data):
+        function_filters = json_data
+        if "owner" in function_filters:
+            function_filters["owner"] = User.query.filter_by(name=function_filters["owner"]).first().id
+        if "tags" in function_filters:
+            function_tags = function_filters['tags']
+            del function_filters['tags']
+        function_filters['project'] = session['current_project_id']
+        try:
+            names = OctopusFunction.query.filter_by(**function_filters).with_entities(OctopusFunction.name, OctopusFunction.tags).all()
+            return jsonify(status=1, message=None, data=[func_name for func_name, tags in names if [True for tag in tags if tag in function_tags]])
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
 
     def get_names_json():
         try:
