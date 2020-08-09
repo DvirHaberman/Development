@@ -28,19 +28,19 @@ var modal_form_controls = {
     ul: $("#modal_ul")[0]
 };
 
-function clear_Modal_form( ){
+function clear_Modal_form() {
     modal_form_controls.Group_Name_select.value = null;
-    modal_form_controls.description.value = ""; 
+    modal_form_controls.description.value = "";
     modal_form_controls.changed_by.innerHTML = "";
-    modal_form_controls.changed_date.innerHTML= "";
-    modal_form_controls.GroupFunction_Description.innerHTML= "";
+    modal_form_controls.changed_date.innerHTML = "";
+    modal_form_controls.GroupFunction_Description.innerHTML = "";
     modal_filter_Tags.value = "";
     modal_filter_owner.value = "";
     SetModalAllUsers();
 }
 
 
-function ModalFormDisable(trueFalse){
+function ModalFormDisable(trueFalse) {
     // form_controls.function_select.disabled = trueFalse;
     modal_form_controls.owner.disabled = trueFalse;
     modal_form_controls.description.disabled = trueFalse;
@@ -52,44 +52,44 @@ function ModalFormDisable(trueFalse){
     function_group_dropdown_menu.disabled = trueFalse;
     $('#Save_Group')[0].disabled = trueFalse;
     $('#Delete_Group')[0].disabled = trueFalse;
-    
-    $('#modal_ul').find('li').each((index)=>{
-      elem = $('#modal_ul').find('li')[index];
-      if (elem.children.length){elem.children[0].children[1].disabled=trueFalse;}
+
+    $('#modal_ul').find('li').each((index) => {
+        elem = $('#modal_ul').find('li')[index];
+        if (elem.children.length) { elem.children[0].children[1].disabled = trueFalse; }
     });
-   
-  }
+
+}
 //   GroupsListNames
 
-function  SetModalFuctionsOrGroups(FuctionsOrGroupsNames) {
+function SetModalFuctionsOrGroups(FuctionsOrGroupsNames) {
     var num_of_Records = FuctionsOrGroupsNames.length;
 
-        FuctionsOrGroup_list = $('# modal_datalist')[0];
-        // clear owner DL Control
-        var num_of_options = FuctionsOrGroup_list.options.length;
-        for (i = 0; i < num_of_options; i++) {
-            FuctionsOrGroup_list.removeChild(FuctionsOrGroup_list.children[0]);
-        }
+    FuctionsOrGroup_list = $('#modal_datalist')[0];
+    // clear owner DL Control
+    var num_of_options = FuctionsOrGroup_list.options.length;
+    for (i = 0; i < num_of_options; i++) {
+        FuctionsOrGroup_list.removeChild(FuctionsOrGroup_list.children[0]);
+    }
 
-        //insert data
-        for (i = 0; i < num_of_Records; i++) {
-             var option = document.createElement("option");
-            option.text = FuctionsOrGroupsNames[i];
-            FuctionsOrGroup_list.appendChild(option);
-        }
+    //insert data
+    for (i = 0; i < num_of_Records; i++) {
+        var option = document.createElement("option");
+        option.text = FuctionsOrGroupsNames[i];
+        FuctionsOrGroup_list.appendChild(option);
+    }
 
 }
 
 
 
 
-function  SetModalAllUsers() {
+function SetModalAllUsers() {
     Users = getAllUsers()
     var num_of_Users = Users.length;
     var owner_datalists = ["modal_owner_datalist", "modal_filter_owner_datalist"];
 
-    for (x=0; x<owner_datalists.length; x++) {
-        
+    for (x = 0; x < owner_datalists.length; x++) {
+
         owner_data_list = $('#' + owner_datalists[x])[0];
         // clear owner DL Control
         var num_of_options = owner_data_list.options.length;
@@ -99,13 +99,13 @@ function  SetModalAllUsers() {
 
         //insert data
         for (i = 0; i < num_of_Users; i++) {
-             var option = document.createElement("option");
+            var option = document.createElement("option");
             option.text = Users[i];
             owner_data_list.appendChild(option);
         }
 
     }
-   
+
 
 }
 
@@ -176,7 +176,7 @@ function save_group(group_name) {
         // changed_date: 
         // changed_by: 
         functions: chosen_functions
-         
+
     };
     $.ajax({
         type: "POST",
@@ -304,17 +304,17 @@ function create_modal_li_element(value, type) {
     return li_ele;
 }
 
-function  getModalFilterData() {
+function getModalFilterData() {
 
     data = {
         owner: modal_filter_owner.value,
-        tags:  modal_filter_Tags.value 
+        tags: modal_filter_Tags.value
     };
     return data;
 }
 
-function Filter_function_names(json_data){
-    
+function Filter_function_names(json_data) {
+
     $.ajax({
         async: false,
         type: "POST",
@@ -323,11 +323,11 @@ function Filter_function_names(json_data){
         data: JSON.stringify(json_data),
         contentType: 'application/json',
         success: function(result) {
-            FilerFunction = result;
-            return FilerFunction;
+            FilterFunction = result;
         }
 
     });
+    return FilterFunction.data;
 }
 
 
@@ -347,7 +347,7 @@ $('#modal_filter_owner')[0].addEventListener('input', function() {
 
         FilerNames = get_names_by_filter(json_data);
 
-    } else {  // Function Case
+    } else { // Function Case
         json_data = getModalFilterData();
         FilerNames = Filter_function_names(json_data);
         SetModalFuctionsOrGroups(FilerNames);
@@ -356,8 +356,22 @@ $('#modal_filter_owner')[0].addEventListener('input', function() {
 });
 
 $('#modal_filter_Tags')[0].addEventListener('input', function() {
-    json_data = getModalFilterData();
-    get_names_by_filter(json_data)
+
+    if ($('#groups_option').hasClass('dropdown-selected')) { // Group Case
+        json_data = getModalFilterData();
+        delete json_data['tags'];
+
+        FilerNames = get_names_by_filter(json_data);
+
+    } else { // Function Case
+        json_data = getModalFilterData();
+        FilerNames = Filter_function_names(json_data);
+        SetModalFuctionsOrGroups(FilerNames);
+    }
+
+
+
+
 
 });
 
@@ -373,7 +387,7 @@ $('#Group_toggle').change(function() {
         get_groups_names();
         get_functions_names();
         // $('#function_group_dropdown_menu').dropdown() - need to be added
-        ModalFormDisable(false)    
+        ModalFormDisable(false)
         action = 'new';
 
     } else { //exist
@@ -387,7 +401,7 @@ $('#Group_toggle').change(function() {
         // if (action !== 'update') {
         load_group(modal_group_name.value);
         // }
-        ModalFormDisable(true)    
+        ModalFormDisable(true)
         action = 'existing';
     }
 
@@ -403,7 +417,7 @@ $('#Duplicate_Group').click(function() { //duplicate
 
 
 $('#Edit_Group').click(function() { //duplicate
-    ModalFormDisable(false)    
+    ModalFormDisable(false)
 });
 
 
