@@ -158,8 +158,12 @@ function init_worker() {
         myWorker.terminate();
         myWorker = null;
     }
-    toggle_running(true)
     myWorker = new Worker(URL.createObjectURL(new Blob(["(" + analyse_worker_function.toString() + ")()"], { type: 'text/javascript' })));
+    toggle_running(true);
+    $('#progress_bar')[0].setAttribute('aria-valuenow', String(0));
+    $('#progress_bar')[0].setAttribute('style', "width: " + String(0) + "%");
+    $('#progress_text')[0].innerHTML = String(0) + "% Completed";
+    $('#statistics_div')[0].innerHTML = ''
     myWorker.onmessage = function(e) {
         if (!e.data.status) {
             myWorker.terminate();
@@ -174,26 +178,43 @@ function init_worker() {
 
         }, 0)
         functions_counter = e.data.data.table_data.length;
-        runs_counter = all_tests / functions_counter
-        if (e.data.data.is_done) {
-            myWorker.terminate();
-            myWorker = null;
-            toggle_running(false);
-            $('#progress_bar')[0].setAttribute('aria-valuenow', String(100));
-            $('#progress_bar')[0].setAttribute('style', "width: " + String(100) + "%");
-            $('#progress_text')[0].innerHTML = String(100) + "% Completed";
-            $('#statistics_div')[0].innerHTML = String(functions_counter) + " functions on " + String(runs_counter) + " runs : " + String(all_tests) + "/" + String(all_tests) + " completed"
-        } else {
-            percents = Math.floor(100 - (inprocess / all_tests) * 100);
-            // set_header(percents)
-            $('#progress_bar')[0].setAttribute('aria-valuenow', String(percents));
-            $('#progress_bar')[0].setAttribute('style', "width: " + String(percents) + "%");
-            $('#progress_text')[0].innerHTML = String(percents) + "% Completed";
-            $('#statistics_div')[0].innerHTML = String(functions_counter) + " functions on " + String(runs_counter) + " runs : " + String(all_tests - inprocess) + "/" + String(all_tests) + " completed"
+        if (functions_counter > 0) {
+            runs_counter = all_tests / functions_counter
+            if (e.data.data.is_done) {
+                myWorker.terminate();
+                myWorker = null;
+                toggle_running(false);
+                $('#progress_bar')[0].setAttribute('aria-valuenow', String(100));
+                $('#progress_bar')[0].setAttribute('style', "width: " + String(100) + "%");
+                $('#progress_text')[0].innerHTML = String(100) + "% Completed";
+                $('#statistics_div')[0].innerHTML = String(functions_counter) + " functions on " + String(runs_counter) + " runs : " + String(all_tests) + "/" + String(all_tests) + " completed"
+            } else {
+                percents = Math.floor(100 - (inprocess / all_tests) * 100);
+                // set_header(percents)
+                $('#progress_bar')[0].setAttribute('aria-valuenow', String(percents));
+                $('#progress_bar')[0].setAttribute('style', "width: " + String(percents) + "%");
+                $('#progress_text')[0].innerHTML = String(percents) + "% Completed";
+                $('#statistics_div')[0].innerHTML = String(functions_counter) + " functions on " + String(runs_counter) + " runs : " + String(all_tests - inprocess) + "/" + String(all_tests) + " completed"
 
+            }
+        } else {
+            $('#statistics_div')[0].innerHTML = 'waiting for worker data'
         }
         converted_data = convert_status(e.data.data);
         update_statistics(converted_data.statistics);
         update_table(converted_data);
     }
 }
+
+function s2ab(s) {
+    var buf = new ArrayBuffer(s.length);
+    var view = new Uint8Array(buf);
+    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+$("#export_to_excel_button")[0].addEventListener('click', () => {
+    var wb = XLSX.utils.table_to_book(document.getElementById('results_table'), { sheet: "Sheet JS" });
+    var wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'binary' });
+    saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), 'test.xlsx');
+});

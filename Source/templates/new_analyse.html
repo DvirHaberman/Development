@@ -139,7 +139,10 @@
 
 
     <div id="AnalyseContent" class="collapse card-body">
-        <h3>Analyse content</h3>
+        <div class="row">
+            <h3>Analyse content</h3>
+            <button id="export_to_excel_button" class="btn btn-primary">Export to Excel</button>
+        </div>
         <ul class="nav nav-tabs">
             <li class="nav-item">
                 <button id="results_tab" class="nav-link active"><i class="fas fa-table"></i>&nbsp;Results</button>
@@ -160,6 +163,8 @@
     </div>
 </div>
 <br><br> {% endblock %} {%block scripts%}
+<script src="../static/js/xlsx.full.min.js"></script>
+<script src="../static/js/FileSaver.min.js"></script>
 <script src="../static/js/AnalyseWorker.js"></script>
 <script src="../static/js/new_analyse_tables.js"></script>
 <script src="../static/js/new_analyse_setup.js"></script>

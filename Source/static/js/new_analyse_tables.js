@@ -15,12 +15,6 @@ var status_icons = {
     "-5": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to log results"><i class="fas fa-database text-secondary"></i></div>'
 }
 
-// var dataSet2 = [
-//     ['func1', 'needed', 'dvir', '1234', status_icons.Success, status_icons.Fail, status_icons.Error, status_icons.Warning, status_icons.InProcess, status_icons.Error],
-//     ['func2', 'InDev', 'dvir', '1234', status_icons.NoData, status_icons.InProcess, status_icons.Success, status_icons.Success, status_icons.InProcess, status_icons.Warning],
-//     ['func3', 'Completed', 'dvir', '1234', status_icons.Error, status_icons.NoData, status_icons.Fail, status_icons.Fail, status_icons.InProcess, status_icons.InProcess]
-// ]
-
 function update_table(data) {
     if ($.fn.DataTable.isDataTable('#results_table')) {
         $('#results_table').DataTable().destroy();
