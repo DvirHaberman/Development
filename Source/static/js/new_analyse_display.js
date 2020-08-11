@@ -99,6 +99,10 @@ function assign_event_analyse_listeners() {
         post_data = { "origin": window.location.origin, "analyse_mission_name": $('#mission_name')[0].value };
         myWorker.postMessage(post_data);
     });
+    // $('#results_table tbody').on('click', 'tr', function() {
+    //     var data = table.row(this).data();
+    //     alert('You clicked on ' + data[0] + '\'s row');
+    // });
 }
 
 $(document).ready(() => {
@@ -203,6 +207,11 @@ function init_worker() {
         converted_data = convert_status(e.data.data);
         update_statistics(converted_data.statistics);
         update_table(converted_data);
+        $('#results_table td').on('click', function() {
+            run_data = results_table.rows[0].children[this.cellIndex].innerHTML;
+            function_name = results_table.rows[this.parentElement.rowIndex].children[0].innerHTML;
+            alert('You clicked on ' + run_data + '\'s row');
+        });
     }
 }
 

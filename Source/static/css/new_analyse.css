@@ -80,6 +80,11 @@ span.toggle-handle.btn.btn-default {
     min-height: 100px;
 }
 
+#AnalyseContent table td:nth-child(n+5):hover {
+    border-color: blue;
+    box-shadow: 2px 4px 2px 4px gray;
+}
+
 #AnalyseContent table td {
     text-align: center;
     vertical-align: middle;

@@ -255,7 +255,7 @@ class Worker:
                                     final_result = {'run_id':final_result['run_id'], 'result_status':1, 'result_text':message, 'time_elapsed':0, 'results_arr':None}
                                 status = final_result['result_status']
                             else:
-                                final_result = {'run_id':task.run_id, 'result_status':8-status, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
+                                final_result = {'run_id':task.run_id, 'result_status':status, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
 
                             # analyse_result = AnalyseResult(mission_id=task.mission_id,
                             #                     task_id=task.id,
