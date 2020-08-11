@@ -475,6 +475,7 @@ $('#Duplicate_Group').click(function() { //duplicate
     if ($('#Group_toggle')[0].checked === false) {
         action = 'duplicate';
         setToggle('Group_toggle', 'on')
+        modal_form_controls.Group_Name_select.value = null;
     }
 });
 
@@ -653,8 +654,9 @@ $('#modal_alert button')[0].addEventListener('click', function() { $('#modal_ale
 functions_option.addEventListener('click', get_functions_names);
 groups_option.addEventListener('click', get_groups_names);
 
-get_groups_names();
-get_functions_names();
+// get_groups_names();
+// get_functions_names();
+setToggle("Group_toggle", "on");
 setToggle("Group_toggle", "off");
 
 // modal_group_name.setAttribute("list", null);
