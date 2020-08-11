@@ -2011,7 +2011,8 @@ class AnalyseTask(db.Model):
                                         }})                               
                                         for func in functions]
         [functions_dict[task.function_id].update({
-            task.db_conn_string + '-' + str(task.run_id) + '-' + task.scenario_name: task.status
+            task.db_conn_string + '-' + str(task.run_id) + '-' + task.scenario_name: task.status,
+            task.db_conn_string + '-' + str(task.run_id) + '-' + task.scenario_name + '-' + "task id": str(task.id)
         }) for task in tasks]
         report = {"table_data":[functions_dict[key] for key in functions_dict.keys()],
                   "table_columns": table_columns,
@@ -2237,6 +2238,48 @@ class AnalyseResult(db.Model):
         res_arr = res_arr.rename(columns=column_names)
         return jsonify(json.loads(res_arr.to_json(orient='table'))).json
 
+    @staticmethod
+    def get_meta_by_task_id(task_id):
+        exist = 0
+        result = AnalyseResult.query.filter_by(task_id=task_id).first()
+        if result:
+            exist=1
+            function = OctopusFunction.query.get(result.function_id)
+            if function:
+                owner = User.query.get(function.owner)
+                if owner:
+                    owner = owner.name
+                else:
+                    owner = "deleted user"
+                function_data = {
+                             'result_id':result.id,'task_id':result.task_id,'time_elapsed':result.time_elapsed,
+                             'function name':function.name, 'function owner':owner, 'function state':function.status
+                            }
+            else:
+                function_data = None
+            run_data = {"db" : result.db_conn, "run_id":result.run_id, "scenario":result.scenario_name}
+            test_result = {"status":result.result_status, "time_elapsed":result.time_elapsed}
+        if exist:
+            return jsonify(status=1, run_data = run_data, function_data=function_data, test_result=test_result)
+        return jsonify(status=0, run_data = None, function_data=None)
+    @staticmethod
+    def get_result_by_task_id(task_id):
+        exist = 0
+        result = AnalyseResult.query.filter_by(task_id=task_id).first()
+        if result:
+            exist=1
+            if result.result_array_header:
+                column_names = {'col'+str(num+1):header
+                        for num, header in enumerate(result.result_array_header.split(','))}
+                data = [{column_names[col]:val for col, val in res.self_jsonify().items() if val and (not col=='result_id')}
+                        for res in result.result_array]
+                column_names = [{"title": val, "data":val} for _,val in column_names.items()]
+                results_array = {"data":data, "column_names": column_names}
+            else:
+                results_array = None
+        if exist:
+            return jsonify(status=1, results_array=results_array)
+        return jsonify(status=0, results_array=None)
     @staticmethod
     def jsonify_by_ids(*args):
         # if not type(ids) == type([1]):

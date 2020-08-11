@@ -59,17 +59,53 @@ span.toggle-handle.btn.btn-default {
     margin-right: auto;
 }
 
+#results_div {
+    min-height: 500px;
+}
+
+#statistics_table_div {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #SetupHeader .run-button {
     margin-left: auto;
 }
 
-#AnalyseContent table td .status {
+#results_table td .status {
     font-size: 3rem;
-    padding-left: 20px;
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
+    min-height: 100px;
 }
 
-#AnalyseContent table td .center-spinner {
-    margin: 30px;
+#results_table td:nth-child(n+5):hover {
+    border-color: blue;
+    box-shadow: 2px 4px 2px 4px gray;
+}
+
+#AnalyseContent table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#drill_down_table {
+    overflow: auto;
+}
+
+#results_table td:nth-child(-n+4) {
+    font-size: 1.5rem;
+}
+
+#drill_down_div h5 {
+    font-style: italic;
+    margin-left: 10px;
+}
+
+#AnalyseContent .card-body .card-body div {
+    align-items: baseline;
+    padding-left: 16px;
 }
 
 select[multiple] {
