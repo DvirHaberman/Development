@@ -141,7 +141,7 @@
     <div id="AnalyseContent" class="collapse card-body">
         <div class="row">
             <h3>Analyse content</h3>
-            <button id="export_to_excel_button" class="btn btn-primary">Export to Excel</button>
+            <button id="export_to_excel_button" class="ml-4 fas-button" data-toggle="tooltip" data-placement="right" title="Export to excel"><i class="fas fa-table"></i></button>
         </div>
         <ul class="nav nav-tabs">
             <li class="nav-item">
@@ -159,10 +159,83 @@
             <div id="statistics_table_div" class="statistics" hidden="hidden">
                 <canvas hidden="hidden" id="statistics_chart"></canvas>
             </div>
-            <div class=" col-8" id="drill_down_table_div">
-                <table id="drill_down_table">
+            <hr>
+            <div id="drill_down_div">
+                <h2 class="my-4">Results Drill Down</h2>
+                <div class="row">
+                    <div id="drill_down_meta" class="col-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 id="drill_down_meta_header">
+                                    Results for task id:
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="card text-dark bg-light mb-3">
+                                    <div class="card-header">
+                                        <h3>Test Results</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <h4>Test Status :</h4>
+                                            <h5 id="test_status">Success</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h4>Time Elapsed :</h4>
+                                            <h5 id="time_elapsed">0.05sec</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card text-white bg-info mb-3">
+                                    <div class="card-header">
+                                        <h3>Function Data</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <h4>Function Name :</h4>
+                                            <h5 id="function_name">bbb_skajhdkj_3231_gggddg_wuyiwuy</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h4>State :</h4>
+                                            <h5 id="function_state">InDev</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h4>Owner :</h4>
+                                            <h5 id="function_owner">DvirH</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card text-white bg-info mb-3">
+                                    <div class="card-header">
+                                        <h3>Run Data</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <h4>DB :</h4>
+                                            <h5 id="db_name">oracle 12121</h4>
+                                        </div>
+                                        <div class="row">
+                                            <h4>Run ID :</h4>
+                                            <h5 id="run_id">121212</h5>
+                                        </div>
+                                        <div class="row">
+                                            <h4>Scenario :</h4>
+                                            <h5 id="scenario_name">wow so cool</h5>
+                                        </div>
 
-                </table>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-6" id="drill_down_table_div" hidden="hidden">
+                        <table id="drill_down_table" class="table table-striped table-bordered">
+
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -171,6 +244,8 @@
 <script src="../static/js/xlsx.full.min.js"></script>
 <script src="../static/js/FileSaver.min.js"></script>
 <script src="../static/js/AnalyseWorker.js"></script>
+<script src="../static/js/ResultsArrayWorker.js"></script>
+<script src="../static/js/ResultsMetaWorker.js"></script>
 <script src="../static/js/new_analyse_tables.js"></script>
 <script src="../static/js/new_analyse_setup.js"></script>
 <script src="../static/js/new_analyse_display.js"></script>

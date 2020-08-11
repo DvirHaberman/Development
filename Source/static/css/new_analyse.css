@@ -72,7 +72,7 @@ span.toggle-handle.btn.btn-default {
     margin-left: auto;
 }
 
-#AnalyseContent table td .status {
+#results_table td .status {
     font-size: 3rem;
     /* display: flex;
     justify-content: center;
@@ -80,7 +80,7 @@ span.toggle-handle.btn.btn-default {
     min-height: 100px;
 }
 
-#AnalyseContent table td:nth-child(n+5):hover {
+#results_table td:nth-child(n+5):hover {
     border-color: blue;
     box-shadow: 2px 4px 2px 4px gray;
 }
@@ -90,8 +90,22 @@ span.toggle-handle.btn.btn-default {
     vertical-align: middle;
 }
 
-#AnalyseContent table td:nth-child(-n+4) {
+#drill_down_table {
+    overflow: auto;
+}
+
+#results_table td:nth-child(-n+4) {
     font-size: 1.5rem;
+}
+
+#drill_down_div h5 {
+    font-style: italic;
+    margin-left: 10px;
+}
+
+#AnalyseContent .card-body .card-body div {
+    align-items: baseline;
+    padding-left: 16px;
 }
 
 select[multiple] {

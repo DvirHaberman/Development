@@ -3,16 +3,16 @@ var remove_selection_button = $('#remove_selection_button');
 var add_selected_button = $('#add_selected_button');
 
 var status_icons = {
-    "-3": "<div class='spinner-border center-spinner' role='status' data-toggle='tooltip' data-placement='top' title='In Process'><span class='sr-only'>Loading...</span>  </div>",
-    "4": '<div class="status" data-toggle="tooltip" data-placement="top" title="Success"><i class="fas fa-check-circle text-success"></i></div>',
-    "3": '<div class="status" data-toggle="tooltip" data-placement="top" title="Warning"><i class="fas fa-exclamation-triangle text-warning"></i></div>',
-    "2": '<div class="status" data-toggle="tooltip" data-placement="top" title="Fail"><i class="fas fa-times-circle text-danger"></i></div>',
-    "1": '<div class="status" data-toggle="tooltip" data-placement="top" title="Error"><i class="fas fa-skull-crossbones text-secondary"></i></div>',
-    "0": '<div class="status" data-toggle="tooltip" data-placement="top" title="No Data"><i class="fab fa-creative-commons-zero text-primary"></i></div>',
-    "-1": '<div class="status" data-toggle="tooltip" data-placement="top" title="DB conn invalid"><i class="fas fa-unlink  text-secondary"></i></i></div>',
-    "-2": '<div class="status" data-toggle="tooltip" data-placement="top" title="Run not in DB"><i class="fas fa-database text-secondary"></i></div>',
-    "-4": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to push task"><i class="fas fa-database text-secondary"></i></div>',
-    "-5": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to log results"><i class="fas fa-database text-secondary"></i></div>'
+    "4": '<div class="status" data-toggle="tooltip" data-placement="top" title="Success"><i class="fas fa-check-circle text-success"></i></span><span hidden="hidden">Success</span></div>',
+    "3": '<div class="status" data-toggle="tooltip" data-placement="top" title="Warning"><i class="fas fa-exclamation-triangle text-warning"></i><span hidden="hidden">Warning</span></div>',
+    "2": '<div class="status" data-toggle="tooltip" data-placement="top" title="Fail"><i class="fas fa-times-circle text-danger"></i><span hidden="hidden">Fail</span></div>',
+    "1": '<div class="status" data-toggle="tooltip" data-placement="top" title="Error"><i class="fas fa-skull-crossbones text-secondary"></i><span hidden="hidden">Error</span></div>',
+    "0": '<div class="status" data-toggle="tooltip" data-placement="top" title="No Data"><i class="fab fa-creative-commons-zero text-primary"></i><span hidden="hidden">No Data</span></div>',
+    "-1": '<div class="status" data-toggle="tooltip" data-placement="top" title="DB conn invalid"><i class="fas fa-unlink  text-secondary"></i></i><span hidden="hidden">DB conn Invalid</span></div>',
+    "-2": '<div class="status" data-toggle="tooltip" data-placement="top" title="Run not in DB"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Run Not In DB</span></div>',
+    "-3": "<div class='spinner-border center-spinner' role='status' data-toggle='tooltip' data-placement='top' title='In Process'><span class='sr-only'>Loading...</span><span hidden='hidden'>In Process</span>  </div>",
+    "-4": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to push task"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Failed Logging Task</span></div>',
+    "-5": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to log results"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Failed Logging Results</span></div>'
 }
 
 function update_table(data) {
@@ -24,6 +24,18 @@ function update_table(data) {
         data: data.table_data,
         select: true,
         columns: data.table_columns
+    });
+}
+
+function update_drill_down_table(data) {
+    if ($.fn.DataTable.isDataTable('#drill_down_table')) {
+        $('#drill_down_table').DataTable().destroy();
+        $('#drill_down_table').empty();
+    }
+    $('#drill_down_table').DataTable({
+        data: data.data,
+        select: true,
+        columns: data.column_names
     });
 }
 

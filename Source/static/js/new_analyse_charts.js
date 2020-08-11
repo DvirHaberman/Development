@@ -49,7 +49,7 @@ var new_analyse_chart = new Chart(myctx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        responsiveAnimationDuration: 1500
+        responsiveAnimationDuration: 500
             // scales: {
             //     yAxes: [{
             //         ticks: {
