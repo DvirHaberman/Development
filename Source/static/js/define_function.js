@@ -474,7 +474,18 @@ function getAllUsers(){
     return Users;
 }
 
+function SetAllUsers() {
+    Users = getAllUsers()
+    var num_of_Users = Users.length;
 
+    owner_data_list = $('#meta_owner_datalist')[0]
+    for (i = 0; i < num_of_Users; i++) {
+         var option = document.createElement("option");
+        option.text = Users[i];
+        owner_data_list.appendChild(option);
+    }
+
+}
 function getAllGroups(groupListID) {
     var groups = "";
     $.ajax({
@@ -524,6 +535,13 @@ function Function_Definition_form_controls_handler() {
      for (i = 0; i < num_of_options; i++) {
         function_datalist_object.removeChild(function_datalist_object.children[0]);
      }
+
+      // clear owner DL Control
+      owner_datalist_object = $('#meta_owner_datalist')[0]
+      var num_of_options = owner_datalist_object.options.length;
+      for (i = 0; i < num_of_options; i++) {
+        owner_datalist_object.removeChild(owner_datalist_object.children[0]);
+      }
 
      // clear all other Form_controls
             Object.keys(this.form_controls).forEach(function(key, index) {
@@ -699,7 +717,7 @@ $('#NewExist_toggle').change(function()  {
             }
         });
 
-        Users = getAllUsers()
+        SetAllUsers();
 
       } else { //exist
         Stage = "update";
@@ -727,6 +745,8 @@ $('#meta_duplicate')[0].addEventListener("click", function() {
 $('#meta_edit')[0].addEventListener("click", function() {
   $('.alert')[0].hidden = true;
   functionFormDisable(false);
+  SetAllUsers();
+  
 });
 //
 
@@ -796,6 +816,9 @@ $('#meta_save')[0].addEventListener("click", function() {
 
 
 });
+
+
+
 
 $('.alert button')[0].addEventListener('click', function() { $('.alert')[0].hidden = true; });
 

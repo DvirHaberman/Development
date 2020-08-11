@@ -975,6 +975,39 @@ class OctopusFunction(db.Model):
             changed_by = self.changed_by,
             function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
+        
+    @staticmethod
+    def get_names_by_filter(json_data):
+        function_filters = json_data
+        if "owner" in function_filters:
+            if len(function_filters["owner"])>0:
+                function_filters["owner"] = User.query.filter_by(name=function_filters["owner"]).first()
+                if function_filters["owner"]:
+                    function_filters["owner"] = function_filters["owner"].id
+                else:
+                    return jsonify(status=1, message='no such user', data=[])
+            else:
+                function_filters["owner"] = None
+        else:
+                function_filters["owner"] = None
+
+        if "tags" in function_filters:
+            function_tags = function_filters['tags']
+            del function_filters['tags']
+        function_filters['project'] = session['current_project_id']
+        try:
+            if function_filters["owner"]:
+                names = OctopusFunction.query.filter_by(**function_filters).with_entities(OctopusFunction.name, OctopusFunction.tags).all()
+            else:
+                names = OctopusFunction.query.with_entities(OctopusFunction.name, OctopusFunction.tags).all()
+            if len(function_tags) > 0:
+                return jsonify(status=1, message=None, data=[func_name for func_name, tags in names if [True for tag in tags if tag in function_tags]])
+            else:
+                return jsonify(status=1, message=None, data=[func_name for func_name, tags in names])
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
 
     @staticmethod
     def save_function(data):
@@ -1513,15 +1546,40 @@ class FunctionsGroup(db.Model):
     project = db.Column(db.Integer, db.ForeignKey('Project.id'))
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
-    def __init__(self, name=None, project=None, functions=[]):
+    owner = db.Column(db.Integer)
+    changed_date = db.Column(db.DateTime)
+    changed_by = db.Column(db.Integer)
+    description = db.Column(db.Text)
+
+    def __init__(self, owner=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[]):
         self.name = name
         self.functions = functions
         self.project = project
+        self.description = description
+        self.owner = owner
+        self.changed_date = changed_date
+        self.changed_by = changed_by
 
     def self_jsonify(self):
+        owner = User.query.get(self.owner)
+        if owner:
+            owner_name = owner.name
+        else:
+            owner_name = 'deleted user'
+        
+        changed_by = User.query.get(self.changed_by)
+        if changed_by:
+            changed_by = changed_by.name
+        else:
+            changed_by = 'deleted user'
+        
         return jsonify(
             id=self.id,
             name=self.name,
+            owner = owner_name,
+            changed_by = changed_by,
+            description = self.description,
+            changed_date = self.changed_date,
             functions=jsonify([func.name for func in self.functions if func.project==session['current_project_id']]).json
         ).json
 
@@ -1587,10 +1645,32 @@ class FunctionsGroup(db.Model):
     def save(json_data):
         try:
             messages = []
+            
+            if 'name' not in json_data:
+                return jsonify(status=0, message=['cannot create - name field is missing'], data=None) 
             name = json_data['name']
             if name in [group.name for group in FunctionsGroup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
-            group = FunctionsGroup(name=name, project=session['current_project_id'])
+            
+            if 'description' in json_data:
+                description = json_data['description']
+            else:
+                description = None
+
+            if 'owner' in json_data:
+                owner=json_data['owner']
+            else:
+                owner=session['username']
+            
+            owner = User.query.filter_by(name=owner).first()
+            if owner:
+                owner = owner.id
+            else:
+                owner = None
+            
+            changed_by = User.query.filter_by(name=session['username']).first().id
+
+            group = FunctionsGroup(name=name, project=session['current_project_id'],owner=owner, changed_by=changed_by, description=description, changed_date=datetime.utcnow())
             db.session.add(group)
             db.session.commit()
             functions = json_data['functions']
@@ -1701,8 +1781,20 @@ class FunctionsGroup(db.Model):
                 if not type(updated_functions) == type([1]):
                     return jsonify(status=1,message='not updated! functions must be sent as an array/list')
                 group.functions = []
+
                 messages = group.add_functions(updated_functions)
-                # group.name = json_data['name']
+
+                if "description" in json_data:
+                    group.description = json_data['description']
+
+                if 'owner' in json_data:
+                    owner=json_data['owner']
+                    owner = User.query.filter_by(name=owner).first()
+                    if owner:
+                        group.owner = owner.id
+                
+                group.changed_by = User.query.filter_by(name=session['username']).first().id
+                group.changed_date = datetime.utcnow()
 
                 db.session.add(group)
                 db.session.commit()
@@ -1736,6 +1828,17 @@ class FunctionsGroup(db.Model):
                 group.functions = []
                 messages = group.add_functions(updated_functions)
                 # group.name = json_data['name']
+                if "description" in json_data:
+                    group.description = json_data['description']
+
+                if 'owner' in json_data:
+                    owner=json_data['owner']
+                    owner = User.query.filter_by(name=owner).first()
+                    if owner:
+                        group.owner = owner.id
+                
+                group.changed_by = User.query.filter_by(name=session['username']).first().id
+                group.changed_date = datetime.utcnow()
 
                 db.session.add(group)
                 db.session.commit()

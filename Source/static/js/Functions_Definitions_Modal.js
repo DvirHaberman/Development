@@ -9,10 +9,105 @@ var groups_names = [];
 var modal_datalist = $('#modal_datalist')[0];
 var functions_option = $('#functions_option')[0];
 var functions_select_label = $('#functions_select_label')[0];
+var Description_functions_Group_label = $('#Description_functions_Group_label')[0];
 var groups_option = $('#groups_option')[0];
 var modal_group_name = $('#Modal_Select_Group_Name')[0];
 var modal_group_names_datalist = $('#Group_Function_Name')[0];
+var modal_filter_Tags = $('#modal_filter_Tags')[0];
+var modal_filter_owner = $('#modal_filter_owner')[0];
 var action = 'new';
+
+var modal_form_controls = {
+    Group_Name_select: $('#Modal_Select_Group_Name')[0],
+    owner: $('#modal_owner')[0],
+    description: $('#Modal_Group_Description')[0],
+    changed_date: $("#modal_changed_date")[0],
+    changed_by: $("#modal_changed_by")[0],
+    function_select: $("#functions_modal_select")[0],
+    GroupFunction_Description: $("#Modal_GroupFunction_Description")[0],
+    ul: $("#modal_ul")[0]
+};
+
+function clear_Modal_form() {
+    modal_form_controls.Group_Name_select.value = null;
+    modal_form_controls.description.value = "";
+    modal_form_controls.changed_by.innerHTML = "";
+    modal_form_controls.changed_date.innerHTML = "";
+    modal_form_controls.GroupFunction_Description.innerHTML = "";
+    modal_filter_Tags.value = "";
+    modal_filter_owner.value = "";
+    SetModalAllUsers();
+}
+
+
+function ModalFormDisable(trueFalse) {
+    // form_controls.function_select.disabled = trueFalse;
+    modal_form_controls.owner.disabled = trueFalse;
+    modal_form_controls.description.disabled = trueFalse;
+    modal_form_controls.function_select.disabled = trueFalse;
+    modal_form_controls.GroupFunction_Description.disabled = trueFalse;
+    modal_filter_Tags.disabled = trueFalse;
+    modal_filter_owner.disabled = trueFalse;
+    add_function_button.disabled = trueFalse;
+    function_group_dropdown_menu.disabled = trueFalse;
+    $('#Save_Group')[0].disabled = trueFalse;
+    $('#Delete_Group')[0].disabled = trueFalse;
+
+    $('#modal_ul').find('li').each((index) => {
+        elem = $('#modal_ul').find('li')[index];
+        if (elem.children.length) { elem.children[0].children[1].disabled = trueFalse; }
+    });
+
+}
+//   GroupsListNames
+
+function SetModalFuctionsOrGroups(FuctionsOrGroupsNames) {
+    var num_of_Records = FuctionsOrGroupsNames.length;
+
+    FuctionsOrGroup_list = $('#modal_datalist')[0];
+    // clear owner DL Control
+    var num_of_options = FuctionsOrGroup_list.options.length;
+    for (i = 0; i < num_of_options; i++) {
+        FuctionsOrGroup_list.removeChild(FuctionsOrGroup_list.children[0]);
+    }
+
+    //insert data
+    for (i = 0; i < num_of_Records; i++) {
+        var option = document.createElement("option");
+        option.text = FuctionsOrGroupsNames[i];
+        FuctionsOrGroup_list.appendChild(option);
+    }
+
+}
+
+
+
+
+function SetModalAllUsers() {
+    Users = getAllUsers()
+    var num_of_Users = Users.length;
+    var owner_datalists = ["modal_owner_datalist", "modal_filter_owner_datalist"];
+
+    for (x = 0; x < owner_datalists.length; x++) {
+
+        owner_data_list = $('#' + owner_datalists[x])[0];
+        // clear owner DL Control
+        var num_of_options = owner_data_list.options.length;
+        for (i = 0; i < num_of_options; i++) {
+            owner_data_list.removeChild(owner_data_list.children[0]);
+        }
+
+        //insert data
+        for (i = 0; i < num_of_Users; i++) {
+            var option = document.createElement("option");
+            option.text = Users[i];
+            owner_data_list.appendChild(option);
+        }
+
+    }
+
+
+}
 
 function add_modal_group() {
     var value = functions_modal_select.value;
@@ -45,7 +140,13 @@ function load_group(group_name) {
                     selected_ul.appendChild(create_modal_li_element(result.data.functions[i], 'modal_function'));
                     selected_modal_functions.push(result.data.functions[i]);
                 }
-                functions_modal_select.value = null;
+                // functions_modal_select.value = null;
+                modal_form_controls.Group_Name_select.value = group_name;
+                modal_form_controls.owner.value = result.data.owner;
+                modal_form_controls.description.value = result.data.description;
+                modal_form_controls.changed_by.innerHTML = result.data.changed_by;
+                modal_form_controls.changed_date.innerHTML = result.data.changed_date;
+
             } else {
                 $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
@@ -76,8 +177,11 @@ function save_group(group_name) {
     }
     data = {
         name: group_name,
+        owner: modal_form_controls.owner.value,
+        description: modal_form_controls.description.value,
         functions: chosen_functions
     };
+
     $.ajax({
         type: "POST",
         url: "/api/FunctionsGroup/save",
@@ -117,10 +221,14 @@ function update_group(group_name) {
             }
         });
     }
+
     data = {
         name: group_name,
+        owner: modal_form_controls.owner.value,
+        description: modal_form_controls.description.value,
         functions: chosen_functions
     };
+
     $.ajax({
         type: "POST",
         url: "/api/FunctionsGroup/update_by_name/" + group_name,
@@ -204,28 +312,147 @@ function create_modal_li_element(value, type) {
     return li_ele;
 }
 
+function getModalFilterData() {
+
+    data = {
+        owner: modal_filter_owner.value,
+        tags: modal_filter_Tags.value
+    };
+    return data;
+}
+
+function Filter_function_names(json_data) {
+
+    $.ajax({
+        async: false,
+        type: "POST",
+        url: "/api/OctopusFunction/get_names_by_filter",
+        dataType: "json",
+        data: JSON.stringify(json_data),
+        contentType: 'application/json',
+        success: function(result) {
+            FilterFunction = result;
+        }
+
+    });
+    return FilterFunction.data;
+}
+
+
+function FindSelectGroupIndex() {
+    selectedIndex = -1;
+    modal_form_controls.Group_Name_select
+    numOfEle = $('#Group_Function_Name')[0].children.length;
+    for (i=0; i<numOfEle; i++){
+      if ($('#Group_Function_Name')[0].options[i].value === modal_form_controls.Group_Name_select.value) selectedIndex = i;
+    }
+    return selectedIndex;
+  }
+
+
+modal_form_controls.Group_Name_select.addEventListener("change", function() {
+    $('#modal_alert')[0].hidden = true;
+    var groupIndex = FindSelectGroupIndex();
+
+    if (Stage == "update" && groupIndex !== -1)  {
+        var group_name = modal_form_controls.Group_Name_select.value
+        clear_Modal_form();
+        clear_chosen_list();
+        load_group(group_name);
+        ModalFormDisable(true);
+    } else  return;
+});
+
+
+functions_modal_select.addEventListener('change', function() {
+    var description = null;
+
+    if($('#functions_option').hasClass('dropdown-selected')){ //function case
+        num_of_funcs = functions.length;
+        index=-1
+        for (let i = 0; i < num_of_funcs; i++) {
+            if(functions[i]['name']==this.value){
+                description = functions[i]['description'];
+                break;
+            }            
+        }
+    }
+    
+    else { //group
+        selected_group =  get_group_data_by_group_name(this.value);
+
+        if (selected_group) {
+            description = selected_group.description;
+        }
+    }
+    
+
+    if (description){
+        $('#Modal_GroupFunction_Description')[0].value = description;
+    }else{
+        $('#Modal_GroupFunction_Description')[0].value = '';
+    }
+});
+
 add_function_button.addEventListener('click', function() {
     if (function_select_state === 'functions') {
+        
         add_modal_function();
     } else {
         add_modal_group();
     }
 });
 
+$('#modal_filter_owner')[0].addEventListener('change', function() {
+    if ($('#groups_option').hasClass('dropdown-selected')) { // Group Case
+        json_data = getModalFilterData();
+        delete json_data['tags'];
+
+        FilerNames = get_names_by_filter(json_data);
+
+    } else { // Function Case
+        json_data = getModalFilterData();
+        FilerNames = Filter_function_names(json_data);
+        SetModalFuctionsOrGroups(FilerNames);
+    }
+
+});
+
+$('#modal_filter_Tags')[0].addEventListener('change', function() {
+
+    if ($('#groups_option').hasClass('dropdown-selected')) { // Group Case
+        json_data = getModalFilterData();
+        delete json_data['tags'];
+
+        FilerNames = get_names_by_filter(json_data);
+
+    } else { // Function Case
+        json_data = getModalFilterData();
+        FilerNames = Filter_function_names(json_data);
+        SetModalFuctionsOrGroups(FilerNames);
+    }
+
+
+
+
+
+});
+
 $('#Group_toggle').change(function() {
     if ($('#Group_toggle')[0].checked) { //new
-        // infras.new(Site_form_controls, "site_name");
-        // alert('new group');
-        // modal_form_controls_handler.new(Group_Modal_form_controls, "Group_name");
-        // get_groups_names();
+
         modal_group_name.setAttribute("list", null);
         if (action !== "duplicate") {
+            clear_Modal_form();
             clear_chosen_list();
         }
-        modal_group_name.value = null;
+
         get_groups_names();
         get_functions_names();
+        // $('#function_group_dropdown_menu').dropdown() - need to be added
+        ModalFormDisable(false)
         action = 'new';
+
     } else { //exist
 
         modal_group_name.setAttribute("list", "Group_Function_Name");
@@ -237,6 +464,7 @@ $('#Group_toggle').change(function() {
         // if (action !== 'update') {
         load_group(modal_group_name.value);
         // }
+        ModalFormDisable(true)
         action = 'existing';
     }
 
@@ -247,8 +475,15 @@ $('#Duplicate_Group').click(function() { //duplicate
     if ($('#Group_toggle')[0].checked === false) {
         action = 'duplicate';
         setToggle('Group_toggle', 'on')
+        modal_form_controls.Group_Name_select.value = null;
     }
 });
+
+
+$('#Edit_Group').click(function() { //duplicate
+    ModalFormDisable(false)
+});
+
 
 $('#Save_Group').click(function() { //save
     if ($('#Group_toggle')[0].checked) { //new
@@ -286,7 +521,7 @@ function reload_functions() {
         async: false,
         success: function(result) {
             functions = result;
-            functoinIndex = form_controls.function_select.selectedIndex;
+            functoinIndex = FindSelectFuncIndex()
             form_handler.fill_form(functoinIndex, []);
         }
 
@@ -314,6 +549,7 @@ function clear_chosen_list() {
 function get_functions_names() {
     $.ajax({
         url: "/api/OctopusFunction/get_names",
+        async: false,
         success: function(result) {
             if (result.status) {
                 functions_names = result.data;
@@ -332,7 +568,12 @@ function get_functions_names() {
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
-            functions_select_label.innerHTML = '<h5>Select a function</h5>'
+            functions_select_label.innerHTML = '<h5>Select a function to the list</h5>'
+            modal_filter_Tags.hidden = false;
+
+            Description_functions_Group_label.innerHTML = '<h6>Function Description</h6>'
+            $('#Modal_GroupFunction_Description')[0].value = '';
+
             functions_option.classList.add('dropdown-selected');
             groups_option.classList.remove('dropdown-selected')
             function_select_state = 'functions';
@@ -340,6 +581,25 @@ function get_functions_names() {
         }
     });
 }
+
+function get_group_data_by_group_name(group_name){
+    selected_group = null;
+    if (group_name.replace(/\s/g,'').length > 0)
+    $.ajax({
+        url: "/api/FunctionsGroup/get_by_name/" + group_name,
+        async: false,
+        success: function(result) {
+            if (result.status) {
+            selected_group = result.data;
+            }
+            else {
+                selected_group = null;
+            }
+        }
+    });
+    return selected_group;
+}
+
 
 function get_groups_names() {
     $.ajax({
@@ -374,7 +634,12 @@ function get_groups_names() {
                 $('#modal_alert')[0].hidden = false;
                 // alert(result.message);
             }
-            functions_select_label.innerHTML = '<h5>Select a group</h5>'
+            functions_select_label.innerHTML = '<h5>Select a group to the list</h5>'
+            modal_filter_Tags.hidden = true;
+
+            Description_functions_Group_label.innerHTML = '<h6>Group Description</h6>'
+            $('#Modal_GroupFunction_Description')[0].value = '';
+
             groups_option.classList.add('dropdown-selected');
             functions_option.classList.remove('dropdown-selected')
             function_select_state = 'groups';
@@ -389,7 +654,9 @@ $('#modal_alert button')[0].addEventListener('click', function() { $('#modal_ale
 functions_option.addEventListener('click', get_functions_names);
 groups_option.addEventListener('click', get_groups_names);
 
-get_groups_names();
-get_functions_names();
+// get_groups_names();
+// get_functions_names();
+setToggle("Group_toggle", "on");
+setToggle("Group_toggle", "off");
 
-modal_group_name.setAttribute("list", null);
+// modal_group_name.setAttribute("list", null);
