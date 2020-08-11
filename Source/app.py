@@ -240,7 +240,7 @@ def run_function():
         return redirect('/login')
     else:
         session['current_window_name'] = 'Run Functions'
-        return render_template('run_function.html')
+        return render_template('new_analyse.html')
 
 @app.route('/welcome')
 def welcome():
@@ -314,7 +314,7 @@ def change_project(index):
         return redirect('/db_conn_wizard')
 
     if session['current_window_name'] == 'Define Functions':
-        return redirect('/Function_Definition')
+        return redirect('/define_function')
 
     if session['current_window_name'] == 'Define Users':
         return redirect('/user_wizard')
@@ -428,7 +428,7 @@ def Function_Definition():
         return redirect('/login_first')
     else:
         session['current_window_name'] = 'Define Functions'
-        return render_template('Function_Definition.html')
+        return render_template('define_func.html')
 
     # return jsonify(data = [num for num in range(10)])
 

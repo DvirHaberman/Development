@@ -64,14 +64,14 @@
                             {% else %}
                             <li class="nav-item">
                                 {%endif%}
-                                <a class="nav-link" href="Function_Definition">Define</a>
+                                <a class="nav-link" href="define_function">Define</a>
                             </li>
                             {% if session['current_window_name']=='Run Functions' %}
                             <li class="nav-item active">
                                 {% else %}
                                 <li class="nav-item">
                                     {%endif%}
-                                    <a class="nav-link" href="run_simple">Run</a>
+                                    <a class="nav-link" href="run_function">Test</a>
                                 </li>
                                 {% if session['userrole'] =='Admin' %} {% if session['current_window_name']=='Define Users' %}
                                 <li class="nav-item active">

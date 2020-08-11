@@ -35,7 +35,9 @@ var action = '';
 
 function save_list(list_name) {
     if (list_name.replace(' ', '').length == 0) {
-        alert('list name cannot be empty')
+        $('#save_list_dissmisable_text')[0].innerHTML = "list name cannot be empty";
+        $('#save_list_alert')[0].hidden = false;
+        // alert('list name cannot be empty')
         return 0;
     }
     dbs = Object.keys(selected_run_ids);
@@ -65,7 +67,9 @@ function save_list(list_name) {
         data['lists'] = lists;
     }
     if (data['lists'].length + data['run_ids'].length == 0) {
-        alert('cannot save an empty list')
+        $('#save_list_dissmisable_text')[0].innerHTML = "cannot save an empty list";
+        $('#save_list_alert')[0].hidden = false;
+        // alert('cannot save an empty list')
         return 0;
     }
     data['name'] = list_name;
@@ -86,14 +90,18 @@ function save_list(list_name) {
                     }
                 });
             },
-            error: (response) => {
-                alert('something went wrong')
+            error: () => {
+                $('#save_list_dissmisable_text')[0].innerHTML = "something went wrong";
+                $('#save_list_alert')[0].hidden = false;
+                // alert('something went wrong')
                 return 0;
             }
         },
 
     );
-    alert('success')
+    $('#save_list_dissmisable_text')[0].innerHTML = "list saved";
+    $('#save_list_alert')[0].hidden = false;
+    // alert('success')
     return 1;
 
 }
@@ -105,7 +113,9 @@ function get_setup_data() {
     //getting and validating name
     data['name'] = $('#setup_name')[0].value;
     if (data['name'].replace(' ', '').length == 0) {
-        alert('name cannot be empty');
+        $('#main_dissmisable_alert_text')[0].innerHTML = "name cannot be empty";
+        $('#main_alert')[0].hidden = false;
+        // alert('name cannot be empty');
         return data;
     }
 
@@ -142,7 +152,9 @@ function get_setup_data() {
 
     //validating we do not have 0 runs
     if (data['run_lists'].length + data['runs'].length == 0) {
-        alert('cannot save a setup with 0 runs');
+        $('#main_dissmisable_alert_text')[0].innerHTML = "cannot save a setup with 0 runs";
+        $('#main_alert')[0].hidden = false;
+        // alert('cannot save a setup with 0 runs');
         return data;
     }
 
@@ -150,7 +162,9 @@ function get_setup_data() {
     keys = Object.keys(selected_functions);
     numOfEle = keys.length
     if (numOfEle == 0) {
-        alert('cannot save a setup with 0 functions');
+        $('#main_dissmisable_alert_text')[0].innerHTML = "cannot save a setup with 0 functions";
+        $('#main_alert')[0].hidden = false;
+        // alert('cannot save a setup with 0 functions');
         return data;
     }
 
@@ -184,15 +198,22 @@ function save_setup(data) {
         contentType: 'application/json',
         success: (response) => {
             if (response.status) {
-                alert('success');
+                $('#main_dissmisable_alert_text')[0].innerHTML = "setup saved";
+                $('#main_alert')[0].hidden = false;
+                // alert('success');
             } else {
-                alert('something went wrong');
+                $('#main_dissmisable_alert_text')[0].innerHTML = response.message;
+                $('#main_alert')[0].hidden = false;
+                // alert('something went wrong');
             }
         },
         error: () => {
-            alert('something went wrong');
+            $('#main_dissmisable_alert_text')[0].innerHTML = "something went wrong";
+            $('#main_alert')[0].hidden = false;
+            // alert('something went wrong');
         }
     });
+    return response.status;
 }
 
 function update_setup(data) {
@@ -205,13 +226,19 @@ function update_setup(data) {
         contentType: 'application/json',
         success: (response) => {
             if (response.status) {
-                alert('success');
+                $('#dissmisable_main_alert_text')[0].innerHTML = "setup updated";
+                $('#main_alert')[0].hidden = false;
+                // alert('success');
             } else {
-                alert('something went wrong');
+                $('#main_dissmisable_alert_text')[0].innerHTML = response.message;
+                $('#main_alert')[0].hidden = false;
+                // alert('something went wrong');
             }
         },
         error: () => {
-            alert('something went wrong');
+            $('#main_dissmisable_alert_text')[0].innerHTML = "something went wrong";
+            $('#main_alert')[0].hidden = false;
+            // alert('something went wrong');
         }
     });
 }
@@ -538,7 +565,9 @@ function assign_event_setup_listeners() {
             $.ajax({
                 url: 'api/run_setup/' + curr_setup_name,
                 success: (response) => {
-                    alert("running!");
+                    $('#main_dissmisable_alert_text')[0].innerHTML = "running!";
+                    $('#main_alert')[0].hidden = false;
+                    // alert("running!");
                     get_mission_names();
                     load_mission(mission_names[0])
                 }
@@ -564,9 +593,11 @@ function assign_event_setup_listeners() {
         setup_data = get_setup_data()
         if (setup_data['status']) {
             if ($('#setup_toggle')[0].checked) {
-                save_setup(setup_data)
-                action = 'save';
-                $('#setup_toggle').bootstrapToggle('off')
+                status = save_setup(setup_data)
+                if (status) {
+                    action = 'save';
+                    $('#setup_toggle').bootstrapToggle('off')
+                }
             } else {
                 setup_data['new_name'] = setup_data['name'];
                 update_setup(setup_data)
@@ -581,7 +612,9 @@ function assign_event_setup_listeners() {
                 url: '/api/AnalyseSetup/delete_by_name/' + name,
                 async: false,
                 success: (response) => {
-                    alert('setup ' + name + ' was deleted')
+                    $('#main_dissmisable_alert_text')[0].innerHTML = 'setup ' + name + ' was deleted';
+                    $('#main_alert')[0].hidden = false;
+                    // alert('setup ' + name + ' was deleted')
                 }
             });
             $('#setup_toggle').bootstrapToggle('off');
@@ -783,6 +816,8 @@ function assign_event_setup_listeners() {
 }
 
 //Start from here
+$('#save_list_alert button')[0].addEventListener('click', function() { $('#save_list_alert')[0].hidden = true; });
+$('#main_alert button')[0].addEventListener('click', function() { $('#main_alert')[0].hidden = true; });
 $(document).ready(() => {
     load_init_setup_data();
     assign_event_setup_listeners();

@@ -31,6 +31,7 @@ var modal_form_controls = {
 function clear_Modal_form() {
     modal_form_controls.Group_Name_select.value = null;
     modal_form_controls.description.value = "";
+    modal_form_controls.owner.value = "";
     modal_form_controls.changed_by.innerHTML = "";
     modal_form_controls.changed_date.innerHTML = "";
     modal_form_controls.GroupFunction_Description.innerHTML = "";
@@ -181,7 +182,7 @@ function save_group(group_name) {
         description: modal_form_controls.description.value,
         functions: chosen_functions
     };
-
+    var status = 0;
     $.ajax({
         type: "POST",
         url: "/api/FunctionsGroup/save",
@@ -190,18 +191,20 @@ function save_group(group_name) {
         contentType: 'application/json',
         async: false,
         success: function(result) {
+            status = result.status;
             if (result.status === 1) {
                 $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'group ' + group_name + ' was successfuly saved!';
                 $('#modal_alert')[0].hidden = false;
                 // alert('group ' + group_name + ' was successfuly saved!');
             } else {
-                $('#main_dissmisable_modal_alert_text')[0].innerHTML = 'something went wrong';
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message[0];
                 $('#modal_alert')[0].hidden = false;
                 // alert('something went wrong')
             }
         }
 
     });
+    return status;
 }
 
 function update_group(group_name) {
@@ -343,60 +346,60 @@ function FindSelectGroupIndex() {
     selectedIndex = -1;
     modal_form_controls.Group_Name_select
     numOfEle = $('#Group_Function_Name')[0].children.length;
-    for (i=0; i<numOfEle; i++){
-      if ($('#Group_Function_Name')[0].options[i].value === modal_form_controls.Group_Name_select.value) selectedIndex = i;
+    for (i = 0; i < numOfEle; i++) {
+        if ($('#Group_Function_Name')[0].options[i].value === modal_form_controls.Group_Name_select.value) selectedIndex = i;
     }
     return selectedIndex;
-  }
+}
 
 
 modal_form_controls.Group_Name_select.addEventListener("change", function() {
     $('#modal_alert')[0].hidden = true;
-    var groupIndex = FindSelectGroupIndex();
+    if (!$('#Group_toggle')[0].checked) {
+        var groupIndex = FindSelectGroupIndex();
 
-    if (Stage == "update" && groupIndex !== -1)  {
-        var group_name = modal_form_controls.Group_Name_select.value
-        clear_Modal_form();
-        clear_chosen_list();
-        load_group(group_name);
-        ModalFormDisable(true);
-    } else  return;
+        if (Stage == "update" && groupIndex !== -1) {
+            var group_name = modal_form_controls.Group_Name_select.value
+            clear_Modal_form();
+            clear_chosen_list();
+            load_group(group_name);
+            ModalFormDisable(true);
+        } else return;
+    }
 });
 
 
 functions_modal_select.addEventListener('change', function() {
     var description = null;
 
-    if($('#functions_option').hasClass('dropdown-selected')){ //function case
+    if ($('#functions_option').hasClass('dropdown-selected')) { //function case
         num_of_funcs = functions.length;
-        index=-1
+        index = -1
         for (let i = 0; i < num_of_funcs; i++) {
-            if(functions[i]['name']==this.value){
+            if (functions[i]['name'] == this.value) {
                 description = functions[i]['description'];
                 break;
-            }            
+            }
         }
-    }
-    
-    else { //group
-        selected_group =  get_group_data_by_group_name(this.value);
+    } else { //group
+        selected_group = get_group_data_by_group_name(this.value);
 
         if (selected_group) {
             description = selected_group.description;
         }
     }
-    
 
-    if (description){
+
+    if (description) {
         $('#Modal_GroupFunction_Description')[0].value = description;
-    }else{
+    } else {
         $('#Modal_GroupFunction_Description')[0].value = '';
     }
 });
 
 add_function_button.addEventListener('click', function() {
     if (function_select_state === 'functions') {
-        
+
         add_modal_function();
     } else {
         add_modal_group();
@@ -488,10 +491,12 @@ $('#Edit_Group').click(function() { //duplicate
 $('#Save_Group').click(function() { //save
     if ($('#Group_toggle')[0].checked) { //new
         group_name = modal_group_name.value;
-        save_group(group_name);
-        action = 'save';
-        reload_functions();
-        setToggle('Group_toggle', 'off')
+        status = save_group(group_name);
+        if (status == 1) {
+            action = 'save';
+            reload_functions();
+            setToggle('Group_toggle', 'off')
+        }
     } else { //existing
         group_name = modal_group_name.value;
         update_group(group_name);
@@ -582,21 +587,20 @@ function get_functions_names() {
     });
 }
 
-function get_group_data_by_group_name(group_name){
+function get_group_data_by_group_name(group_name) {
     selected_group = null;
-    if (group_name.replace(/\s/g,'').length > 0)
-    $.ajax({
-        url: "/api/FunctionsGroup/get_by_name/" + group_name,
-        async: false,
-        success: function(result) {
-            if (result.status) {
-            selected_group = result.data;
+    if (group_name.replace(/\s/g, '').length > 0)
+        $.ajax({
+            url: "/api/FunctionsGroup/get_by_name/" + group_name,
+            async: false,
+            success: function(result) {
+                if (result.status) {
+                    selected_group = result.data;
+                } else {
+                    selected_group = null;
+                }
             }
-            else {
-                selected_group = null;
-            }
-        }
-    });
+        });
     return selected_group;
 }
 

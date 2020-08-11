@@ -38,48 +38,48 @@ var form_controls = {
 };
 
 function FindSelectFuncIndex() {
-  selectedIndex = -1;
-  numOfEle = $('#meta_name_datalist')[0].children.length;
-  for (i=0; i<numOfEle; i++){
-    if ($('#meta_name_datalist')[0].options[i].innerHTML === form_controls.function_select.value) selectedIndex = i;
-  }
-  return selectedIndex;
+    selectedIndex = -1;
+    numOfEle = $('#meta_name_datalist')[0].children.length;
+    for (i = 0; i < numOfEle; i++) {
+        if ($('#meta_name_datalist')[0].options[i].innerHTML === form_controls.function_select.value) selectedIndex = i;
+    }
+    return selectedIndex;
 }
 
-function functionFormDisable(trueFalse){
-  // form_controls.function_select.disabled = trueFalse;
-  form_controls.owner.disabled = trueFalse;
-  form_controls.status.disabled = trueFalse;
-  form_controls.feature.disabled = trueFalse;
-  form_controls.requirement.disabled = trueFalse;
-  form_controls.tags.disabled = trueFalse;
-  form_controls.callback.disabled = trueFalse;
-  form_controls.kind.disabled = trueFalse;
-  form_controls.location.disabled = trueFalse;
-  form_controls.description.disabled = trueFalse;
+function functionFormDisable(trueFalse) {
+    // form_controls.function_select.disabled = trueFalse;
+    form_controls.owner.disabled = trueFalse;
+    form_controls.status.disabled = trueFalse;
+    form_controls.feature.disabled = trueFalse;
+    form_controls.requirement.disabled = trueFalse;
+    form_controls.tags.disabled = trueFalse;
+    form_controls.callback.disabled = trueFalse;
+    form_controls.kind.disabled = trueFalse;
+    form_controls.location.disabled = trueFalse;
+    form_controls.description.disabled = trueFalse;
 
-  form_controls.is_class_method.disabled = trueFalse;
-  form_controls.class_name.disabled = trueFalse;
+    form_controls.is_class_method.disabled = trueFalse;
+    form_controls.class_name.disabled = trueFalse;
 
-  form_controls.function_parameters.disabled = trueFalse;
-  $("table[name='function_parameters']").find('td').each((index)=>{
-    elem = $("table[name='function_parameters']").find('td')[index];
-    if (elem.children.length){elem.children[0].disabled=trueFalse;}
-  });
+    form_controls.function_parameters.disabled = trueFalse;
+    $("table[name='function_parameters']").find('td').each((index) => {
+        elem = $("table[name='function_parameters']").find('td')[index];
+        if (elem.children.length) { elem.children[0].disabled = trueFalse; }
+    });
 
-  $('#addGroupButton')[0].disabled = trueFalse;
-  $('#newGroupButton')[0].disabled = trueFalse;
-  $('#GroupsList').find('li').each((index)=>{
-    elem = $('#GroupsList').find('li')[index];
-    if (elem.children.length){elem.children[0].children[1].disabled=trueFalse;}
-  });
+    $('#addGroupButton')[0].disabled = trueFalse;
+    $('#newGroupButton')[0].disabled = trueFalse;
+    $('#GroupsList').find('li').each((index) => {
+        elem = $('#GroupsList').find('li')[index];
+        if (elem.children.length) { elem.children[0].children[1].disabled = trueFalse; }
+    });
 
 
-  form_controls.groups.disabled = trueFalse;
+    form_controls.groups.disabled = trueFalse;
 
-  $('#meta_save')[0].disabled = trueFalse;
-  $('#meta_delete')[0].disabled = trueFalse;
-  $("button[name='plus_param_row_button']")[0].disabled = trueFalse;
+    $('#meta_save')[0].disabled = trueFalse;
+    $('#meta_delete')[0].disabled = trueFalse;
+    $("button[name='plus_param_row_button']")[0].disabled = trueFalse;
 
 
 }
@@ -366,8 +366,8 @@ function clear_object(obj) {
             obj.deleteRow(1);
         }
     } else if (obj.tagName === 'P') {
-      obj.innerHTML = "";
-        
+        obj.innerHTML = "";
+
     } else if (obj.type === "select-one") {
         var num_of_options = obj.options.length;
         for (i = 0; i < num_of_options; i++) {
@@ -422,7 +422,7 @@ function fill_object(obj, value, header) {
             selected_Groups.push(value[i]);
         }
     } else if (obj.tagName === "P") {
-            obj.innerHTML = value;
+        obj.innerHTML = value;
 
     } else {
         obj.value = value;
@@ -460,7 +460,7 @@ function GetParameterDataTbl(id, kind, val, type) {
 // this class is holding all the form object controls and is in charge of //
 // clearing and filling the form                                          //
 ////////////////////////////////////////////////////////////////////////////
-function getAllUsers(){
+function getAllUsers() {
     var Users = "";
     $.ajax({
         url: "/api/User/get_names",
@@ -480,12 +480,13 @@ function SetAllUsers() {
 
     owner_data_list = $('#meta_owner_datalist')[0]
     for (i = 0; i < num_of_Users; i++) {
-         var option = document.createElement("option");
+        var option = document.createElement("option");
         option.text = Users[i];
         owner_data_list.appendChild(option);
     }
 
 }
+
 function getAllGroups(groupListID) {
     var groups = "";
     $.ajax({
@@ -529,24 +530,24 @@ function Function_Definition_form_controls_handler() {
     this.clear_form = function(exclude) {
 
 
-     // clear function select DL Control
-     function_datalist_object = $('#meta_name_datalist')[0]
-     var num_of_options = function_datalist_object.options.length;
-     for (i = 0; i < num_of_options; i++) {
-        function_datalist_object.removeChild(function_datalist_object.children[0]);
-     }
+            // clear function select DL Control
+            function_datalist_object = $('#meta_name_datalist')[0]
+            var num_of_options = function_datalist_object.options.length;
+            for (i = 0; i < num_of_options; i++) {
+                function_datalist_object.removeChild(function_datalist_object.children[0]);
+            }
 
-      // clear owner DL Control
-      owner_datalist_object = $('#meta_owner_datalist')[0]
-      var num_of_options = owner_datalist_object.options.length;
-      for (i = 0; i < num_of_options; i++) {
-        owner_datalist_object.removeChild(owner_datalist_object.children[0]);
-      }
+            // clear owner DL Control
+            owner_datalist_object = $('#meta_owner_datalist')[0]
+            var num_of_options = owner_datalist_object.options.length;
+            for (i = 0; i < num_of_options; i++) {
+                owner_datalist_object.removeChild(owner_datalist_object.children[0]);
+            }
 
-     // clear all other Form_controls
+            // clear all other Form_controls
             Object.keys(this.form_controls).forEach(function(key, index) {
                 if (!exclude.includes(key)) {
-                    if (!["status", "kind"].includes(key)){
+                    if (!["status", "kind"].includes(key)) {
                         clear_object(this.form_controls[key]);
                     }
                 }
@@ -564,12 +565,12 @@ function Function_Definition_form_controls_handler() {
                     value = curr_function[key];
                     if (key === "status") {
                         this.form_controls[key].selectedIndex = value;
-                  } else if (key === "kind") {
-                            selected_index = funciton_kinds.indexOf(value);
-                            if (selected_index === -1){
-                              selected_index = 3;
-                            }
-                      this.form_controls[key].selectedIndex = selected_index;
+                    } else if (key === "kind") {
+                        selected_index = funciton_kinds.indexOf(value);
+                        if (selected_index === -1) {
+                            selected_index = 3;
+                        }
+                        this.form_controls[key].selectedIndex = selected_index;
                     } else if (key === "function_select") {
                         function_data_list = $('#meta_name_datalist')[0]
                         var num_of_functions = functions.length;
@@ -696,57 +697,57 @@ form_controls.location.addEventListener("input", function() {
     });
 });
 
-$('#NewExist_toggle').change(function()  {
-  $('.alert')[0].hidden = true;
-  if (action === "saveNewFunction"){
-    action='';
-    return;
-  } else {
+$('#NewExist_toggle').change(function() {
+    $('.alert')[0].hidden = true;
+    if (action === "saveNewFunction") {
+        action = '';
+        return;
+    } else {
 
-      if ($('#NewExist_toggle')[0].checked){ //new
-        Stage = "new";
-        form_handler.clear_form([]);
-        form_controls.function_select.setAttribute("list",null)     // change function select to text
-        form_controls.kind.selectedIndex = 0;
-        form_controls.status.selectedIndex = 0;
-        functionFormDisable(false);
-        $.ajax({
-            url: "/api/OctopusUtils/get_functions_basedir",
-            success: function(result) {
-                form_controls.location.value = result.dir;
-            }
-        });
+        if ($('#NewExist_toggle')[0].checked) { //new
+            Stage = "new";
+            form_handler.clear_form([]);
+            form_controls.function_select.setAttribute("list", null) // change function select to text
+            form_controls.kind.selectedIndex = 0;
+            form_controls.status.selectedIndex = 0;
+            functionFormDisable(false);
+            $.ajax({
+                url: "/api/OctopusUtils/get_functions_basedir",
+                success: function(result) {
+                    form_controls.location.value = result.dir;
+                }
+            });
 
-        SetAllUsers();
+            SetAllUsers();
 
-      } else { //exist
-        Stage = "update";
-        form_controls.function_select.setAttribute("list","meta_name_datalist") // change function select to DL
-        form_handler.fill_form(0, []);
-        functionFormDisable(true);
+        } else { //exist
+            Stage = "update";
+            form_controls.function_select.setAttribute("list", "meta_name_datalist") // change function select to DL
+            form_handler.fill_form(0, []);
+            functionFormDisable(true);
 
-      }
+        }
 
-  }
+    }
 
 });
 
 //
 $('#meta_duplicate')[0].addEventListener("click", function() {
-  $('.alert')[0].hidden = true;
-  var functoinIndex = FindSelectFuncIndex()
-  setToggle("NewExist_toggle", "on"); //(new)
-  form_handler.fill_form(functoinIndex, []);
-  form_controls.function_select.value = "";
+    $('.alert')[0].hidden = true;
+    var functoinIndex = FindSelectFuncIndex()
+    setToggle("NewExist_toggle", "on"); //(new)
+    form_handler.fill_form(functoinIndex, []);
+    form_controls.function_select.value = "";
 });
 
 
 
 $('#meta_edit')[0].addEventListener("click", function() {
-  $('.alert')[0].hidden = true;
-  functionFormDisable(false);
-  SetAllUsers();
-  
+    $('.alert')[0].hidden = true;
+    functionFormDisable(false);
+    SetAllUsers();
+
 });
 //
 
@@ -760,8 +761,8 @@ $('#meta_delete')[0].addEventListener("click", function() {
         type: "POST",
         url: "/api/OctopusFunction/delete_by_name/" + function_name,
         success: function(msg) {
-          $('#main_dissmisable_alert_text')[0].innerHTML = msg;
-          $('#main_alert')[0].hidden = false;
+            $('#main_dissmisable_alert_text')[0].innerHTML = msg;
+            $('#main_alert')[0].hidden = false;
 
             form_handler.get_all_functions('onReset');
             Stage === "update";
@@ -786,12 +787,14 @@ $('#meta_save')[0].addEventListener("click", function() {
             success: function(msg) {
                 $('#main_dissmisable_alert_text')[0].innerHTML = msg;
                 $('#main_alert')[0].hidden = false;
-                action = "saveNewFunction";
-                setToggle("NewExist_toggle", "off");
-                form_handler.get_all_functions('save');
-                Stage = "update";
-                functionFormDisable(true);
-
+                if (msg == "function " + data.name + " was succefully saved") {
+                    action = "saveNewFunction";
+                    setToggle("NewExist_toggle", "off");
+                    $('#main_alert')[0].hidden = false;
+                    form_handler.get_all_functions('save');
+                    Stage = "update";
+                    functionFormDisable(true);
+                }
             }
         });
 
@@ -809,7 +812,7 @@ $('#meta_save')[0].addEventListener("click", function() {
                 // alert(msg)
                 form_handler.get_all_functions('current');
                 functionFormDisable(true);
-                var temp =1;
+                var temp = 1;
             }
         });
     }
@@ -825,10 +828,10 @@ $('.alert button')[0].addEventListener('click', function() { $('.alert')[0].hidd
 form_controls.function_select.addEventListener("change", function() {
     $('.alert')[0].hidden = true;
     var functoinIndex = FindSelectFuncIndex()
-    if (Stage == "update" && functoinIndex !== -1)  {
-    form_handler.fill_form(functoinIndex, []);
-    functionFormDisable(true);
-    } else  return;
+    if (Stage == "update" && functoinIndex !== -1) {
+        form_handler.fill_form(functoinIndex, []);
+        functionFormDisable(true);
+    } else return;
 });
 
 
