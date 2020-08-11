@@ -975,6 +975,39 @@ class OctopusFunction(db.Model):
             changed_by = self.changed_by,
             function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
+        
+    @staticmethod
+    def get_names_by_filter(json_data):
+        function_filters = json_data
+        if "owner" in function_filters:
+            if len(function_filters["owner"])>0:
+                function_filters["owner"] = User.query.filter_by(name=function_filters["owner"]).first()
+                if function_filters["owner"]:
+                    function_filters["owner"] = function_filters["owner"].id
+                else:
+                    return jsonify(status=1, message='no such user', data=[])
+            else:
+                function_filters["owner"] = None
+        else:
+                function_filters["owner"] = None
+
+        if "tags" in function_filters:
+            function_tags = function_filters['tags']
+            del function_filters['tags']
+        function_filters['project'] = session['current_project_id']
+        try:
+            if function_filters["owner"]:
+                names = OctopusFunction.query.filter_by(**function_filters).with_entities(OctopusFunction.name, OctopusFunction.tags).all()
+            else:
+                names = OctopusFunction.query.with_entities(OctopusFunction.name, OctopusFunction.tags).all()
+            if len(function_tags) > 0:
+                return jsonify(status=1, message=None, data=[func_name for func_name, tags in names if [True for tag in tags if tag in function_tags]])
+            else:
+                return jsonify(status=1, message=None, data=[func_name for func_name, tags in names])
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
 
     @staticmethod
     def save_function(data):
@@ -1532,7 +1565,7 @@ class FunctionsGroup(db.Model):
         if owner:
             owner_name = owner.name
         else:
-            owner = 'deleted user'
+            owner_name = 'deleted user'
         
         changed_by = User.query.get(self.changed_by)
         if changed_by:
@@ -1751,7 +1784,7 @@ class FunctionsGroup(db.Model):
 
                 messages = group.add_functions(updated_functions)
 
-                if description in json_data:
+                if "description" in json_data:
                     group.description = json_data['description']
 
                 if 'owner' in json_data:
@@ -1795,7 +1828,7 @@ class FunctionsGroup(db.Model):
                 group.functions = []
                 messages = group.add_functions(updated_functions)
                 # group.name = json_data['name']
-                if description in json_data:
+                if "description" in json_data:
                     group.description = json_data['description']
 
                 if 'owner' in json_data:

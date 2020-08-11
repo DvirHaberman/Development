@@ -140,7 +140,13 @@ function load_group(group_name) {
                     selected_ul.appendChild(create_modal_li_element(result.data.functions[i], 'modal_function'));
                     selected_modal_functions.push(result.data.functions[i]);
                 }
-                functions_modal_select.value = null;
+                // functions_modal_select.value = null;
+                modal_form_controls.Group_Name_select.value = group_name;
+                modal_form_controls.owner.value = result.data.owner;
+                modal_form_controls.description.value = result.data.description;
+                modal_form_controls.changed_by.innerHTML = result.data.changed_by;
+                modal_form_controls.changed_date.innerHTML = result.data.changed_date;
+
             } else {
                 $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
@@ -171,13 +177,11 @@ function save_group(group_name) {
     }
     data = {
         name: group_name,
-        // owner:
-        // description: 
-        // changed_date: 
-        // changed_by: 
+        owner: modal_form_controls.owner.value,
+        description: modal_form_controls.description.value,
         functions: chosen_functions
-
     };
+
     $.ajax({
         type: "POST",
         url: "/api/FunctionsGroup/save",
@@ -217,10 +221,14 @@ function update_group(group_name) {
             }
         });
     }
+
     data = {
         name: group_name,
+        owner: modal_form_controls.owner.value,
+        description: modal_form_controls.description.value,
         functions: chosen_functions
     };
+
     $.ajax({
         type: "POST",
         url: "/api/FunctionsGroup/update_by_name/" + group_name,
@@ -331,16 +339,71 @@ function Filter_function_names(json_data) {
 }
 
 
+function FindSelectGroupIndex() {
+    selectedIndex = -1;
+    modal_form_controls.Group_Name_select
+    numOfEle = $('#Group_Function_Name')[0].children.length;
+    for (i=0; i<numOfEle; i++){
+      if ($('#Group_Function_Name')[0].options[i].value === modal_form_controls.Group_Name_select.value) selectedIndex = i;
+    }
+    return selectedIndex;
+  }
+
+
+modal_form_controls.Group_Name_select.addEventListener("change", function() {
+    $('#modal_alert')[0].hidden = true;
+    var groupIndex = FindSelectGroupIndex();
+
+    if (Stage == "update" && groupIndex !== -1)  {
+        var group_name = modal_form_controls.Group_Name_select.value
+        clear_Modal_form();
+        clear_chosen_list();
+        load_group(group_name);
+        ModalFormDisable(true);
+    } else  return;
+});
+
+
+functions_modal_select.addEventListener('change', function() {
+    var description = null;
+
+    if($('#functions_option').hasClass('dropdown-selected')){ //function case
+        num_of_funcs = functions.length;
+        index=-1
+        for (let i = 0; i < num_of_funcs; i++) {
+            if(functions[i]['name']==this.value){
+                description = functions[i]['description'];
+                break;
+            }            
+        }
+    }
+    
+    else { //group
+        selected_group =  get_group_data_by_group_name(this.value);
+
+        if (selected_group) {
+            description = selected_group.description;
+        }
+    }
+    
+
+    if (description){
+        $('#Modal_GroupFunction_Description')[0].value = description;
+    }else{
+        $('#Modal_GroupFunction_Description')[0].value = '';
+    }
+});
 
 add_function_button.addEventListener('click', function() {
     if (function_select_state === 'functions') {
+        
         add_modal_function();
     } else {
         add_modal_group();
     }
 });
 
-$('#modal_filter_owner')[0].addEventListener('input', function() {
+$('#modal_filter_owner')[0].addEventListener('change', function() {
     if ($('#groups_option').hasClass('dropdown-selected')) { // Group Case
         json_data = getModalFilterData();
         delete json_data['tags'];
@@ -355,7 +418,7 @@ $('#modal_filter_owner')[0].addEventListener('input', function() {
 
 });
 
-$('#modal_filter_Tags')[0].addEventListener('input', function() {
+$('#modal_filter_Tags')[0].addEventListener('change', function() {
 
     if ($('#groups_option').hasClass('dropdown-selected')) { // Group Case
         json_data = getModalFilterData();
@@ -457,7 +520,7 @@ function reload_functions() {
         async: false,
         success: function(result) {
             functions = result;
-            functoinIndex = form_controls.function_select.selectedIndex;
+            functoinIndex = FindSelectFuncIndex()
             form_handler.fill_form(functoinIndex, []);
         }
 
@@ -506,7 +569,10 @@ function get_functions_names() {
             }
             functions_select_label.innerHTML = '<h5>Select a function to the list</h5>'
             modal_filter_Tags.hidden = false;
+
             Description_functions_Group_label.innerHTML = '<h6>Function Description</h6>'
+            $('#Modal_GroupFunction_Description')[0].value = '';
+
             functions_option.classList.add('dropdown-selected');
             groups_option.classList.remove('dropdown-selected')
             function_select_state = 'functions';
@@ -514,6 +580,25 @@ function get_functions_names() {
         }
     });
 }
+
+function get_group_data_by_group_name(group_name){
+    selected_group = null;
+    if (group_name.replace(/\s/g,'').length > 0)
+    $.ajax({
+        url: "/api/FunctionsGroup/get_by_name/" + group_name,
+        async: false,
+        success: function(result) {
+            if (result.status) {
+            selected_group = result.data;
+            }
+            else {
+                selected_group = null;
+            }
+        }
+    });
+    return selected_group;
+}
+
 
 function get_groups_names() {
     $.ajax({
@@ -552,6 +637,8 @@ function get_groups_names() {
             modal_filter_Tags.hidden = true;
 
             Description_functions_Group_label.innerHTML = '<h6>Group Description</h6>'
+            $('#Modal_GroupFunction_Description')[0].value = '';
+
             groups_option.classList.add('dropdown-selected');
             functions_option.classList.remove('dropdown-selected')
             function_select_state = 'groups';
@@ -568,5 +655,6 @@ groups_option.addEventListener('click', get_groups_names);
 
 get_groups_names();
 get_functions_names();
+setToggle("Group_toggle", "off");
 
-modal_group_name.setAttribute("list", null);
+// modal_group_name.setAttribute("list", null);
