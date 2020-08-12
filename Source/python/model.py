@@ -1550,8 +1550,9 @@ class FunctionsGroup(db.Model):
     changed_date = db.Column(db.DateTime)
     changed_by = db.Column(db.Integer)
     description = db.Column(db.Text)
+    permissions = db.Column(db.Integer)
 
-    def __init__(self, owner=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[]):
+    def __init__(self, owner=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[], permissions=0):
         self.name = name
         self.functions = functions
         self.project = project
@@ -1559,6 +1560,7 @@ class FunctionsGroup(db.Model):
         self.owner = owner
         self.changed_date = changed_date
         self.changed_by = changed_by
+        self.permissions = int(permissions)
 
     def self_jsonify(self):
         owner = User.query.get(self.owner)
@@ -1580,6 +1582,10 @@ class FunctionsGroup(db.Model):
             changed_by = changed_by,
             description = self.description,
             changed_date = self.changed_date,
+            permissions = self.permissions,
+            #0 - open
+            #1 - insert only
+            #2 - locked
             functions=jsonify([func.name for func in self.functions if func.project==session['current_project_id']]).json
         ).json
 
@@ -1652,6 +1658,23 @@ class FunctionsGroup(db.Model):
             if name in [group.name for group in FunctionsGroup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
             
+            if 'permissions' in json_data:
+                if type(json_data['permissions']) == type(str(1)):
+                    if json_data['permissions'].isdigit():
+                        if int(json_data['permissions']) in range(3):
+                            permissions = int(json_data['permissions'])
+                        else:
+                            return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
+                    return jsonify(status=0, message=['cannot create - permissions must be an integer'], data=None)
+                if type(json_data['permissions']) == type(int(1)):
+                    if int(json_data['permissions']) in range(3):
+                        permissions = json_data['permissions']
+                    else:
+                        return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
+                    
+            else:
+                description = 0
+
             if 'description' in json_data:
                 description = json_data['description']
             else:
@@ -1670,7 +1693,7 @@ class FunctionsGroup(db.Model):
             
             changed_by = User.query.filter_by(name=session['username']).first().id
 
-            group = FunctionsGroup(name=name, project=session['current_project_id'],owner=owner, changed_by=changed_by, description=description, changed_date=datetime.utcnow())
+            group = FunctionsGroup(name=name, project=session['current_project_id'],owner=owner, changed_by=changed_by, description=description, changed_date=datetime.utcnow(), permissions=permissions)
             db.session.add(group)
             db.session.commit()
             functions = json_data['functions']
@@ -1786,6 +1809,9 @@ class FunctionsGroup(db.Model):
 
                 if "description" in json_data:
                     group.description = json_data['description']
+
+                if "permissions" in json_data:
+                    group.permissions = int(json_data['permissions'])
 
                 if 'owner' in json_data:
                     owner=json_data['owner']
@@ -2258,7 +2284,7 @@ class AnalyseResult(db.Model):
             else:
                 function_data = None
             run_data = {"db" : result.db_conn, "run_id":result.run_id, "scenario":result.scenario_name}
-            test_result = {"status":result.result_status, "time_elapsed":result.time_elapsed}
+            test_result = {"status":result.result_status, "result_text":result.result_text,"time_elapsed":result.time_elapsed}
         if exist:
             return jsonify(status=1, run_data = run_data, function_data=function_data, test_result=test_result)
         return jsonify(status=0, run_data = None, function_data=None)

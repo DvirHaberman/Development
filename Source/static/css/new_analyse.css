@@ -103,6 +103,25 @@ span.toggle-handle.btn.btn-default {
     margin-left: 10px;
 }
 
+#drill_down_div h2 {
+    margin-left: 16px;
+}
+
+#drill_down_header {
+    align-items: baseline;
+}
+
+#drill_down_header h3 {
+    font-style: italic;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 9rem;
+}
+
 #AnalyseContent .card-body .card-body div {
     align-items: baseline;
     padding-left: 16px;
