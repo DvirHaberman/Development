@@ -313,7 +313,7 @@ def change_project(index):
     if session['current_window_name'] == 'Define Connections':
         return redirect('/db_conn_wizard')
 
-    if session['current_window_name'] == 'Define Functions':
+    if session['current_window_name'] == 'Define Function':
         return redirect('/define_function')
 
     if session['current_window_name'] == 'Define Users':

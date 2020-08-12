@@ -1,40 +1,38 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block css %}
+<link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
+<link rel="stylesheet" href="../static/css/metadata_layout.css" />
+<link href="../static/css/bootstrap-toggle.min.css" rel="stylesheet">
 
-{% block css %}
-    <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
-    <link rel="stylesheet" href="../static/css/metadata_layout.css" />
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    {% block main_form_css %}
-    {% endblock %}
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+<script src="../static/js/bootstrap-toggle.min.js"></script>
+
+<!-- <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    {% block main_form_css %}-->
 {% endblock %}
+<!-- <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script> -->--> {% endblock %} {%block content%}
 
-{%block content%}
-
-    <div class="row mx-auto layout-buttons-div">
-        <input id = "NewExist_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
-        <button id = "meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
-        <button id = "meta_duplicate"><i class="far fa-file-alt adapt-icon-size"></i></button>
-        <button id = "meta_delete"><i class="far fa-trash-alt adapt-icon-size"></i></button>
-        {% if session['current_window_name']=='Define Function' %}
-        <button id = "meta_edit"><i class="fa fa-pencil-alt adapt-icon-size"></i></button>
-        <div id="main_alert" class="alert alert-warning alert-dismissible fade show meta_alert" role="alert" hidden="hidden">
-            <strong id="main_dissmisable_alert_text"></strong>
-            <button type="button" id = "main_alert_button" class="close" data-hide="alert" aria-label="Close">
+<div class="row mx-auto layout-buttons-div">
+    <input id="NewExist_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
+    <button id="meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
+    <button id="meta_duplicate"><i class="far fa-file-alt adapt-icon-size"></i></button>
+    <button id="meta_delete"><i class="far fa-trash-alt adapt-icon-size"></i></button> {% if session['current_window_name']=='Define Function' %}
+    <button id="meta_edit"><i class="fa fa-pencil-alt adapt-icon-size"></i></button>
+    <div id="main_alert" class="alert alert-warning alert-dismissible fade show meta_alert" role="alert" hidden="hidden">
+        <strong id="main_dissmisable_alert_text"></strong>
+        <button type="button" id="main_alert_button" class="close" data-hide="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
-        </div>
-        {% endif %}
-<!-- style = "padding-top: 5px; padding-bottom: 5px;" -->
     </div>
-    <div class="row mx-auto">
+    {% endif %}
+    <!-- style = "padding-top: 5px; padding-bottom: 5px;" -->
+</div>
+<div class="row mx-auto">
 
-        <div class="meta_data card border-secondary">
-            <div class="card-body">
+    <div class="meta_data card border-secondary">
+        <div class="card-body">
 
-              {% if session['current_window_name']=='Define Function' %}
+            {% if session['current_window_name']=='Define Function' %}
 
-              <div class="row margins-bottom-medium">
+            <div class="row margins-bottom-medium">
 
                 <div class="col-11">
                     <label for="meta_function_name"><h5>Function Name</h5></label>
@@ -65,83 +63,77 @@
                     </select>
                 </div>
 
-                <div class = "col-11">
-                  <hr>
+                <div class="col-11">
+                    <hr>
                 </div>
 
 
-                <div class = "form-inline col-12">
-                  <label><h6>Changed Date</h6></label>
-                  <input class="form-control" name="changed_date" type="text" value="02/02/2020 15:20" disabled 
-                   style = "padding-top: 5px; padding-bottom: 5px; margin-left: 5px; width: 200px;
-                   font-size: small;" ></input>
+                <div class="form-inline col-12">
+                    <label><h6>Changed Date</h6></label>
+                    <input class="form-control" name="changed_date" type="text" value="02/02/2020 15:20" disabled style="padding-top: 5px; padding-bottom: 5px; margin-left: 5px; width: 200px;
+                   font-size: small;"></input>
                 </div>
 
-                <div class = "form-inline col-12">
-                  <label><h6>Last Changed by:</h6> </label>
-                  <p id = "function_last_changed_by" class="font-italic function-change-name" style = "margin-left: 5px;" > ami</p>
+                <div class="form-inline col-12">
+                    <label><h6>Last Changed by:</h6> </label>
+                    <p id="function_last_changed_by" class="font-italic function-change-name" style="margin-left: 5px;"> ami</p>
                 </div>
-          </div>
+            </div>
 
-              {% else %}
+            {% else %}
 
 
-                    <div class="row margins-bottom-medium">
-                        <div class="col-8">
+            <div class="row margins-bottom-medium">
+                <div class="col-8">
 
-                            <label for="meta_name"><h5>Name</h5></label>
-                            <input list="meta_name_datalist" type="text" class="form-control" id="meta_name">
-                            <datalist id='meta_name_datalist'>
+                    <label for="meta_name"><h5>Name</h5></label>
+                    <input list="meta_name_datalist" type="text" class="form-control" id="meta_name">
+                    <datalist id='meta_name_datalist'>
                               <option value="global">kjsdhfskjdf</option>
                             </datalist>
-                        </div>
-                        <div class="col-4">
-                            <label for="meta_id"><h5>Id</h5></label>
-                            <input type="text" class="form-control" id="meta_id">
-                        </div>
-                    </div>
-                      {% if session['current_window_name']=='Define Stage' %}
-                          <div class="row margins-bottom-medium">
-                              <div class="col-6">
-                                  <label for="meta_type"><h5>Type</h5></label>
-                                  <select class="form-control" id="meta_type">
+                </div>
+                <div class="col-4">
+                    <label for="meta_id"><h5>Id</h5></label>
+                    <input type="text" class="form-control" id="meta_id">
+                </div>
+            </div>
+            {% if session['current_window_name']=='Define Stage' %}
+            <div class="row margins-bottom-medium">
+                <div class="col-6">
+                    <label for="meta_type"><h5>Type</h5></label>
+                    <select class="form-control" id="meta_type">
                                       <option value="Run System">Run System</option>
                                       <option value="Analyse">Analyse</option>
                                   </select>
-                              </div>
-                              <div class="col-6">
-                                  <label for="meta_concequences"><h5>Concequences</h5></label>
-                                  <select class="form-control" id="meta_concequences">
+                </div>
+                <div class="col-6">
+                    <label for="meta_concequences"><h5>Concequences</h5></label>
+                    <select class="form-control" id="meta_concequences">
                                       <option value="Critical">Critical</option>
                                       <option value="Warning">Warning</option>
                                       <option value="Light">Light</option>
                                       <option value="None">None</option>
                                   </select>
-                              </div>
-                          </div>
-                      {% endif %}
-
-                    <label for="meta_owner"><h5>Owner</h5></label>
-                    <input type="text" class="form-control margins-bottom-medium" id="meta_owner">
-                    <label for="meta_tags"><h5>Tags</h5></label>
-                    <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
-                    <label for="meta_description"><h5>Description</h5></label>
-                    <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="10" rows="2"></textarea>
-                    <h6><i id = "meta_date">changed date : 16:00 27.5.2020</i></h6>
-                {% endif %}
-
+                </div>
             </div>
+            {% endif %}
+
+            <label for="meta_owner"><h5>Owner</h5></label>
+            <input type="text" class="form-control margins-bottom-medium" id="meta_owner">
+            <label for="meta_tags"><h5>Tags</h5></label>
+            <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
+            <label for="meta_description"><h5>Description</h5></label>
+            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="10" rows="2"></textarea>
+            <h6><i id="meta_date">changed date : 16:00 27.5.2020</i></h6>
+            {% endif %}
 
         </div>
-        <div class="main_form card border-secondary">
-            {% block main_form %}
-            {% endblock %}
-        </div>
+
     </div>
+    <div class="main_form card border-secondary">
+        {% block main_form %} {% endblock %}
+    </div>
+</div>
 
-  </div>
-{% endblock %}
-{%block scripts%}
-  {% block main_form_scripts%}
-  {% endblock %}
-{% endblock %}
+</div>
+{% endblock %} {%block scripts%} {% block main_form_scripts%} {% endblock %} {% endblock %}

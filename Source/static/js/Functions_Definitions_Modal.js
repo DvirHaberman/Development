@@ -112,20 +112,32 @@ function SetModalAllUsers() {
 
 function add_modal_group() {
     var value = functions_modal_select.value;
-    if (!selected_modal_groups.includes(value) && groups_names.includes(value)) {
-        var GroupsList = document.getElementsByName("GroupsListNames")[0];
-        selected_ul.appendChild(create_modal_li_element(value, 'modal_group'));
-        selected_modal_groups.push(value);
-        functions_modal_select.value = null;
+    permission = is_permitted($('#Modal_Select_Group_Name')[0].value, 'add');
+    if (permission.status > 0 && permission.permission > 0) {
+        if (!selected_modal_groups.includes(value) && groups_names.includes(value)) {
+            var GroupsList = document.getElementsByName("GroupsListNames")[0];
+            selected_ul.appendChild(create_modal_li_element(value, 'modal_group'));
+            selected_modal_groups.push(value);
+            functions_modal_select.value = null;
+        } else {
+            $('#main_dissmisable_modal_alert_text')[0].innerHTML = permission.message;
+            $('#modal_alert')[0].hidden = false;
+        }
     }
 }
 
 function add_modal_function() {
     value = functions_modal_select.value;
-    if (!selected_modal_functions.includes(value) && functions_names.includes(value)) {
-        selected_ul.appendChild(create_modal_li_element(value, 'modal_function'));
-        selected_modal_functions.push(value);
-        functions_modal_select.value = null;
+    permission = is_permitted($('#Modal_Select_Group_Name')[0].value, 'add');
+    if (permission.status > 0 && permission.permission > 0) {
+        if (!selected_modal_functions.includes(value) && functions_names.includes(value)) {
+            selected_ul.appendChild(create_modal_li_element(value, 'modal_function'));
+            selected_modal_functions.push(value);
+            functions_modal_select.value = null;
+        }
+    } else {
+        $('#main_dissmisable_modal_alert_text')[0].innerHTML = permission.message;
+        $('#modal_alert')[0].hidden = false;
     }
 }
 
@@ -279,17 +291,22 @@ function delete_group(group_name) {
 }
 
 function remove_modal_li_element() {
-    var curr_li_ele = this.parentElement.parentElement;
-    var li_type = curr_li_ele.classList[1];
-    var value = this.parentElement.children[0].innerHTML;
-    curr_li_ele.parentElement.removeChild(curr_li_ele);
-    if (li_type === 'modal_function') {
-        selected_modal_functions = selected_modal_functions.filter(function(filter_val, index, arr) { return filter_val !== value; });
+    permission = is_permitted($('#Modal_Select_Group_Name')[0].value, 'remove');
+    if (permission.status > 0 && permission.permission > 0) {
+        var curr_li_ele = this.parentElement.parentElement;
+        var li_type = curr_li_ele.classList[1];
+        var value = this.parentElement.children[0].innerHTML;
+        curr_li_ele.parentElement.removeChild(curr_li_ele);
+        if (li_type === 'modal_function') {
+            selected_modal_functions = selected_modal_functions.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        }
+        if (li_type === 'modal_group') {
+            selected_modal_groups = selected_modal_groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        }
+    } else {
+        $('#main_dissmisable_modal_alert_text')[0].innerHTML = permission.message;
+        $('#modal_alert')[0].hidden = false;
     }
-    if (li_type === 'modal_group') {
-        selected_modal_groups = selected_modal_groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
-    }
-
 }
 
 function create_modal_li_element(value, type) {
@@ -484,7 +501,13 @@ $('#Duplicate_Group').click(function() { //duplicate
 
 
 $('#Edit_Group').click(function() { //duplicate
-    ModalFormDisable(false)
+    permission = is_permitted($('#Modal_Select_Group_Name')[0].value, 'add');
+    if (permission.status > 0 && permission.permission > 0) {
+        ModalFormDisable(false)
+    } else {
+        $('#main_dissmisable_modal_alert_text')[0].innerHTML = permission.message;
+        $('#modal_alert')[0].hidden = false;
+    }
 });
 
 

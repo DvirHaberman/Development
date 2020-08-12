@@ -15,7 +15,7 @@ var Stage = "update";
 var funciton_kinds = ["Python", "Matlab", "SQL"];
 var Flag_toggle = 0;
 var action = "update";
-
+var group_permissions = {};
 
 var form_controls = {
     function_select: $('#meta_function_name')[0],
@@ -106,13 +106,34 @@ function fillDataList(container, optionList) {
     container.appendChild(dl);
 }
 
+function is_permitted(group_name, action) {
+    var premission = {};
+    $.ajax({
+        url: '/api/FunctionsGroup/is_permitted/' + group_name + ',' + action,
+        async: false,
+        success: (response) => {
+            premission = response;
+        },
+        error: () => {
+            premission = { "status": 0, "message": 'server error', "permission": 0 };
+        }
+    });
+    return premission;
+}
+
 function add_group() {
-    var value = $('#group_input')[0].value;
-    if (!selected_Groups.includes(value) && AllGroups.includes(value)) {
-        var GroupsList = document.getElementsByName("GroupsListNames")[0];
-        GroupsList.appendChild(create_li_element(value, 'group'));
-        selected_Groups.push(value);
-        $('#group_input')[0].value = null;
+    value = $('#group_input')[0].value;
+    premission = is_permitted(value, 'add');
+    if (premission.status > 0 && premission.permission > 0) {
+        if (!selected_Groups.includes(value) && AllGroups.includes(value)) {
+            var GroupsList = document.getElementsByName("GroupsListNames")[0];
+            GroupsList.appendChild(create_li_element(value, 'group'));
+            selected_Groups.push(value);
+            $('#group_input')[0].value = null;
+        }
+    } else {
+        $('#main_dissmisable_alert_text')[0].innerHTML = premission.message;
+        $('#main_alert')[0].hidden = false;
     }
 }
 
@@ -140,18 +161,26 @@ function create_li_element(value, type) {
 }
 
 function remove_li_element() {
+
     var curr_li_ele = this.parentElement.parentElement;
     var li_type = curr_li_ele.classList[1];
     var value = this.parentElement.children[0].innerHTML;
-    curr_li_ele.parentElement.removeChild(curr_li_ele);
-    if (li_type === 'function') {
-        selected_functions = selected_functions.filter(function(filter_val, index, arr) { return filter_val !== value; });
-    }
-    if (li_type === 'group') {
-        selected_Groups = selected_Groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
-    }
-    if (li_type === 'run_id') {
-        selected_run_ids = selected_run_ids.filter(function(filter_val, index, arr) { return filter_val !== value; });
+    permission = is_permitted(value, 'remove');
+    if (permission.status > 0 && permission.permission > 0) {
+
+        curr_li_ele.parentElement.removeChild(curr_li_ele);
+        if (li_type === 'function') {
+            selected_functions = selected_functions.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        }
+        if (li_type === 'group') {
+            selected_Groups = selected_Groups.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        }
+        if (li_type === 'run_id') {
+            selected_run_ids = selected_run_ids.filter(function(filter_val, index, arr) { return filter_val !== value; });
+        }
+    } else {
+        $('#main_dissmisable_alert_text')[0].innerHTML = permission.message;
+        $('#main_alert')[0].hidden = false;
     }
 
 }
@@ -529,7 +558,7 @@ function Function_Definition_form_controls_handler() {
     this.form_controls = form_controls;
     this.clear_form = function(exclude) {
 
-
+            $('#group_input')[0].value = '';
             // clear function select DL Control
             function_datalist_object = $('#meta_name_datalist')[0]
             var num_of_options = function_datalist_object.options.length;
