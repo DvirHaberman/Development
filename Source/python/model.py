@@ -1666,12 +1666,14 @@ class FunctionsGroup(db.Model):
                         else:
                             return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
                     return jsonify(status=0, message=['cannot create - permissions must be an integer'], data=None)
-                if type(json_data['permissions']) == type(int(1)):
+                elif type(json_data['permissions']) == type(int(1)):
                     if int(json_data['permissions']) in range(3):
                         permissions = json_data['permissions']
                     else:
                         return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
-                    
+                else:
+                    return jsonify(status=0, message=['cannot create - permissions must be an integer'], data=None)
+
             else:
                 description = 0
 
