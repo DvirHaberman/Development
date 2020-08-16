@@ -189,6 +189,7 @@ function get_setup_data() {
 }
 
 function save_setup(data) {
+    var status = 0;
     $.ajax({
         url: '/api/AnalyseSetup/save',
         type: "POST",
@@ -197,6 +198,7 @@ function save_setup(data) {
         data: JSON.stringify(data),
         contentType: 'application/json',
         success: (response) => {
+            status = response.status;
             if (response.status) {
                 $('#main_dissmisable_alert_text')[0].innerHTML = "setup saved";
                 $('#main_alert')[0].hidden = false;
@@ -213,7 +215,7 @@ function save_setup(data) {
             // alert('something went wrong');
         }
     });
-    return response.status;
+    return status;
 }
 
 function update_setup(data) {

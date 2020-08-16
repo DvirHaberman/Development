@@ -5,7 +5,7 @@ var statistics_table_div = $('#statistics_table_div')[0];
 var mission_names = []
 var mission_name = $('#mission_name')[0];
 var collapse_analyse_button = $('#collapse_analyse_button')[0];
-
+var curr_task_id = null;
 var myWorker = null;
 
 $('#collapse_analyse_button').click(function() {
@@ -56,28 +56,6 @@ function get_mission_names() {
 
 }
 
-function set_progressbar(percents) {
-
-}
-
-function set_header(percents) {
-    set_progressbar(percents);
-    // set_statistics();
-    toggle_running(true)
-}
-
-// function set_content() {
-//     set_tabs('Results');
-//     hide_table();
-//     show_loader();
-// }
-
-function init_widgets() {
-    set_header(0);
-    toggle_analyse_collapse(false);
-    set_content();
-}
-
 function load_mission(mission_name) {
     // init_widgets();
     // myWorker = init_worker(mission_name);
@@ -96,9 +74,7 @@ function load_init_analyse_data() {
 
 function assign_event_analyse_listeners() {
     $('#mission_name')[0].addEventListener('change', () => {
-        init_worker();
-        post_data = { "origin": window.location.origin, "analyse_mission_name": $('#mission_name')[0].value };
-        myWorker.postMessage(post_data);
+        load_mission($('#mission_name')[0].value)
     });
     // $('#results_table tbody').on('click', 'tr', function() {
     //     var data = table.row(this).data();
@@ -113,12 +89,8 @@ $(document).ready(() => {
 
 function toggle_running(bool) {
     if (bool) {
-        // $('#run_status span')[0].classList.add("spinner-border");
-        // $('#run_status span')[0].hidden = false;
         $('#run_status')[0].innerHTML = '&nbsp; Running...';
     } else {
-        // $('#run_status span')[0].classList.remove("spinner-border")
-        // $('#run_status span')[0].hidden = true;
         $('#run_status')[0].innerHTML = 'DONE!'
     }
 }
@@ -166,9 +138,13 @@ function get_task_id(run_data, function_name) {
 
 function update_meta_data(data) {
 
+    //header
+    $('#drill_down_meta_header')[0].innerHTML = curr_task_id;
+
     //test data
     $('#test_status')[0].innerHTML = status_icons[String(data["test_result"]["status"])];
     time_elapsed = Math.round(data["test_result"]["time_elapsed"] * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + 'msec';
+    $('#result_text')[0].innerHTML = data["test_result"]["result_text"];
     $('#time_elapsed')[0].innerHTML = time_elapsed;
 
     //function data
@@ -185,6 +161,7 @@ function update_meta_data(data) {
 
 function init_res_workers(task_id) {
     //res array worker
+    curr_task_id = task_id;
     myResArrayWorker = new Worker(URL.createObjectURL(new Blob(["(" + results_array_worker_function.toString() + ")()"], { type: 'text/javascript' })));
     myResArrayWorker.onmessage = (e) => {
         if (myResArrayWorker) {
@@ -194,8 +171,10 @@ function init_res_workers(task_id) {
         if (e.data.results_array) {
             update_drill_down_table(e.data.results_array)
             $('#drill_down_table_div')[0].hidden = false;
+            $('#no_array_div')[0].hidden = true;
             $('#drill_down_div')[0].hidden = false;
         } else {
+            $('#no_array_div')[0].hidden = false;
             $('#drill_down_table_div')[0].hidden = true;
         }
         // set_loading(false)
@@ -212,6 +191,7 @@ function init_res_workers(task_id) {
         if (e.data.function_data && e.data.run_data && e.data.test_result) {
             // update_drill_down_table(e.data.results_array)
             console.log(e.data);
+            $('#drill_down_div')[0].hidden = false;
             $('#drill_down_meta')[0].hidden = false;
             update_meta_data(e.data);
         } else {
