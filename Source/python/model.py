@@ -113,46 +113,46 @@ def create_app(db):
 
 db = init_db()
 
-FunctionsAndGroups = db.Table('FunctionsAndGroups',
+FunctionsAndGroups = db.Table('functionsandgroups',
                               db.Column('function_id', db.Integer,
-                                        db.ForeignKey('OctopusFunctions.id')),
+                                        db.ForeignKey('octopusfunctions.id')),
                               db.Column('group_id', db.Integer,
-                                        db.ForeignKey('FunctionsGroup.id'))
+                                        db.ForeignKey('functionsgroup.id'))
                               )
 
-ProjectsAndUsers = db.Table('ProjectsAndUsers',
+ProjectsAndUsers = db.Table('projectsandusers',
                               db.Column('project_id', db.Integer,
-                                        db.ForeignKey('Project.id')),
+                                        db.ForeignKey('project.id')),
                               db.Column('user_id', db.Integer,
-                                        db.ForeignKey('User.id'))
+                                        db.ForeignKey('user.id'))
                               )
 
-SetupsAndFunctions = db.Table('SetupsAndFunctions',
+SetupsAndFunctions = db.Table('setupsandfunctions',
                               db.Column('setup_id', db.Integer,
-                                        db.ForeignKey('AnalyseSetup.id')),
+                                        db.ForeignKey('analysesetup.id')),
                               db.Column('function_id', db.Integer,
-                                        db.ForeignKey('OctopusFunctions.id'))
+                                        db.ForeignKey('octopusfunctions.id'))
                               )
 
-SetupsAndGroups = db.Table('SetupsAndGroups',
+SetupsAndGroups = db.Table('setupsandgroups',
                               db.Column('setup_id', db.Integer,
-                                        db.ForeignKey('AnalyseSetup.id')),
+                                        db.ForeignKey('analysesetup.id')),
                               db.Column('group_id', db.Integer,
-                                        db.ForeignKey('FunctionsGroup.id'))
+                                        db.ForeignKey('functionsgroup.id'))
                               )
 
-SetupsAndRunLists = db.Table('SetupsAndRunLists',
+SetupsAndRunLists = db.Table('setupsandrunlists',
                               db.Column('setup_id', db.Integer,
-                                        db.ForeignKey('AnalyseSetup.id')),
+                                        db.ForeignKey('analysesetup.id')),
                               db.Column('run_list_id', db.Integer,
-                                        db.ForeignKey('RunList.id'))
+                                        db.ForeignKey('runlist.id'))
                               )
 
-SetupsAndRuns = db.Table('SetupsAndRuns',
+SetupsAndRuns = db.Table('setupsandruns',
                               db.Column('setup_id', db.Integer,
-                                        db.ForeignKey('AnalyseSetup.id')),
+                                        db.ForeignKey('analysesetup.id')),
                               db.Column('run_id', db.Integer,
-                                        db.ForeignKey('SetupRuns.id'))
+                                        db.ForeignKey('setupruns.id'))
                               )
 
 ################################################
@@ -402,7 +402,7 @@ class Task:
 #########################################
 
 class Team(db.Model):
-    __tablename__ = "Team"
+    __tablename__ = "team"
     id = db.Column(db.Integer, primary_key=True)
     users = db.relationship('User', backref='Team', lazy=True, uselist=True)
     name = db.Column(db.Text)
@@ -433,7 +433,7 @@ class Team(db.Model):
 
 
 class Role(db.Model):
-    __tablename__ = 'Role'
+    __tablename__ = 'role'
     id = db.Column(db.Integer, primary_key=True)
     users = db.relationship('User', backref='Role', lazy=True, uselist=True)
     name = db.Column(db.Text)
@@ -464,14 +464,14 @@ class Role(db.Model):
 #########################################
 
 class User(db.Model):
-    __tablename__ = "User"
+    __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     first_name = db.Column(db.Text)
     last_name = db.Column(db.Text)
     password_sha = db.Column(db.Text)
-    role = db.Column(db.Integer, db.ForeignKey('Role.id'))
-    team = db.Column(db.Integer, db.ForeignKey('Team.id'))
+    role = db.Column(db.Integer, db.ForeignKey('role.id'))
+    team = db.Column(db.Integer, db.ForeignKey('team.id'))
     functions = db.relationship('OctopusFunction', backref='User', lazy=True)
     max_priority = db.Column(db.Integer)
     state = db.Column(db.Integer)
@@ -652,7 +652,7 @@ class User(db.Model):
 
 
 class Project(db.Model):
-    __tablename__ = 'Project'
+    __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     output_dir = db.Column(db.Text)
@@ -808,9 +808,9 @@ class Project(db.Model):
 
 
 class FunctionParameters(db.Model):
-    __tablename__ = 'FunctionParameters'
+    __tablename__ = 'functionparameters'
     id = db.Column(db.Integer, primary_key=True)
-    function_id = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
+    function_id = db.Column(db.Integer, db.ForeignKey('octopusfunctions.id'))
     index = db.Column(db.Integer)
     kind = db.Column(db.Text)
     value = db.Column(db.Text)
@@ -878,13 +878,13 @@ class FunctionParameters(db.Model):
 
 
 class OctopusFunction(db.Model):
-    __tablename__ = "OctopusFunctions"
+    __tablename__ = "octopusfunctions"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     callback = db.Column(db.Text)
     file_name = db.Column(db.Text)
     location = db.Column(db.Text)
-    owner = db.Column(db.Integer, db.ForeignKey('User.id'))
+    owner = db.Column(db.Integer, db.ForeignKey('user.id'))
     status = db.Column(db.Integer)
     tree = db.relationship(
         'Trees', backref='OctopusFunction', lazy=True, uselist=False)
@@ -900,10 +900,10 @@ class OctopusFunction(db.Model):
     changed_date = db.Column(db.DateTime)
     is_locked = db.Column(db.Integer)
     function_parameters = db.relationship(
-        'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
+        'functionparameters', backref='OctopusFunction', lazy=True, uselist=True)
     feature = db.Column(db.Text)
     requirement = db.Column(db.Text)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    project = db.Column(db.Integer, db.ForeignKey('project.id'))
     changed_by = db.Column(db.Text)
 
     def __init__(self, name=None, callback=None, file_name=None, location=None, owner=None, status=None, tree=None,
@@ -1475,10 +1475,10 @@ class OctopusFunction(db.Model):
 
 
 class Trees(db.Model):
-    __tablename__ = "Trees"
+    __tablename__ = "trees"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    function = db.Column(db.Integer, db.ForeignKey('OctopusFunctions.id'))
+    function = db.Column(db.Integer, db.ForeignKey('octopusfunctions.id'))
     nodes = db.relationship(
         'TreeStructre', backref='Trees', lazy=True, uselist=True)
 
@@ -1505,9 +1505,9 @@ class Trees(db.Model):
 ##################################################
 
 class TreeStructre(db.Model):
-    __tablename__ = "TreeStructre"
+    __tablename__ = "treestructre"
     id = db.Column(db.Integer, primary_key=True)
-    tree_id = db.Column(db.Integer, db.ForeignKey('Trees.id'))
+    tree_id = db.Column(db.Integer, db.ForeignKey('trees.id'))
     node_id = db.Column(db.Integer)
     node_name = db.Column(db.Text)
     node_data = db.Column(db.Text)
@@ -1540,10 +1540,10 @@ class TreeStructre(db.Model):
 ##################################################
 
 class FunctionsGroup(db.Model):
-    __tablename__ = 'FunctionsGroup'
+    __tablename__ = 'functionsgroup'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    project = db.Column(db.Integer, db.ForeignKey('project.id'))
     functions = db.relationship('OctopusFunction', secondary=FunctionsAndGroups,
                                 backref=db.backref('groups', lazy='dynamic'))
     owner = db.Column(db.Integer)
@@ -1551,8 +1551,9 @@ class FunctionsGroup(db.Model):
     changed_by = db.Column(db.Integer)
     description = db.Column(db.Text)
     permissions = db.Column(db.Integer)
+    test_migrate = db.Column(db.Integer)
 
-    def __init__(self, owner=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[], permissions=0):
+    def __init__(self, owner=None, test_migrate=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[], permissions=0):
         self.name = name
         self.functions = functions
         self.project = project
@@ -1561,6 +1562,7 @@ class FunctionsGroup(db.Model):
         self.changed_date = changed_date
         self.changed_by = changed_by
         self.permissions = int(permissions)
+        self.test_migrate = test_migrate
 
     def self_jsonify(self):
         if self.owner:
@@ -1934,7 +1936,7 @@ class FunctionsGroup(db.Model):
 ##################################################
 
 class DbConnections(db.Model):
-    __tablename__ = 'DbConnections'
+    __tablename__ = 'dbconnections'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     db_type = db.Column(db.Text)
@@ -1944,7 +1946,7 @@ class DbConnections(db.Model):
     port = db.Column(db.Text)
     schema = db.Column(db.Text)
     conn_string = db.Column(db.Text)
-    project = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    project = db.Column(db.Integer, db.ForeignKey('project.id'))
 
     def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string, project=None):
         self.db_type = db_type
@@ -1977,7 +1979,7 @@ class DbConnections(db.Model):
 ########### ERRORLOG MODEL CLASS ####################
 ##################################################
 class ErrorLog(db.Model):
-    __tablename__ = 'ErrorLog'
+    __tablename__ = 'errorlog'
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer)
     error_time = db.Column(db.DateTime)
@@ -1998,7 +2000,7 @@ class ErrorLog(db.Model):
         error_queue.put_nowait(self)
 
 class AnalyseTask(db.Model):
-    __tablename__ = "AnalyseTask"
+    __tablename__ = 'analysetask'
     id = db.Column(db.Integer, primary_key=True)
     mission_id = db.Column(db.Integer)
     mission_type = db.Column(db.Integer)
@@ -2096,7 +2098,7 @@ class AnalyseTask(db.Model):
                   }
         return jsonify(status = 1, message=None, data=report)
 class Mission(db.Model):
-    __tablename__ = 'Mission'
+    __tablename__ = 'mission'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     project = db.Column(db.Integer)
@@ -2163,34 +2165,34 @@ class Mission(db.Model):
         [ids_dict.update({row.id:row.name}) for row in table]
         names = [ids_dict[index] for index in ids]
         return jsonify(names)
-class OverView(db.Model):
-    __tablename__ = 'OverView'
-    id = db.Column(db.Integer, primary_key=True)
-    mission_id = db.Column(db.Integer)
-    overall_status = db.Column(db.Integer)
-    # result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
-    elapsed_time = db.Column(db.Float)
+# class OverView(db.Model):
+#     __tablename__ = 'OverView'
+#     id = db.Column(db.Integer, primary_key=True)
+#     mission_id = db.Column(db.Integer)
+#     overall_status = db.Column(db.Integer)
+#     # result_id = db.relationship('AnalyseResult', backref='OverView', lazy=True, uselist=True)
+#     elapsed_time = db.Column(db.Float)
 
-    # def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
-    #     self.mission_id = mission_id
-    #     self.overall_status = overall_status
-    #     # self.result_id = result_id
-    #     self.time_elapsed = time_elapsed
-    #     db.session.add(self)
-    #     db.session.commit()
-    #     for result in results:
-    #         analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
-    #                                        result_status=result['result_status'],
-    #                                        result_text=result['result_text'],
-    #                                        result_array=result['results_arr'])#,
-                                        #    result_array_header=[],#result['result_array_header'],
-                                        #    result_array_types=[])#=result['result_array_types'])
+#     # def __init__(self, mission_id, results, overall_status=None, result_id=[] , time_elapsed=None):
+#     #     self.mission_id = mission_id
+#     #     self.overall_status = overall_status
+#     #     # self.result_id = result_id
+#     #     self.time_elapsed = time_elapsed
+#     #     db.session.add(self)
+#     #     db.session.commit()
+#     #     for result in results:
+#     #         analyse_result = AnalyseResult(overview_id=self.id, run_id=result['run_id'], db_conn='db_conn',
+#     #                                        result_status=result['result_status'],
+#     #                                        result_text=result['result_text'],
+#     #                                        result_array=result['results_arr'])#,
+#                                         #    result_array_header=[],#result['result_array_header'],
+#                                         #    result_array_types=[])#=result['result_array_types'])
 
 
 
 
 class AnalyseResult(db.Model):
-    __tablename__ = 'AnalyseResult'
+    __tablename__ = 'analyseresult'
     id = db.Column(db.Integer, primary_key=True)
     mission_id = db.Column(db.Integer)
     # overview_id = db.Column(db.Integer, db.ForeignKey('OverView.id'))
@@ -2380,7 +2382,7 @@ class AnalyseResult(db.Model):
         else:
             return jsonify(status=0, data=None,message=['no mission with this name'])
 
-        results = AnalyseResult.query.filter_by(mission_id = mission_id).with_entities('AnalyseResult.id').all()
+        results = AnalyseResult.query.filter_by(mission_id = mission_id).with_entities('analyseresult.id').all()
         
         if results:
             return jsonify(status=1, data=[result.id for result in results],message=None)
@@ -2428,9 +2430,9 @@ class AnalyseResult(db.Model):
         # return jsonify(data=mission_results, run_ids = run_ids, functions=functions)
 
 class ResultArray(db.Model):
-    __tablename__ = 'ResultArray'
+    __tablename__ = 'resultarray'
     id = db.Column(db.Integer, primary_key=True)
-    result_id = db.Column(db.Integer, db.ForeignKey('AnalyseResult.id'))
+    result_id = db.Column(db.Integer, db.ForeignKey('analyseresult.id'))
     col1 = db.Column(db.Text)
     col2 = db.Column(db.Text)
     col3 = db.Column(db.Text)
@@ -2565,7 +2567,7 @@ class ResultArray(db.Model):
 class Site(db.Model):
     __tablename__ = 'site'
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     name = db.Column(db.Text)
     version = db.Column(db.Text)
     is_active = db.Column(db.Integer)
@@ -2803,7 +2805,7 @@ class Site(db.Model):
             db.session.close()
 
 class OctopusProcess(db.Model):
-    __tablename__ = 'OctopusProcess'
+    __tablename__ = 'octopusprocess'
     id = db.Column(db.Integer, primary_key=True)
     # project_id = db.Column(db.Integer, db.ForeignKey('Project.id'))
     name = db.Column(db.Text)
@@ -2991,7 +2993,7 @@ class OctopusProcess(db.Model):
             db.session.close()
 
 class ComplexNet(db.Model):
-    __tablename__ = 'ComplexNet'
+    __tablename__ = 'complexnet'
     id = db.Column(db.Integer, primary_key=True)
     Project_id = db.Column(db.Integer)
     name = db.Column(db.Text)
@@ -3187,7 +3189,7 @@ class ComplexNet(db.Model):
 
 
 class NetConfig(db.Model):
-    __tablename__ = 'NetConfig'
+    __tablename__ = 'netconfig'
     id = db.Column(db.Integer, primary_key=True)
     Lnk_System = db.Column(db.Text)
     Link_Ext_Simulation = db.Column(db.Integer)
@@ -3196,7 +3198,7 @@ class NetConfig(db.Model):
     Simulation_Ext_Flag = db.Column(db.Integer)
     Backup_Env = db.Column(db.Text)
     Backup_Env_Ext_Flag = db.Column(db.Integer)
-    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('ComplexNet.id'))
+    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('complexnet.id'))
 
     def __init__(self,Lnk_System, Link_Ext_Simulation, Smiulation_Watch, Simulation_Dis,
                  Simulation_Ext_Flag, Backup_Env, Backup_Env_Ext_Flag, Complex_Net_ID):
@@ -3301,12 +3303,12 @@ class NetConfig(db.Model):
             db.session.close()
 
 class NetSystem(db.Model):
-    __tablename__ = 'NetSystem'
+    __tablename__ = 'netsystem'
     id = db.Column(db.Integer, primary_key=True)
     system_type = db.Column(db.Text)
     system_num = db.Column(db.Integer)
     kind = db.Column(db.Text)
-    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('ComplexNet.id'))
+    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('complexnet.id'))
 
     def __init__(self,system_type, system_num, kind, Complex_Net_ID):
         self.system_type = system_type
@@ -3395,7 +3397,7 @@ class NetSystem(db.Model):
             db.session.close()
 
 class StageRunMani(db.Model):
-    __tablename__ = 'StageRunMani'
+    __tablename__ = 'stagerunmani'
     id = db.Column(db.Integer, primary_key=True)
     name  = db.Column(db.Text)
     owner_id = db.Column(db.Integer)
@@ -3705,7 +3707,7 @@ class StageRunMani(db.Model):
 
 
 class RunList(db.Model):
-    __tablename__ = 'RunList'
+    __tablename__ = 'runlist'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     db_name = db.Column(db.Text)
@@ -3821,7 +3823,7 @@ class RunList(db.Model):
             return jsonify(status=status,message=message ,data=names)
 
 class AnalyseSetup(db.Model):
-    __tablename__ = 'AnalyseSetup'
+    __tablename__ = 'analysesetup'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     functions = db.relationship('OctopusFunction', secondary=SetupsAndFunctions,
@@ -4196,7 +4198,7 @@ class AnalyseSetup(db.Model):
 
         return {"status":1,"message":'task id is'+str(mission.id)}
 class SetupRuns(db.Model):
-    __tablename__ = 'SetupRuns'
+    __tablename__ = 'setupruns'
     id = db.Column(db.Integer, primary_key=True)
     db_name = db.Column(db.Text)
     run_id = db.Column(db.Integer)
