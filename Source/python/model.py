@@ -1551,9 +1551,8 @@ class FunctionsGroup(db.Model):
     changed_by = db.Column(db.Integer)
     description = db.Column(db.Text)
     permissions = db.Column(db.Integer)
-    test_migrate = db.Column(db.Integer)
 
-    def __init__(self, owner=None, test_migrate=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[], permissions=0):
+    def __init__(self, owner=None, changed_by=None, description=None,changed_date=datetime.utcnow(), name=None, project=None, functions=[], permissions=0):
         self.name = name
         self.functions = functions
         self.project = project
@@ -1562,7 +1561,6 @@ class FunctionsGroup(db.Model):
         self.changed_date = changed_date
         self.changed_by = changed_by
         self.permissions = int(permissions)
-        self.test_migrate = test_migrate
 
     def self_jsonify(self):
         if self.owner:
