@@ -1563,15 +1563,21 @@ class FunctionsGroup(db.Model):
         self.permissions = int(permissions)
 
     def self_jsonify(self):
-        owner = User.query.get(self.owner)
-        if owner:
-            owner_name = owner.name
+        if self.owner:
+            owner = User.query.get(self.owner)
+            if owner:
+                owner_name = owner.name
+            else:
+                owner_name = 'deleted user'
         else:
             owner_name = 'deleted user'
-        
-        changed_by = User.query.get(self.changed_by)
-        if changed_by:
-            changed_by = changed_by.name
+
+        if self.changed_by:
+            changed_by = User.query.get(self.changed_by)
+            if changed_by:
+                changed_by = changed_by.name
+            else:
+                changed_by = 'deleted user'
         else:
             changed_by = 'deleted user'
         
@@ -1665,7 +1671,8 @@ class FunctionsGroup(db.Model):
             if identifier_resolved_flag:
                 identifier_resolved_flag=False
                 try:
-                    self.functions.append(func_obj)
+                    if not func_obj in self.functions:
+                        self.functions.append(func_obj)
                 except:
                     if is_identifier_str_flag:
                         messages.append('Error: something went wrong while adding the function with id or name ' + func)
@@ -1710,6 +1717,8 @@ class FunctionsGroup(db.Model):
 
             if 'owner' in json_data:
                 owner=json_data['owner']
+                if len(owner.replace(' ','') == 0):
+                    owner=session['username']
             else:
                 owner=session['username']
             
@@ -4076,9 +4085,11 @@ class AnalyseSetup(db.Model):
                 obj_to_append = query_obj.filter_by(name=identifer, project=session['current_project_id']).first()
         if obj_to_append:
             if obj_type == 'groups':
-                self.groups.append(obj_to_append)
+                if not obj_to_append in self.groups:
+                    self.groups.append(obj_to_append)
             elif obj_type == 'functions':
-                self.functions.append(obj_to_append)
+                if not obj_to_append in self.functions:
+                    self.functions.append(obj_to_append)
             else:
                 [self.run_lists.append(obj) for obj in obj_to_append]
         else:
