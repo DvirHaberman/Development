@@ -900,7 +900,7 @@ class OctopusFunction(db.Model):
     changed_date = db.Column(db.DateTime)
     is_locked = db.Column(db.Integer)
     function_parameters = db.relationship(
-        'functionparameters', backref='OctopusFunction', lazy=True, uselist=True)
+        'FunctionParameters', backref='OctopusFunction', lazy=True, uselist=True)
     feature = db.Column(db.Text)
     requirement = db.Column(db.Text)
     project = db.Column(db.Integer, db.ForeignKey('project.id'))
