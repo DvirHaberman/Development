@@ -1588,7 +1588,7 @@ class FunctionsGroup(db.Model):
             changed_by = changed_by,
             description = self.description,
             changed_date = self.changed_date,
-            permissions = self.permissions,
+            permissions = FunctionsGroup.get_innerHTML(int(self.permissions)),
             #2 - open
             #1 - insert only
             #0 - locked
@@ -1596,23 +1596,35 @@ class FunctionsGroup(db.Model):
         ).json
 
     @staticmethod
+    def get_innerHTML(num):
+        if num == 0:
+            return '<span class="badge badge-secondary">locked</span><i class="fas fa-lock"></i>'
+        if num == 1:
+            return '<span class="badge badge-info">insert only</span><i class="fas fa-sign-in-alt"></i>'
+        if num == 2:
+            return '<span class="badge badge-success">open</span><i class="fas fa-unlock"></i>'
+    @staticmethod
     def change_group_permissions_by_name(group_name, wanted_permissions):
-        def get_innerHTML(num):
-            if num == 0:
-                return '<span class="badge badge-secondary">open</span><i class="fas fa-lock"></i>'
-            if num == 1:
-                return '<span class="badge badge-info">open</span><i class="fas fa-sign-in-alt"></i>'
-            if num == 2:
-                return '<span class="badge badge-success">open</span><i class="fas fa-unlock"></i>'
 
         permissions = FunctionsGroup.is_permitted(group_name,'change_permissions')
-        return jsonify(
-                        status = permissions.json.status,
-                        message= permissions.json.message,
-                        permission = permissions.json.permission,
-                        innerHTML = get_innerHTML(int(wanted_permissions))
-                      )
-    
+        group = FunctionsGroup.query.filter_by(name=group_name, project=session['current_project_id']).first()
+        if group:
+            group.permissions = wanted_permissions
+            db.session.add(group)
+            db.session.commit()
+            return jsonify(
+                            status = permissions.json['status'],
+                            message= permissions.json['message'],
+                            permission = permissions.json['permission'],
+                            innerHTML = FunctionsGroup.get_innerHTML(int(wanted_permissions))
+                        )
+        else:
+            return jsonify(
+                            status = 0,
+                            message='no group with this name!',
+                            permission = 0,
+                            innerHTML = ''
+                        )
     @staticmethod
     def is_permitted(group_name, action):
 
@@ -1713,17 +1725,17 @@ class FunctionsGroup(db.Model):
             if name in [group.name for group in FunctionsGroup.query.filter_by(project=session['current_project_id']).all()]:
                 return jsonify(status=0, message=['cannot create - group with this name already exist'], data=None)
             
-            if 'permissions' in json_data:
-                if type(json_data['permissions']) == type(str(1)):
-                    if json_data['permissions'].isdigit():
-                        if int(json_data['permissions']) in range(3):
-                            permissions = int(json_data['permissions'])
+            if 'permission' in json_data:
+                if type(json_data['permission']) == type(str(1)):
+                    if json_data['permission'].isdigit():
+                        if int(json_data['permission']) in range(3):
+                            permissions = int(json_data['permission'])
                         else:
                             return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
                     return jsonify(status=0, message=['cannot create - permissions must be an integer'], data=None)
-                elif type(json_data['permissions']) == type(int(1)):
-                    if int(json_data['permissions']) in range(3):
-                        permissions = json_data['permissions']
+                elif type(json_data['permission']) == type(int(1)):
+                    if int(json_data['permission']) in range(3):
+                        permissions = json_data['permission']
                     else:
                         return jsonify(status=0, message=['cannot create - permissions must be in 0-2 range'], data=None)
                 else:
@@ -1738,7 +1750,7 @@ class FunctionsGroup(db.Model):
 
             if 'owner' in json_data:
                 owner=json_data['owner']
-                if len(owner.replace(' ','') == 0):
+                if len(owner.replace(' ','')) == 0:
                     owner=session['username']
             else:
                 owner=session['username']

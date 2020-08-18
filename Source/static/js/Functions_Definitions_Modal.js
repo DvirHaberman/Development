@@ -37,6 +37,7 @@ function clear_Modal_form() {
     modal_form_controls.GroupFunction_Description.innerHTML = "";
     modal_filter_Tags.value = "";
     modal_filter_owner.value = "";
+    $('#Permission_Group')[0].innerHTML = '<span class="badge badge-success">open</span><i class="fas fa-unlock"></i>'
     SetModalAllUsers();
 }
 
@@ -159,7 +160,7 @@ function load_group(group_name) {
                 modal_form_controls.description.value = result.data.description;
                 modal_form_controls.changed_by.innerHTML = result.data.changed_by;
                 modal_form_controls.changed_date.innerHTML = result.data.changed_date;
-
+                $('#Permission_Group')[0].innerHTML = result.data.permissions;
             } else {
                 $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
@@ -188,11 +189,23 @@ function save_group(group_name) {
             }
         });
     }
+
+    if ($('#Permission_Group i').hasClass('fa-lock')) {
+        permissions = 0
+    }
+    if ($('#Permission_Group i').hasClass('fa-unlock')) {
+        permissions = 2
+    }
+    if ($('#Permission_Group i').hasClass('fa-sign-in-alt')) {
+        permissions = 1
+    }
+
     data = {
         name: group_name,
         owner: modal_form_controls.owner.value,
         description: modal_form_controls.description.value,
-        functions: chosen_functions
+        functions: chosen_functions,
+        permission: permissions
     };
     var status = 0;
     $.ajax({
@@ -556,34 +569,48 @@ function reload_functions() {
     });
 }
 
-$('#Permission_Group').click(()=>{
-    if($('#Permission_Group i').hasClass('fa-unlock')) {
-        wanted_permissions = 1
+$('#Permission_Group').click(() => {
+    if ($('#Group_toggle')[0].checked) {
+        if ($('#Permission_Group i').hasClass('fa-lock')) {
+            $('#Permission_Group')[0].innerHTML = '<span class="badge badge-success">open</span><i class="fas fa-unlock"></i>'
+            return
+        }
+        if ($('#Permission_Group i').hasClass('fa-unlock')) {
+            $('#Permission_Group')[0].innerHTML = '<span class="badge badge-info">insert only</span><i class="fas fa-sign-in-alt"></i>'
+            return
+        }
+        if ($('#Permission_Group i').hasClass('fa-sign-in-alt')) {
+            $('#Permission_Group')[0].innerHTML = '<span class="badge badge-secondary">locked</span><i class="fas fa-lock"></i>'
+            return
+        }
+    } else {
+        if ($('#Permission_Group i').hasClass('fa-lock')) {
+            wanted_permissions = 2
+        }
+        if ($('#Permission_Group i').hasClass('fa-unlock')) {
+            wanted_permissions = 1
+        }
+        if ($('#Permission_Group i').hasClass('fa-sign-in-alt')) {
+            wanted_permissions = 0
+        }
+        group_name = $('#Modal_Select_Group_Name')[0].value;
+        change_group_permissions(group_name, wanted_permissions);
     }
-    if($('#Permission_Group i').hasClass('fa-unlock')) {
-        wanted_permissions = 0
-    }
-    if($('#Permission_Group i').hasClass('fa-sign-in-alt')) {
-        wanted_permissions = 2
-    }
-
-    group_name = $('#Modal_Select_Group_Name')[0].value;
-    change_group_permissions(group_name, wanted_permissions);
 });
 
 function change_group_permissions(group_name, wanted_permissions) {
     $.ajax({
-        url: "/api/FunctionsGroup/change_group_permissions_by_name"/ +group_name + ',' + wanted_permissions,
+        url: "/api/FunctionsGroup/change_group_permissions_by_name/" + group_name + ',' + wanted_permissions,
         async: false,
         success: function(result) {
-            if (result.status){
-                if (result.permission){
+            if (result.status) {
+                if (result.permission) {
                     $('#Permission_Group')[0].innerHTML = result.innerHTML;
-                }else{
+                } else {
                     $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                     $('#modal_alert')[0].hidden = false;
                 }
-            }else{
+            } else {
                 $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
                 $('#modal_alert')[0].hidden = false;
             }

@@ -108,16 +108,20 @@ function fillDataList(container, optionList) {
 
 function is_permitted(group_name, action) {
     var premission = {};
-    $.ajax({
-        url: '/api/FunctionsGroup/is_permitted/' + group_name + ',' + action,
-        async: false,
-        success: (response) => {
-            premission = response;
-        },
-        error: () => {
-            premission = { "status": 0, "message": 'server error', "permission": 0 };
-        }
-    });
+    if ($('#Group_toggle')[0].checked) {
+        premission = { "status": 1, "message": '', "permission": 1 };
+    } else {
+        $.ajax({
+            url: '/api/FunctionsGroup/is_permitted/' + group_name + ',' + action,
+            async: false,
+            success: (response) => {
+                premission = response;
+            },
+            error: () => {
+                premission = { "status": 0, "message": 'server error', "permission": 0 };
+            }
+        });
+    }
     return premission;
 }
 
