@@ -1596,6 +1596,24 @@ class FunctionsGroup(db.Model):
         ).json
 
     @staticmethod
+    def change_group_permissions_by_name(group_name, wanted_permissions):
+        def get_innerHTML(num):
+            if num == 0:
+                return '<span class="badge badge-secondary">open</span><i class="fas fa-lock"></i>'
+            if num == 1:
+                return '<span class="badge badge-info">open</span><i class="fas fa-sign-in-alt"></i>'
+            if num == 2:
+                return '<span class="badge badge-success">open</span><i class="fas fa-unlock"></i>'
+
+        permissions = FunctionsGroup.is_permitted(group_name,'change_permissions')
+        return jsonify(
+                        status = permissions.json.status,
+                        message= permissions.json.message,
+                        permission = permissions.json.permission,
+                        innerHTML = get_innerHTML(int(wanted_permissions))
+                      )
+    
+    @staticmethod
     def is_permitted(group_name, action):
 
         super_permissions = ['Admin', 'SuperUser']
@@ -1604,14 +1622,17 @@ class FunctionsGroup(db.Model):
         if not group:
             return jsonify(status = 0, message='no group with this name!', permission=0)
 
-        if (group.permissions == 2) or (session['userrole'] in super_permissions):
-            return jsonify(status = 1, message='', permission=1)
-        
         user = User.query.filter_by(name=session['username']).first()
         if not user:
             return jsonify(status = 0, message='no user with this name!', permission=0)
 
-        if user.id == group.owner:
+        if user.id == group.owner or (session['userrole'] in super_permissions):
+            return jsonify(status = 1, message='', permission=1)
+
+        if action == 'change_permissions':
+            return jsonify(status = 1, message='you are not permitted to edit group permissions', permission=0)
+
+        if group.permissions == 2:
             return jsonify(status = 1, message='', permission=1)
 
         if group.permissions == 0:

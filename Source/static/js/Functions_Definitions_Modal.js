@@ -556,6 +556,41 @@ function reload_functions() {
     });
 }
 
+$('#Permission_Group').click(()=>{
+    if($('#Permission_Group i').hasClass('fa-unlock')) {
+        wanted_permissions = 1
+    }
+    if($('#Permission_Group i').hasClass('fa-unlock')) {
+        wanted_permissions = 0
+    }
+    if($('#Permission_Group i').hasClass('fa-sign-in-alt')) {
+        wanted_permissions = 2
+    }
+
+    group_name = $('#Modal_Select_Group_Name')[0].value;
+    change_group_permissions(group_name, wanted_permissions);
+});
+
+function change_group_permissions(group_name, wanted_permissions) {
+    $.ajax({
+        url: "/api/FunctionsGroup/change_group_permissions_by_name"/ +group_name + ',' + wanted_permissions,
+        async: false,
+        success: function(result) {
+            if (result.status){
+                if (result.permission){
+                    $('#Permission_Group')[0].innerHTML = result.innerHTML;
+                }else{
+                    $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
+                    $('#modal_alert')[0].hidden = false;
+                }
+            }else{
+                $('#main_dissmisable_modal_alert_text')[0].innerHTML = result.message;
+                $('#modal_alert')[0].hidden = false;
+            }
+        }
+
+    });
+}
 
 $('#Modal_Select_Group_Name').on('keyup', function(e) {
     if (e.keyCode === 13) {
