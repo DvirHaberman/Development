@@ -1070,7 +1070,7 @@ class OctopusFunction(db.Model):
                 # version_comments=data['version_comments'],
                 function_checksum=22,
                 handler_checksum=33,
-                changed_by = User.query.filter_by(name=session['username'])[0].name
+                changed_by = User.query.filter_by(name=session['username'])[0].id
                 # is_locked=row.is_locked
             )
             db.session.add(func)
@@ -1171,7 +1171,7 @@ class OctopusFunction(db.Model):
                 func.tags=data['tags']
                 func.description=data['description']
                 func.changed_date = datetime.utcnow()
-                func.changed_by = User.query.filter_by(name=session['username'])[0].name
+                func.changed_by = User.query.filter_by(name=session['username'])[0].id
                 # project=row.project,
                 # func.version=data['version']
                 # func.version_comments=data['version_comments']
