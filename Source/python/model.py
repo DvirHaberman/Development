@@ -10,7 +10,7 @@ import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, redirect, request, jsonify, render_template, session, flash
 import json
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from datetime import datetime, timedelta
 from time import time, sleep
 import importlib
@@ -228,6 +228,26 @@ class DbConnector:
         else:
             self.status = 'invalid'
 
+    def get_schemas_names(json_data):
+        user = json_data['user']
+        password = json_data['password']
+        hostname = json_data['hostname']
+        port = json_data['port']
+        schema = json_data['schema']
+        db_type = json_data['db_type']
+        if db_type == 'ORACLE':
+            conn_string =f"oracle+cx_oracle://{user}:{password}@{hostname}:{port}/{schema}"
+        elif db_type == 'SQLITE':
+            conn_string = f'sqlite://{user}:{password}@{hostname}:{port}/{schema}'
+        elif db_type == 'POSTGRESQL':
+            conn_string = f"postgresql://{user}:{password}@{hostname}:{port}/{schema}"
+        elif db_type == 'MYSQL':
+            conn_string = f'mysql+mysqlconnector://{user}:{password}@{hostname}:{port}/{schema}'
+        try:
+            schemas = inspect(create_engine(conn_string, connect_args={'connect_timeout': 5})).get_schema_names()
+            return jsonify(status = 1,  message = None, schemas = schemas)
+        except:
+            return jsonify(status = 0, message = 'invalid conn', schemas = [])
     def save(self):
         # checking id connectiong is valid - cannot save invalid connection
         if self.status == 'invalid':
@@ -244,12 +264,31 @@ class DbConnector:
             conn = DbConnections(self.db_type, self.user, self.password, self.hostname,
                                  self.port, self.schema, self.name, self.conn_string, 
                                  project=session['current_project_id'],
-                                 is_dbrf = self.id_dbrf, is_hidden = self.is_hidden)
+                                 is_dbrf = self.is_dbrf, is_hidden = self.is_hidden)
             db.session.add(conn)
             db.session.commit()
         except Exception as error:
             self.message = 'Something when wrong while saving to DB.'
             self.status = 'invalid'
+
+    @staticmethod
+    def update_connection(json_data):
+        conn =  DbConnections.query.filter_by(name=json_data['name'],project=session['current_project_id']).first()
+        if not conn:
+            self.message = 'cannot update - no connection with this name'
+            self.status = 'invalid'
+            return
+        # saving connection data to DB
+        try:
+            conn.schema = json_data['schema']
+            conn.is_dbrf = json_data['is_dbrf']
+            conn.is_hidden = json_data['is_hidden']
+            db.session.add(conn)
+            db.session.commit()
+            return jsonify( msg = 'connection updated!')
+        except Exception as error:
+            return jsonify(msg = 'not updated! something went wrong')
+
 
     def run_sql(self,sql):
         if self.status == 'valid':

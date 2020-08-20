@@ -1,10 +1,5 @@
-{% extends "layout.html"%} 
-
-{% block css %}
-<link rel="stylesheet" href="../static/css/db_conn_wizard.css" />
-{% endblock %} 
-
-{%block content%}
+{% extends "layout.html"%} {% block css %}
+<link rel="stylesheet" href="../static/css/db_conn_wizard.css" /> {% endblock %} {%block content%}
 
 <div class="alert alert-warning alert-dismissible fade show" role="alert" hidden="hidden">
     <strong id="dissmisable_alert_text"></strong>
@@ -13,126 +8,153 @@
     </button>
 </div>
 <div class="row mx-4 my-1">
-  <div class = "col-6 mr-auto jumbotron">
-    <h1>Define New Connection</h1>
-    
+    <div class="col-6 mr-auto jumbotron">
+        <h1>Define New Connection</h1>
 
-    <div class="row">
-        <div class="col-5">
-            <label for="db_type">Type</label>
-            <select type="text" id="db_type" class="form-control">
-            <option value="POSTGRESQL">POSTGRESQL</option>
-            <option value="MYSQL">MYSQL</option>
-            <option value="ORACLE">ORACLE</option>
-            <option value="SQLITE">SQLITE</option>
-            </select>
+
+        <div class="row head-margin">
+            <div class="col-5">
+                <label for="name">Name</label>
+                <input class="form-control" type="text" id="name" />
+            </div>
+            <div class="col-5">
+                <label for="db_type">Type</label>
+                <select type="text" id="db_type" class="form-control db-check-required">
+                    <option value="POSTGRESQL">POSTGRESQL</option>
+                    <option value="MYSQL">MYSQL</option>
+                    <option value="ORACLE">ORACLE</option>
+                    <option value="SQLITE">SQLITE</option>
+                </select>
+            </div>
         </div>
-        <div class="col-5">
-            <label for="name">Name</label>
-            <input class="form-control" type="text" id="name" />
+
+        <div class="row">
+            <div class="col-5">
+                <label for="user">User</label>
+                <input class="form-control db-check-required" type="text" id="user" />
+            </div>
+            <div class="col-5">
+                <label for="password">Password</label>
+                <input class="form-control db-check-required" type="text" id="password" />
+            </div>
         </div>
+
+        <div class="row">
+            <div class="col-8">
+                <label for="hostname">Hostname</label>
+                <input class="form-control db-check-required" type="text" id="hostname" />
+            </div>
+            <div class="col-2">
+                <label for="port">Port</label>
+                <input class="form-control db-check-required" type="text" id="port" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-5">
+                <label for="schema">Schema</label>
+                <input class="db-check-required form-control mb-3" type="text" id="schema">
+                <select class="form-control" id="schema_select"></select>
+            </div>
+            <div id="conn_status" class="col-2 flex-container-col">
+                <i class="invalid-conn fas fa-times-circle"></i>
+                <h6 class="invalid-conn">No Connection</h6>
+            </div>
+            <div class="flex-container-row">
+                <div class="flex-container-cb">
+                    <input type="checkbox" name="" id="is_dbrf">
+                    <label for="if_dbrf" class="ml-1">is dbrf</label>
+                </div>
+                <div class="flex-container-cb">
+                    <input type="checkbox" name="" id="is_hidden">
+                    <label for="if_hidden" class="ml-1">is hidden</label>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <input class="btn btn-lg btn-success" type="button" value="Save" id="save_button" />
     </div>
 
-    <div class="row">
-        <div class="col-5">
-            <label for="user">User</label>
-            <input class="form-control" type="text" id="user" />
+    <div class="col-6 ml-auto jumbotron bg-light">
+        <div class="row">
+            <h1 class="ml-3">Existing:</h1>
+            <select class="form-control success-outline col-7 mt-2 ml-4" name="current_connections" id="current_connections"></select>
         </div>
-        <div class="col-5">
-            <label for="password">Password</label>
-            <input class="form-control" type="text" id="password" />
+        <div class="row">
+            <div class="col-5">
+                <label for="disp_name">Name: </label>
+                <text class="form-control" id="disp_name"></text>
+            </div>
+            <div class="col-5">
+                <label for="disp_db_type">Type: </label>
+                <text class="form-control disp-db-check-required" id="disp_db_type"></text>
+            </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-8">
-            <label for="hostname">Hostname</label>
-            <input class="form-control" type="text" id="hostname" />
-        </div>
-        <div class="col-2">
-            <label for="port">Port</label>
-            <input class="form-control" type="text" id="port" />
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-5">
-            <label for="schema">Schema</label>
-            <input class="form-control" type="text" id="schema" />
-        </div>
-    </div>
-    
-    <br>
-    <input class="btn btn-lg btn-success" type="button" value="Save" id="save_button" />
-  </div>
+        <div class="row">
+            <div class="col-5">
+                <label for="disp_user">User: </label>
+                <text class="form-control disp-db-check-required" id="disp_user"></text>
+            </div>
+            <div class="col-5">
+                <label for="disp_password">Password: </label>
+                <text class="form-control disp-db-check-required" id="disp_password"></text>
+            </div>
 
-  <div  class = "col-6 ml-auto jumbotron bg-light">
-    <h1>Existing Connections</h1>
-    <div class="row">
-        <div class="col-10">
-            <label for="current_connections">Choose:</label>
-            <select class="form-control success-outline" name="current_connections" id="current_connections"></select>
         </div>
+        <div class="row">
+            <div class="col-8">
+                <label for="disp_host">Hostname: </label>
+                <text class="form-control disp-db-check-required" id="disp_hostname"></text>
+            </div>
+            <div class="col-2">
+                <label for="disp_port">Port: </label>
+                <text class="form-control disp-db-check-required" id="disp_port"></text>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-5">
+                <label for="disp_schema">Schema</label>
+                <input class="disp-db-check-required form-control mb-3" type="text" id="disp_schema" />
+                <select class="form-control" id="disp_schema_select"></select>
+            </div>
+            <div id="disp_conn_status" class="col-2 flex-container-col">
+                <i class="invalid-conn fas fa-times-circle"></i>
+                <h6 class="invalid-conn">No Connection</h6>
+            </div>
+            <div class="flex-container-row">
+                <div class="flex-container-cb">
+                    <input type="checkbox" name="" id="disp_is_dbrf">
+                    <label for="disp_if_dbrf" class="ml-1">is dbrf</label>
+                </div>
+                <div class="flex-container-cb">
+                    <input type="checkbox" name="" id="disp_is_hidden">
+                    <label for="disp_if_hidden" class="ml-1">is hidden</label>
+                </div>
+            </div>
+        </div>
+        <input class="btn btn-lg btn-success mt-4 mr-auto" type="button" value="Update" id="update_connection_button" />
+        <input class="btn btn-lg btn-danger mt-4 mr-auto" type="button" value="Delete" id="delete_connection_button" data-toggle="modal" data-target="#exampleModalCenter" />
     </div>
-    <div class="row">
-        <div class="col-5">
-            <label for="disp_name">Name: </label>
-            <text class="form-control" id="disp_name"></text>
-        </div>
-        <div class="col-5">
-            <label for="disp_db_type">Type: </label>
-            <text class="form-control" id="disp_db_type"></text>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-5">
-            <label for="disp_user">User: </label>
-            <text class="form-control" id="disp_user"></text>
-        </div>
-        <div class="col-5">
-            <label for="disp_password">Password: </label>
-            <text class="form-control" id="disp_password"></text>
-        </div>
-        
-    </div>
-    <div class="row">
-        <div class="col-8">
-            <label for="disp_host">Hostname: </label>
-            <text class="form-control" id="disp_hostname"></text>
-        </div>
-        <div class="col-2">
-            <label for="disp_port">Port: </label>
-            <text class="form-control" id="disp_port"></text>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-5">
-            <label for="disp_schema">Schema: </label>
-            <text class="form-control" id="disp_schema"></text>
-        </div>
-    </div>
-    <input class="btn btn-lg btn-danger mt-4 mr-auto" type="button" value="Delete" id="delete_connection_button" data-toggle="modal" data-target="#exampleModalCenter"/>
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content">
+</div>
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLongTitle">Confirm Delete</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+                <h5 class="modal-title" id="exampleModalLongTitle">Confirm Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
             </div>
             <div class="modal-body" id=delete_connection_modal_body>
-              
+
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" id=confirm_delete_button>Confirm Delete</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id=confirm_delete_button>Confirm Delete</button>
             </div>
-          </div>
         </div>
-      </div>
-  </div>
-  </div>
+    </div>
 </div>
 {% endblock %} {% block scripts%}
 <!-- <script src="../static//js/jquery_3_4_1_min.js"></script> -->
