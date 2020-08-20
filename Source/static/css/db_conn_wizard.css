@@ -14,3 +14,43 @@ body {
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
+
+.flex-container-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+}
+
+.flex-container-row {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+
+.flex-container-cb {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    margin-top: auto;
+    margin-bottom: auto;
+    padding-top: 25px;
+    margin-left: 16px;
+}
+
+
+/* .head-margin {
+    margin-top: 85px;
+} */
+
+.invalid-conn {
+    color: red;
+}
+
+i.fas {
+    font-size: 1.5rem;
+}
+
+.valid-conn {
+    color: rgb(81, 238, 81);
+}
