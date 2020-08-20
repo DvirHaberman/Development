@@ -56,12 +56,16 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-# init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-#             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
-
+init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
 sleep(3)
 
-# update_tests_params()
+if sys.platform.startswith('win'):
+    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+else:
+    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+
+send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 @app.route('/api/create_all')
 def create_tables():
@@ -414,7 +418,7 @@ def save_connection():
         data = request.get_json()
         conn = DbConnector(db_type=data['db_type'], user=data['user'], password=data['password'],
                     hostname=data['hostname'], port=data['port'], schema=data['schema'],
-                    name=data['name'])
+                    name=data['name'], is_dbrf = data['is_dbrf'], is_hidden= data['is_hidden'])
         conn.save()
         if conn.status == 'valid':
             connections = DbConnections.query.filter_by(project=session['current_project_id']).all()
@@ -507,7 +511,7 @@ def api_methods_no_args(class_name,class_method):
 
 
 if __name__ == "__main__":
-    freeze_support()
+    # freeze_support()
     app.run(debug=True)
-    init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-                tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+    # init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+    #             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)

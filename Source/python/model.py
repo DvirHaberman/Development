@@ -161,7 +161,8 @@ SetupsAndRuns = db.Table('setupsandruns',
 
 class DbConnector:
 
-    def __init__(self, db_type, user, password, hostname, schema, port=None, name=None):
+    def __init__(self, db_type, user, password, hostname, schema, 
+                port=None, name=None, is_dbrf=True, is_hidden=False):
 
         # setting up propeties
         self.db_type = db_type
@@ -172,7 +173,8 @@ class DbConnector:
         self.port = port
         self.connection = None
         self.message = ''
-
+        self.is_dbrf = is_dbrf
+        self.is_hidden = is_hidden
         # assinging name - if no name is given then the name is composed of the type and schema
         if name or name == '':
             self.name = name
@@ -240,7 +242,9 @@ class DbConnector:
         # saving connection data to DB
         try:
             conn = DbConnections(self.db_type, self.user, self.password, self.hostname,
-                                 self.port, self.schema, self.name, self.conn_string, project=session['current_project_id'])
+                                 self.port, self.schema, self.name, self.conn_string, 
+                                 project=session['current_project_id'],
+                                 is_dbrf = self.id_dbrf, is_hidden = self.is_hidden)
             db.session.add(conn)
             db.session.commit()
         except Exception as error:
@@ -265,7 +269,8 @@ class DbConnector:
         return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                          password=conn_data.password, hostname=conn_data.hostname,
                          schema=conn_data.schema, port=conn_data.port,
-                         name=conn_data.name)
+                         name=conn_data.name, is_dbrf=conn_data.is_dbrf,
+                         is_hidden = conn_data.is_hidden)
 
     @staticmethod
     def load_conn_by_name(db_name):
@@ -274,12 +279,14 @@ class DbConnector:
             return DbConnector(db_type=conn_data.db_type, user=conn_data.user,
                             password=conn_data.password, hostname=conn_data.hostname,
                             schema=conn_data.schema, port=conn_data.port,
-                            name=conn_data.name)
+                            name=conn_data.name, is_dbrf=conn_data.is_dbrf,
+                         is_hidden = conn_data.is_hidden)
         else:
             return DbConnector(db_type='', user='',
                             password='', hostname='',
                             schema='', port='',
-                            name=db_name)
+                            name=db_name, is_dbrf=True,
+                            is_hidden = False)
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
@@ -1978,8 +1985,11 @@ class DbConnections(db.Model):
     schema = db.Column(db.Text)
     conn_string = db.Column(db.Text)
     project = db.Column(db.Integer, db.ForeignKey('project.id'))
+    is_dbrf = db.Column(db.Boolean)
+    is_hidden = db.Column(db.Boolean)
 
-    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string, project=None):
+    def __init__(self, db_type, user, password, hostname, port, schema, name, conn_string, 
+                 project=None, is_dbrf = True, is_hidden=False):
         self.db_type = db_type
         self.schema = schema
         self.user = user
@@ -1989,6 +1999,8 @@ class DbConnections(db.Model):
         self.name = name
         self.conn_string = conn_string
         self.project = project
+        self.is_dbrf = is_dbrf
+        self.is_hidden = is_hidden
 
     def self_jsonify(self):
         return jsonify(
@@ -1999,7 +2011,9 @@ class DbConnections(db.Model):
             hostname = self.hostname,
             port = self.port,
             name = self.name,
-            conn_string = self.conn_string
+            conn_string = self.conn_string,
+            is_dbrf = self.is_dbrf,
+            is_hidden = self.is_hidden
         ).json
 
     @staticmethod
