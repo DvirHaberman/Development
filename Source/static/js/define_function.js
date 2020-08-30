@@ -17,6 +17,7 @@ var Flag_toggle = 0;
 var action = "update";
 var group_permissions = {};
 
+
 var form_controls = {
     function_select: $('#meta_function_name')[0],
     owner: $('#meta_owner')[0],
@@ -270,21 +271,73 @@ function RemoveTblRow() {
     for (i = 1; i < table.rows.length; i++) {
         table.rows[i].cells[0].innerHTML = i;
     }
-    setOperLineString()
+    setOperLineString();
+}
+
+function GetTypeArray(funKind, paramKind){
+    if (paramKind== "text") { 
+        return ["String", "Number"];
+
+    }
+
+    if (funKind == "Matlab") {
+        return ["Struct"];
+    }
+
+    return ["DataFrame"];
+
+
+}
+
+
+function setParamTblTypeKind(){
+    // case funKind is "sql" - Clean ParamTbl
+    // case funKind is "Matlab" Change Type in ParamTbl for Sysparams And Test Params to struct 
+    // case funKind is "Python"  Change Type in ParamTbl for Sysparams And Test Params to DataFrame
+    // case funKind is "Undefiend"  - Do nothing
+    funKind = this.value;
+    if (funKind == "Sql") {
+
+    } else if (funKind == "Matlab" || funKind == "Python"){
+
+        $("table[name='function_parameters']").find('tr').each((index)=>{
+            if (index >0) {
+                curr_row = $("table[name='function_parameters']").find('tr')[index];
+                paramKind = curr_row.cells[1].children[0].options[curr_row.cells[1].children[0].options.selectedIndex].text;
+                typecell = curr_row.cells[3];
+                TypeArray = GetTypeArray(funKind, paramKind);
+                typecell.removeChild(typecell.children[0]);
+                typecell.appendChild(CreateParamSelectElement(TypeArray,0));
+            }
+        });
+
+    }
+
 }
 
 function setParamTblValueField() {
     var currCell = this.parentElement.parentElement.cells[2];
+    var TypeCell = this.parentElement.parentElement.cells[3];
+    var num_of_children = TypeCell.children.length;
+    for (i = 0; i < num_of_children; i++) {
+        TypeCell.removeChild(TypeCell.children[0]);
+    }
+
     var selectedParamKind = this.options[this.selectedIndex].text;
     if (selectedParamKind == "text") {
         currCell.innerHTML = [];
         let newElement = document.createElement('input');
         newElement.classList.add("form-control");
         currCell.appendChild(newElement);
+
     } else {
         setOperLineString();
         currCell.innerHTML = "--";
+
     }
+
+    TypeCell.appendChild(CreateParamSelectElement( GetTypeArray(form_controls.kind.options[form_controls.kind.selectedIndex].text , selectedParamKind), 0)); // SelectTypeCell
+
 }
 
 function TableHeaderNodes(key, handleFunction, isByValue) {
@@ -360,7 +413,10 @@ function Create_New_Tbl_Row(table, rowNum) {
 
     cell3.innerHTML = "--";
     cell3.addEventListener('change', setOperLineString);
-    cell4.appendChild(CreateParamSelectElement(paramsTblType, 0)); // SelectTypeCell
+    // cell4.appendChild(CreateParamSelectElement(paramsTblType, 0)); 
+    var selectedParamKind = cell2.children[0].options[cell2.children[0].options.selectedIndex].text;
+    // SelectTypeCell
+    cell4.appendChild(CreateParamSelectElement( GetTypeArray(form_controls.kind.options[form_controls.kind.selectedIndex].text , selectedParamKind), 0)); 
 
     newElement = document.createElement('button');
     newElement.innerHTML = PlaceRemoveImg();
@@ -385,8 +441,15 @@ function fill_row_data(row_obj, values, header) {
             newElement.value = values.value;
             currCell.appendChild(newElement);
         } else if (k === 3) { // type
-            var currValueIndex = FindParamsTblTypeIndex(paramsTblType, values.type);
-            row_obj.cells[3].children[0].selectedIndex = currValueIndex;
+            var paramKind = row_obj.cells[1].children[0].options[row_obj.cells[1].children[0].options.selectedIndex].text;
+            
+            if (paramKind == "text") {
+                funKind = form_controls.kind.value;
+                paramsTblType = GetTypeArray(funKind, paramKind)
+                var currValueIndex = FindParamsTblTypeIndex(paramsTblType, values.type);
+                row_obj.cells[3].children[0].options.selectedIndex = currValueIndex;
+//                 row_obj.cells[3].children[0].selectedIndex = currValueIndex;
+            }
         }
     }
 }
@@ -867,6 +930,10 @@ form_controls.function_select.addEventListener("change", function() {
     } else return;
 });
 
+// kind Function 
+
+
+$("#function_kind")[0].addEventListener("change", setParamTblTypeKind);
 
 //
 $("#addGroupButton")[0].addEventListener("click", add_group);
