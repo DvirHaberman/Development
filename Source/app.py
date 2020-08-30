@@ -56,8 +56,8 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-# init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-#             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
 # sleep(3)
 
 # if sys.platform.startswith('win'):
@@ -512,6 +512,6 @@ def api_methods_no_args(class_name,class_method):
 
 if __name__ == "__main__":
     # freeze_support()
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
     # init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
     #             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
