@@ -995,6 +995,12 @@ class OctopusFunction(db.Model):
         except:
             groups = None
 
+        try:
+            user = User.query.get(self.changed_by)
+            changed_by = user.name          
+        except:
+            changed_by = 'deleted user'
+
         return jsonify(
             id=self.id,
             name=self.name,
@@ -1018,7 +1024,7 @@ class OctopusFunction(db.Model):
             is_locked=self.is_locked,
             feature = self.feature,
             requirement = self.requirement,
-            changed_by = self.changed_by,
+            changed_by = changed_by,
             function_parameters=jsonify([param.self_jsonify() for param in self.function_parameters]).json
         ).json
         
