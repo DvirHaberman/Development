@@ -183,7 +183,7 @@ class DbConnector:
 
         # checking db type
         if self.port == '':
-            if db_type == 'ORACLE':
+            if self.db_type == 'ORACLE':
                 self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
             elif db_type == 'SQLITE':
                 self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
@@ -196,13 +196,13 @@ class DbConnector:
                 self.message = 'Database type not found. Possible types are :\n'
                 'ORACLE, SQLITE, POSTGRESQL, MYSQL'
         else:
-            if db_type == 'ORACLE':
+            if self.db_type == 'ORACLE':
                 self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
-            elif db_type == 'SQLITE':
+            elif self.db_type == 'SQLITE':
                 self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
-            elif db_type == 'POSTGRESQL':
+            elif self.db_type == 'POSTGRESQL':
                 self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
-            elif db_type == 'MYSQL':
+            elif self.db_type == 'MYSQL':
                 self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
             else:
                 self.conn_string = None
@@ -227,6 +227,36 @@ class DbConnector:
             self.status = 'valid'
         else:
             self.status = 'invalid'
+
+    def set_schema(self, schema):
+        self.schema = schema
+        if self.port == '':
+            if db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            elif db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}/{self.schema}"
+            elif db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
+        else:
+            if self.db_type == 'ORACLE':
+                self.conn_string =f"oracle+cx_oracle://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif self.db_type == 'SQLITE':
+                self.conn_string = f'sqlite://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            elif self.db_type == 'POSTGRESQL':
+                self.conn_string = f"postgresql://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}"
+            elif self.db_type == 'MYSQL':
+                self.conn_string = f'mysql+mysqlconnector://{self.user}:{self.password}@{self.hostname}:{self.port}/{self.schema}'
+            else:
+                self.conn_string = None
+                self.message = 'Database type not found. Possible types are :\n'
+                'ORACLE, SQLITE, POSTGRESQL, MYSQL'
+        return self.conn_string
 
     def get_schemas_names(json_data):
         user = json_data['user']
@@ -326,6 +356,53 @@ class DbConnector:
                             schema='', port='',
                             name=db_name, is_dbrf=True,
                             is_hidden = False)
+        
+    @staticmethod
+    def get_all_names():
+        conns = DbConnections.query.filter_by(project=session['current_project_id']).all()
+        return jsonify(status = 1, data=[conn.name for conn in conns], message=None)
+
+    @staticmethod
+    def get_names():
+        conns = DbConnections.query.filter_by(
+                                              is_hidden=False,
+                                              project=session['current_project_id']
+                                              ).all()
+        return jsonify(status = 1, data=[conn.name for conn in conns], message=None)
+
+    @staticmethod
+    def get_dbrf_names():
+        conns = DbConnections.query.filter_by(
+                                              is_dbrf=True,
+                                              is_hidden=False,
+                                              project=session['current_project_id']
+                                              ).all()
+        return jsonify(status = 1, data=[conn.name for conn in conns], message=None)
+
+    @staticmethod
+    def get_by_name(conn_name):
+        conn = DbConnections.query.filter_by(name=conn_name).first()
+        if not conn:
+            return jsonify(status = 0, data=None, message='No connection with this name')
+        conn_obj = DbConnector.load_conn_by_name(conn_name)
+        try:
+            schemas = inspect(create_engine(conn_obj.conn_string, connect_args={'connect_timeout': 5})).get_schema_names()
+            return jsonify(status = 1,  message = None, data={'conn_data' : conn.self_jsonify(), 'schemas' : schemas, 'is_valid':1})
+        except:
+            return jsonify(status = 1,  message = None, data={'conn_data' : conn.self_jsonify(), 'schemas' : None, 'is_valid':0})
+    
+    def is_valid(conn_name, schema):
+        conn = DbConnections.query.filter_by(name=conn_name).first()
+        if not conn:
+            return jsonify(status = 0, is_valid=0, message='No connection with this name')
+        conn = DbConnector.load_conn_by_name(conn_name)
+        conn_string = conn.set_schema(schema)
+        try:
+            schemas = inspect(create_engine(conn.conn_string, connect_args={'connect_timeout': 5})).get_schema_names()
+            return jsonify(status = 1,  message = None, is_valid=1)
+        except:
+            return jsonify(status = 1,  message = None, is_valid=0)
+
     @staticmethod
     def get_run_ids(db_name):
         conn = DbConnector.load_conn_by_name(db_name)
