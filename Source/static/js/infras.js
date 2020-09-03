@@ -143,27 +143,29 @@ function get_by_name(conn_name) {
 }
 
 
-function setSchemaNames(obj, SchemaNames) {
+function setSchemaNames(obj, SchemaNames, index) {
 
     var num_of_children = obj.children.length;
     for (i = 0; i < num_of_children; i++) {
-        obj.removeChild(obj.children[0]);
+        obj.remove(0);
     }
 
-    obj.appendChild(CreateSelectElement(SchemaNames, 0)); // Select
+    var num_of_children = SchemaNames.length;
+    for (i = 0; i < num_of_children; i++) {
+        option = document.createElement('option');
+        option.text = SchemaNames[i];
+        option.classList.add("form-control");
+        option.classList.add("medium-margin");
+        obj.add(option);
+    }
+    obj.selectedIndex = index;
+    // obj.appendChild(CreateSelectElement(SchemaNames, 0)); // Select
 
 }
 
 
 /////// 
-var SchemaNames = getSchemaNames();
 
-setSchemaNames(Site_form_controls.Site_Conn_Schema, SchemaNames); // Site Schema
-setSchemaNames(Site_form_controls.excersice_Conn_Schema, SchemaNames); // exercise Schema
-setSchemaNames(Site_form_controls.Octoups_Conn_Schema, SchemaNames); // auto data Schema
-
-var newele = null;
-infras = new form_controls_handler();
 // projects = new Project_form_controls();
 
 // New/Existing Project
@@ -305,26 +307,35 @@ document.getElementById("Delete_Site").addEventListener("click", function() {
     }
 });
 //  Check Recording
-document.getElementById("check_Recording_DB_IP").addEventListener("click", function() {
-    alert("checking Recording DB IP");
+document.getElementById("check_Recording_DB").addEventListener("click", function() {
+    alert("checking Recording DB");
 });
 
 //  Check Excersice_DB_IP
-document.getElementById("check_excersice_db_ip").addEventListener("click", function() {
-    alert("checking Excersice DB IP");
+document.getElementById("check_excersice_db").addEventListener("click", function() {
+    alert("checking Excersice DB");
 });
 
 // check check_Auto_Run_DB_IP
-document.getElementById("check_Auto_Run_DB_IP").addEventListener("click", function() {
+document.getElementById("check_Octoups_DB").addEventListener("click", function() {
     alert("checking Auto_Run DB IP");
 });
 
 
 $('#Site_Conn_Schema').change(function() {
-    var relevantConnName = Site_Conn_Schema.Site_Conn_Schema.children[0].options[Site_Conn_Schema.Site_Conn_Schema.children[0].selectedIndex].text;
+    var relevantConnName = Site_form_controls.Site_Conn_Schema.options[Site_form_controls.Site_Conn_Schema.selectedIndex].text;
     var connData = get_by_name(relevantConnName)
-    setSchemaNames(Site_Conn_Schema.recording_db, connData.schemas)
+    setSchemaNames(Site_form_controls.recording_db, connData.schemas, 0)
 });
 
-AddSiteEventListener();
-setToggle("project_toggle", "on");
+
+var SchemaNames = getSchemaNames();
+
+setSchemaNames(Site_form_controls.Site_Conn_Schema, SchemaNames, 0); // Site Schema
+setSchemaNames(Site_form_controls.excersice_Conn_Schema, SchemaNames, 0); // exercise Schema
+setSchemaNames(Site_form_controls.Octoups_Conn_Schema, SchemaNames, 0); // auto data Schema
+
+var newele = null;
+infras = new form_controls_handler();
+// AddSiteEventListener();
+// setToggle("project_toggle", "on");
