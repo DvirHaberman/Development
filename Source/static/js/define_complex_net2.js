@@ -2,6 +2,18 @@ var skeleton = {};
 
 var curr_net = {};
 
+function updateSkeleton(e) {
+    skeletonKey = this.parentElement.parentElement.parentElement.children[0].innerHTML;
+    comp_index = Number(this.parentElement.parentElement.parentElement.getAttribute('name'));
+    indices = this.getAttribute('name').split(',');
+    if (this.tagName == 'SELECT') {
+        value = this.selectedIndex;
+    } else {
+        value = this.checked;
+    }
+    skeleton[comp_index]['elements'][indices[0]]['indices'][indices[1]] = value;
+}
+
 function addComponents(component, comp_index) {
     //getting parent div
     parent_div = $("." + component.location)[0];
@@ -32,11 +44,11 @@ function addComponents(component, comp_index) {
     div_element.appendChild(card);
     card.appendChild(card_header);
     card.appendChild(card_body);
-
+    card.setAttribute('name', comp_index);
     //looping inner elements
     component.elements.forEach((element, ele_index) => {
         //for each element add it a number of times specified in element.amount
-        skeleton[comp_index]['elements'][ele_index]['selected_indices'] = []
+        // skeleton[comp_index]['elements'][ele_index]['selected_indices'] = []
         for (let index = 0; index < element.amount; index++) {
 
             //creating the containing div
@@ -47,9 +59,11 @@ function addComponents(component, comp_index) {
 
             //check if cb or select element
             if (element.type == "select") {
-                skeleton[comp_index]['elements'][ele_index]['selected_indices'].push(0);
+                // skeleton[comp_index]['elements'][ele_index]['selected_indices'].push(0);
                 form_div.classList.add('form-inline');
                 select_ele = document.createElement('select');
+                select_ele.addEventListener('change', updateSkeleton);
+                select_ele.setAttribute('name', String(ele_index) + ',' + String(index));
                 element.options.forEach(option => {
                     opt_ele = document.createElement('option');
                     opt_ele.text = option;
@@ -60,14 +74,15 @@ function addComponents(component, comp_index) {
                 form_div.appendChild(label_ele);
                 form_div.appendChild(select_ele);
             } else {
-                skeleton[comp_index]['elements'][ele_index]['selected_indices'].push(false);
+                // skeleton[comp_index]['elements'][ele_index]['selected_indices'].push(false);
                 form_div.classList.add('form-check-inline');
                 cb_ele = document.createElement('input');
                 cb_ele.setAttribute('type', 'checkbox');
                 //append in the desired order - cb first and then label
                 form_div.appendChild(cb_ele);
                 form_div.appendChild(label_ele);
-                // cb_ele.addEventListener('change',()=>)
+                cb_ele.setAttribute('name', String(ele_index) + ',' + String(index));
+                cb_ele.addEventListener('change', updateSkeleton);
             }
 
 
