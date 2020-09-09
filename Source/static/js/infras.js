@@ -163,6 +163,23 @@ function setSchemaNames(obj, SchemaNames, index) {
 
 }
 
+function SetOctopusDB(index) {
+    var relevantConnName = Site_form_controls.Octoups_Conn_Schema.options[Site_form_controls.Octoups_Conn_Schema.selectedIndex].text;
+    var connData = get_by_name(relevantConnName)
+    setSchemaNames(Site_form_controls.octoups_db, connData.schemas, index)
+}
+
+function SetExersiceDB(index) {
+    var relevantConnName = Site_form_controls.excersice_Conn_Schema.options[Site_form_controls.excersice_Conn_Schema.selectedIndex].text;
+    var connData = get_by_name(relevantConnName)
+    setSchemaNames(Site_form_controls.excersice_db, connData.schemas, 0)
+}
+
+function SetRecordingDB(index) {
+    var relevantConnName = Site_form_controls.Site_Conn_Schema.options[Site_form_controls.Site_Conn_Schema.selectedIndex].text;
+    var connData = get_by_name(relevantConnName)
+    setSchemaNames(Site_form_controls.recording_db, connData.schemas, 0)
+}
 
 /////// 
 
@@ -323,17 +340,27 @@ document.getElementById("check_Octoups_DB").addEventListener("click", function()
 
 
 $('#Site_Conn_Schema').change(function() {
-    var relevantConnName = Site_form_controls.Site_Conn_Schema.options[Site_form_controls.Site_Conn_Schema.selectedIndex].text;
-    var connData = get_by_name(relevantConnName)
-    setSchemaNames(Site_form_controls.recording_db, connData.schemas, 0)
+    SetRecordingDB(0);
 });
 
+$('#excersice_Conn_Schema').change(function() {
+    SetExersiceDB(0);
+});
+
+$('#Octoups_Conn_Schema').change(function() {
+    SetOctopusDB(0);
+});
 
 var SchemaNames = getSchemaNames();
 
 setSchemaNames(Site_form_controls.Site_Conn_Schema, SchemaNames, 0); // Site Schema
+SetRecordingDB(0);
+
 setSchemaNames(Site_form_controls.excersice_Conn_Schema, SchemaNames, 0); // exercise Schema
+SetExersiceDB(0);
+
 setSchemaNames(Site_form_controls.Octoups_Conn_Schema, SchemaNames, 0); // auto data Schema
+SetOctopusDB(0);
 
 var newele = null;
 infras = new form_controls_handler();
