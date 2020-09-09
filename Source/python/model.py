@@ -3263,6 +3263,12 @@ class ComplexNet(db.Model):
             db.session.close()
 
     @staticmethod
+    def get_skeleton():
+        with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton.json', 'r') as skeleton_file:
+            skeleton = json.load(skeleton_file)
+        return jsonify(status=1, skeleton = skeleton)
+
+    @staticmethod
     def delete_by_name(name):
         try:
             complex_net = ComplexNet.query.filter_by(name=name,project=session['current_project_id']).first()

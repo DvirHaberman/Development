@@ -28,7 +28,7 @@
 }
 
 .sensors_div_line1 .card-body .form-inline label{
-    margin-left: 16px;
+    margin-left: -16px;
     width: 10px;
 }
 
@@ -57,4 +57,10 @@
 
 .nested-card{
     margin-top: 16px;
+}
+
+.flex-centered{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }

@@ -2,14 +2,11 @@
 <link rel="stylesheet" href="{{url_for('static',filename='css/fontawesome/css/all.css')}}" />
 <link rel="stylesheet" href="../static/css/metadata_layout.css" />
 <link href="../static/css/bootstrap-toggle.min.css" rel="stylesheet">
-
 <script src="../static/js/bootstrap-toggle.min.js"></script>
-
-<!-- <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    {% block main_form_css %}-->
+{% block main_form_css %}
 {% endblock %}
-<!-- <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script> -->--> {% endblock %} {%block content%}
-
+{% endblock %}
+{%block content%}
 <div class="row mx-auto layout-buttons-div">
     <input id="NewExist_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
     <button id="meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
@@ -92,7 +89,7 @@
                               <option value="global">kjsdhfskjdf</option>
                             </datalist>
                 </div>
-                <div class="col-4">
+                <div class="col-4 d-flex flex-column">
                     <label for="meta_id"><h5>Id</h5></label>
                     <input type="text" class="form-control" id="meta_id">
                 </div>
