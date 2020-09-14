@@ -3162,41 +3162,62 @@ class OctopusProcess(db.Model):
 class ComplexNet(db.Model):
     __tablename__ = 'complexnet'
     id = db.Column(db.Integer, primary_key=True)
-    Project_id = db.Column(db.Integer)
+    project_id = db.Column(db.Integer)
+    configurations = db.relationship('NetConfig', backref='ComplexNet', cascade="all,delete", lazy=True, uselist=True)
+    config_version = db.Column(db.Text)
     name = db.Column(db.Text)
     owner_id = db.Column(db.Integer)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
-    config_id = db.relationship('NetConfig', backref='ComplexNet', lazy=True, uselist=False)
-    systems_id = db.relationship('NetSystem', backref='ComplexNet', lazy=True, uselist=False)
     changed_date = db.Column(db.DateTime)
+    changed_by = db.Column(db.Integer)
+    # comp_index = db.Column(db.Integer)
+    # element_index = db.Column(db.Integer)
+    # self_index = db.Column(db.Integer)
 
-    def __init__(self,name, owner_id, tags, description, config_id=None, systems_id=None):
+    def __init__(
+                 self, project_id, configurations, config_version, name, owner_id, 
+                 changed_by, tags=None, description=None, changed_date=datetime.utcnow()
+                ):
+        self.project_id = project_id
+        self.configurations = configurations
+        self.config_version = config_version
         self.name = name
         self.owner_id = owner_id
         self.tags = tags
         self.description = description
-        self.config_id = config_id
-        self.systems_id = systems_id
-        self.changed_date = datetime.utcnow()
+        self.changed_by = changed_by
+        self.changed_date = changed_date
 
     def self_jsonify(self):
-        if self.config_id:
-            config_data = self.config_id.self_jsonify()
+        if self.owner_id:
+            try:
+                user = User.query.get(self.owner_id)
+                if user:
+                    owner = user.name
+            except:
+                owner = 'deleted user'
         else:
-            config_data = None
-        if self.systems_id:
-            systems_data = self.systems_id.self_jsonify()
+            owner = 'deleted user'
+
+        if self.changed_by:
+            try:
+                user = User.query.get(self.changed_by)
+                if user:
+                    changed_by = user.name
+            except:
+                changed_by = 'deleted user'
         else:
-            systems_data = None
+            changed_by = 'deleted user'
+        
         return jsonify(
                 name = self.name,
-                Project_id = self.Project_id,
-                owner_id = self.owner_id,
+                project_id = self.project_id,
+                owner = owner,
                 tags = self.tags,
                 description = self.description,
-                config_data = config_data,
-                systems_data = systems_data,
+                config_version = self.config_version,
+                changed_by = changed_by,
                 changed_date = self.changed_date
             ).json
 
@@ -3207,30 +3228,37 @@ class ComplexNet(db.Model):
         return jsonify([net.self_jsonify() for net in nets])
 
     @staticmethod
-    def get_names():
+    def get_names_by_version(version):
         try:
-            names = ComplexNet.query.with_entities(ComplexNet.name).all()
-            return jsonify(status=1, message=None, data=list(*zip(*names)))
+            nets = ComplexNet.query.filter_by(config_version=version, project_id = session['current_project_id']).all()
+            if nets:
+                names = [net.name for net in nets]
+            else:
+                names = []
+            return jsonify(status=1, message=None, data=names)
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
             db.session.close()
-
-    @staticmethod
-    def get_by_id(complex_net_id):
-        try:
-            complex_net = ComplexNet.query.get(int(complex_net_id))
-            return jsonify(status=1, message=None, data=complex_net.self_jsonify())
-        except:
-            return jsonify(status=0, message='something went wrong', data=None)
-        finally:
-            db.session.close()
-
+    
+    def modify_skeleton(self, skeleton_json):
+        for config in self.configurations:
+            option_index = config.option_index
+            if skeleton_json['data'][config.comp_index]['elements'][config.element_index]['type'] == 'checkbox':
+                if option_index == 1:
+                    option_index = True
+                else:
+                    option_index = False
+            skeleton_json['data'][config.comp_index]['elements'][config.element_index]['indices'][config.system_index] = option_index
+        return skeleton_json
     @staticmethod
     def get_by_name(complex_net_name):
         try:
-            complex_net = ComplexNet.query.filter_by(name=complex_net_name).first()
-            return jsonify(status=1, message=None, data=complex_net.self_jsonify())
+            complex_net = ComplexNet.query.filter_by(name=complex_net_name, project_id=session['current_project_id']).first()
+            with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton_'+complex_net.config_version+'.json', 'r') as skeleton_file:
+                skeleton_json = json.load(skeleton_file)
+            skeleton = complex_net.modify_skeleton(skeleton_json)
+            return jsonify(status=1, message=None, data={"net":complex_net.self_jsonify(), "skeleton" : skeleton})
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
@@ -3240,60 +3268,96 @@ class ComplexNet(db.Model):
     @staticmethod
     def save(json_data):
         try:
+            if len(json_data['name'].replace(' ','')) == 0:
+                return jsonify(status=0, message='Not saved! Name cannot be empty')
             if json_data['name'] in [complex_net.name for complex_net in ComplexNet.query.all()]:
-                return jsonify(status=0, message='Not saved! a complex net with this name already exist')
+                return jsonify(status=0, message='Not saved! A complex net with this name already exist')
             name = json_data['name']
-            project_id = json_data['project_id']
-            owner_id = int(json_data['owner_id'])
+            project_id = session['current_project_id']
+            owner_name = json_data['owner']
             tags = json_data['tags']
             description = json_data['description']
-            # config_id = int(json_data['config_id'])
-            # systems_id = json_data['systems_id']
-            # changed_date = datetime.utcnow()
-
-            complex_net = ComplexNet(name, owner_id, tags, description)
-
+            username = session['username']
+            user = User.query.filter_by(name=username).first()
+            if user:
+                changed_by = user.id
+            else:
+                changed_by = None
+            if len(owner_name.replace(' ','')) == 0:
+                owner_id = changed_by
+            else:
+                user = User.query.filter_by(name=owner_name).first()
+                if user:
+                    owner_id = user.id
+                else:
+                    owner_id = None
+            changed_date = datetime.utcnow()
+            skeleton = json_data['skeleton']['data']
+            config_version = json_data['skeleton']['version']
+            configurations = ComplexNet.create_config(skeleton)
+            complex_net = ComplexNet(
+                                     project_id=project_id, 
+                                     configurations=configurations, 
+                                     config_version=config_version, 
+                                     name=name, 
+                                     owner_id=owner_id,
+                                     changed_by=changed_by, 
+                                     tags=tags, 
+                                     description=description
+                                    )
             db.session.add(complex_net)
             db.session.commit()
 
             return jsonify(status= 1, message='complex net '  + complex_net.name + ' succesfully saved')
         except Exception as error:
+            db.session.rollback()
             return jsonify(status=0, message='Not saved! something went wrong - please try again later')
         finally:
             db.session.close()
 
     @staticmethod
-    def get_skeleton():
-        with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton.json', 'r') as skeleton_file:
+    def create_config(skeleton):
+
+        configs = []
+        for comp_index, entry in enumerate(skeleton):
+            for element_index, ele in enumerate(entry['elements']):
+                for system_index, option_index in enumerate(ele['indices']):
+                    if type(option_index) == type(True):
+                        if option_index:
+                            option_index = 1
+                        else:
+                            option_index = 0
+                    configs.append(NetConfig(comp_index, element_index, system_index, option_index))
+
+        return configs
+
+    @staticmethod
+    def get_skeleton_versions():
+        project = Project.query.get(session['current_project_id']).name
+        with open('C:\Projects\OctopusDev\Development\Data\ComplexNetVersions.json', 'r') as versions_file:
+            versions_json = json.load(versions_file)
+            versions = versions_json[project]['versions']
+            latest = versions_json[project]['latest']
+
+        return jsonify(status=1, latest=latest, versions=versions)
+
+    @staticmethod
+    def get_skeleton(version):
+        with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton_'+version+'.json', 'r') as skeleton_file:
             skeleton = json.load(skeleton_file)
         return jsonify(status=1, skeleton = skeleton)
 
     @staticmethod
     def delete_by_name(name):
         try:
-            complex_net = ComplexNet.query.filter_by(name=name,project=session['current_project_id']).first()
+            complex_net = ComplexNet.query.filter_by(name=name,project_id=session['current_project_id']).first()
             if complex_net:
                 db.session.delete(complex_net)
                 db.session.commit()
                 return jsonify(status=1,message='complex net ' + name + ' succefully deleted')
             else:
                 return jsonify(status=0,message='Not deleted! No complex net with this name')
-        except:
-            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def delete_by_id(complex_net_id):
-        try:
-            complex_net = ComplexNet.query.get(int(complex_net_id))
-            if complex_net:
-                db.session.delete(complex_net)
-                db.session.commit()
-                return jsonify(status=1,message='complex net ' + name + ' succefully deleted')
-            else:
-                return jsonify(status=0,message='Not deleted! No complex net with this id')
-        except:
+        except Exception as error:
             return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
         finally:
             db.session.close()
@@ -3301,21 +3365,40 @@ class ComplexNet(db.Model):
     @staticmethod
     def update_by_name(name, json_data):
         try:
-            complex_net = ComplexNet.query.filter_by(name=name).first()
+            complex_net = ComplexNet.query.filter_by(name=name, project_id = session['current_project_id']).first()
             if complex_net:
+                if len(json_data['name'].replace(' ','')) == 0:
+                    return jsonify(status=0, message='Not saved! Name cannot be empty')
+                if not name in [complex_net.name for complex_net in ComplexNet.query.all()]:
+                    return jsonify(status=0, message='Not saved! A complex net with this name does not exist')
+                if not name == json_data['name']:
+                    if json_data['name'] in [complex_net.name for complex_net in ComplexNet.query.all()]:
+                        return jsonify(status=0, message='Not saved! A complex net with this name exist')
                 complex_net.name = json_data['name']
-                complex_net.owner_id = int(json_data['owner_id'])
+                # project_id = session['current_project_id']
+                owner_name = json_data['owner']
                 complex_net.tags = json_data['tags']
                 complex_net.description = json_data['description']
-                # complex_net.config_id = int(json_data['stage_id'])
-                # complex_net.system_id = json_data['stage_type']
-                complex_net.changed_date = datetime.utcnow()
-
-                owner_id = User.query.get(int(ComplexNet.owner_id)).id
-                if owner_id:
-                    complex_net.changed_by = owner_id
+                username = session['username']
+                user = User.query.filter_by(name=username).first()
+                if user:
+                    changed_by = user.id
                 else:
-                    return jsonify(status=0,message='Not updated! No user with given name')
+                    changed_by = None
+                complex_net.changed_by = changed_by
+                if len(owner_name.replace(' ','')) == 0:
+                    owner_id = changed_by
+                else:
+                    user = User.query.filter_by(name=owner_name).first()
+                    if user:
+                        owner_id = user.id
+                    else:
+                        owner_id = None
+                complex_net.owner_id = owner_id
+                complex_net.changed_date = datetime.utcnow()
+                skeleton = json_data['skeleton']['data']
+                complex_net.config_version = json_data['skeleton']['version']
+                complex_net.configurations = ComplexNet.create_config(skeleton)
                 db.session.add(complex_net)
                 db.session.commit()
                 return jsonify(status=1,message='complex net ' + complex_net.name + ' succesfully updated')
@@ -3329,245 +3412,21 @@ class ComplexNet(db.Model):
         finally:
             db.session.close()
 
-    @staticmethod
-    def update_by_id(complex_net_id, json_data):
-        try:
-            complex_net = ComplexNet.query.get(int(complex_net_id))
-            if complex_net:
-                complex_net.name = json_data['name']
-                complex_net.owner_id = int(json_data['owner_id']),
-                complex_net.tags = json_data['tags'],
-                complex_net.description = json_data['description'],
-                # complex_net.config_id = int(json_data['config_id']),
-                # complex_net.system_id = json_data['system_id'],
-                complex_net.changed_date = datetime.utcnow()
-
-                owner_id = User.query.get(int(complex_net.owner_id)).id
-                if owner_id:
-                    complex_net.changed_by = owner_id
-                else:
-                    return jsonify(status=0,msg='Not updated! No user with given name')
-                db.session.add(complex_net)
-                db.session.commit()
-                return jsonify(status=1,msg='complex net ' + complex_net.name + ' succesfully updated')
-            else:
-                return jsonify(status=0,msg='Not deleted! No complex net with this name')
-
-
-            return jsonify(status= 1, message='complex net '  + complex_net.name + ' succesfully updated')
-        except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-
 class NetConfig(db.Model):
     __tablename__ = 'netconfig'
     id = db.Column(db.Integer, primary_key=True)
-    Lnk_System = db.Column(db.Text)
-    Link_Ext_Simulation = db.Column(db.Integer)
-    Smiulation_Watch = db.Column(db.Text)
-    Simulation_Dis = db.Column(db.Text)
-    Simulation_Ext_Flag = db.Column(db.Integer)
-    Backup_Env = db.Column(db.Text)
-    Backup_Env_Ext_Flag = db.Column(db.Integer)
-    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('complexnet.id'))
+    complex_net = db.Column(db.Integer, db.ForeignKey('complexnet.id'))
+    comp_index = db.Column(db.Integer)
+    element_index = db.Column(db.Integer)
+    system_index = db.Column(db.Integer)
+    option_index = db.Column(db.Integer)
 
-    def __init__(self,Lnk_System, Link_Ext_Simulation, Smiulation_Watch, Simulation_Dis,
-                 Simulation_Ext_Flag, Backup_Env, Backup_Env_Ext_Flag, Complex_Net_ID):
-        self.Lnk_System = Lnk_System
-        self.Link_Ext_Simulation = Link_Ext_Simulation
-        self.Smiulation_Watch = Smiulation_Watch
-        self.Simulation_Dis = Simulation_Dis
-        self.Simulation_Ext_Flag = Simulation_Ext_Flag
-        self.Backup_Env = Backup_Env
-        self.Backup_Env_Ext_Flag = Backup_Env_Ext_Flag
-        self.Complex_Net_ID = Complex_Net_ID
-
-    def self_jsonify(self):
-
-        return jsonify(
-                id = self.id,
-                Lnk_System = self.Lnk_System,
-                Link_Ext_Simulation = self.Link_Ext_Simulation,
-                Smiulation_Watch = self.Smiulation_Watch,
-                Simulation_Dis = self.Simulation_Dis,
-                Simulation_Ext_Flag = self.Simulation_Ext_Flag,
-                Backup_Env = self.Backup_Env,
-                Backup_Env_Ext_Flag = self.Backup_Env_Ext_Flag,
-                Complex_Net_ID = self.Complex_Net_ID
-            ).json
-
-    @staticmethod
-    def get_by_id(net_config_id):
-        try:
-            net_config = NetConfig.query.get(int(net_config_id))
-            return jsonify(status=1, message=None, data=net_config.self_jsonify())
-        except:
-            return jsonify(status=0, message='something went wrong', data=None)
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def save(json_data):
-        try:
-            Lnk_System = json_data['Lnk_System']
-            Link_Ext_Simulation = int(json_data['Link_Ext_Simulation'])
-            Smiulation_Watch = json_data['Smiulation_Watch']
-            Simulation_Dis = json_data['Simulation_Dis']
-            Simulation_Ext_Flag = int(json_data['Simulation_Ext_Flag'])
-            Backup_Env = json_data['Backup_Env']
-            Backup_Env_Ext_Flag = int(json_data['Backup_Env_Ext_Flag'])
-            Complex_Net_ID = int(json_data['Complex_Net_ID'])
-
-
-            net_config = NetConfig(Lnk_System, Link_Ext_Simulation, Smiulation_Watch, Simulation_Dis,
-                 Simulation_Ext_Flag, Backup_Env, Backup_Env_Ext_Flag, Complex_Net_ID)
-
-            db.session.add(net_config)
-            db.session.commit()
-
-            return jsonify(status= 1)
-        except Exception as error:
-            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def delete_by_id(net_config_id):
-        try:
-            net_config = NetConfig.query.get(int(net_config_id))
-            if net_config:
-                db.session.delete(net_config)
-                db.session.commit()
-                return jsonify(status=1)
-            else:
-                return jsonify(status=0,message='Not deleted! No net config with this id')
-        except:
-            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def update_by_id(net_config_id, json_data):
-        try:
-            net_config = NetConfig.query.get(int(net_config_id))
-            if net_config:
-                net_config.Link_Ext_Simulation = json_data['Link_Ext_Simulation']
-                net_config.Smiulation_Watch = int(json_data['Smiulation_Watch'])
-                net_config.Simulation_Dis = json_data['Simulation_Dis']
-                net_config.Simulation_Ext_Flag = int(json_data['Simulation_Ext_Flag'])
-                net_config.Backup_Env = json_data['Backup_Env']
-                net_config.Backup_Env_Ext_Flag = int(json_data['Backup_Env_Ext_Flag'])
-                net_config.Complex_Net_ID = int(json_data['Complex_Net_ID'])
-
-                complex_net_id = ComplexNet.query.get(int(net_config.Complex_Net_ID)).id
-                if complex_net_id:
-                    net_config.Complex_Net_ID = complex_net_id
-                else:
-                    return jsonify(status=0,msg='Not updated! complex net id')
-                db.session.add(net_config)
-                db.session.commit()
-
-            return jsonify(status= 1)
-        except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-class NetSystem(db.Model):
-    __tablename__ = 'netsystem'
-    id = db.Column(db.Integer, primary_key=True)
-    system_type = db.Column(db.Text)
-    system_num = db.Column(db.Integer)
-    kind = db.Column(db.Text)
-    Complex_Net_ID = db.Column(db.Integer, db.ForeignKey('complexnet.id'))
-
-    def __init__(self,system_type, system_num, kind, Complex_Net_ID):
-        self.system_type = system_type
-        self.system_num = system_num
-        self.kind = kind
-        self.Complex_Net_ID = Complex_Net_ID
-
-    def self_jsonify(self):
-
-        return jsonify(
-                id = self.id,
-                system_type = self.system_type,
-                system_num = self.system_num,
-                kind = self.kind,
-                Complex_Net_ID = self.Complex_Net_ID
-            ).json
-
-    @staticmethod
-    def get_by_id(net_system_id):
-        try:
-            net_system = NetSystem.query.get(int(net_system_id))
-            return jsonify(status=1, message=None, data=net_system.self_jsonify())
-        except:
-            return jsonify(status=0, message='something went wrong', data=None)
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def save(json_data):
-        try:
-
-            system_type = json_data['system_type']
-            system_num = int(json_data['system_num'])
-            kind = json_data['kind']
-            Complex_Net_ID = int(json_data['Complex_Net_ID'])
-
-
-            net_system = NetSystem(system_type, system_num, kind, Complex_Net_ID)
-
-            db.session.add(net_system)
-            db.session.commit()
-
-            return jsonify(status= 1)
-        except Exception as error:
-            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def delete_by_id(net_system_id):
-        try:
-            net_system = NetSystem.query.get(int(net_system_id))
-            if net_system:
-                db.session.delete(net_system)
-                db.session.commit()
-                return jsonify(status=1)
-            else:
-                return jsonify(status=0,message='Not deleted! No net system with this id')
-        except:
-            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def update_by_id(net_system_id, json_data):
-        try:
-            net_system = NetSystem.query.get(int(net_system_id))
-            if net_system:
-                net_system.system_type = json_data['system_type']
-                net_system.system_num = int(json_data['system_num'])
-                net_system.kind = json_data['kind']
-                net_system.Complex_Net_ID = int(json_data['Complex_Net_ID'])
-
-                complex_net_id = ComplexNet.query.get(int(net_system.Complex_Net_ID)).id
-                if complex_net_id:
-                    net_system.Complex_Net_ID = complex_net_id
-                else:
-                    return jsonify(status=0,msg='Not updated! complex net id')
-                db.session.add(net_system)
-                db.session.commit()
-
-            return jsonify(status= 1)
-        except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
-        finally:
-            db.session.close()
+    def __init__(self, comp_index, element_index, system_index, option_index, complex_net=None):
+        self.complex_net = complex_net
+        self.comp_index = comp_index
+        self.element_index = element_index
+        self.system_index = system_index
+        self.option_index = option_index
 
 class StageRunMani(db.Model):
     __tablename__ = 'stagerunmani'

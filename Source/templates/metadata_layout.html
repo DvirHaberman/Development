@@ -3,10 +3,7 @@
 <link rel="stylesheet" href="../static/css/metadata_layout.css" />
 <link href="../static/css/bootstrap-toggle.min.css" rel="stylesheet">
 <script src="../static/js/bootstrap-toggle.min.js"></script>
-{% block main_form_css %}
-{% endblock %}
-{% endblock %}
-{%block content%}
+{% block main_form_css %} {% endblock %} {% endblock %} {%block content%}
 <div class="row mx-auto layout-buttons-div">
     <input id="NewExist_toggle" type="checkbox" checked data-toggle="toggle" data-on="New" data-off="Existing" data-onstyle="primary" data-offstyle="secondary">
     <button id="meta_save" aria-label="Save"><i class="far fa-save normal-size" ></i></button>
@@ -77,22 +74,34 @@
                 </div>
             </div>
 
-            {% else %}
-
-
+            {% else %} {% if session['current_window_name']=='Define Complex Net' %}
+            <div class="row margins-bottom-medium">
+                <div class="col-8">
+                    <label for="net_versions"><h5>Version</h5></label>
+                    <input list="net_versions_datalist" id="net_versions" type="text" class="form-control" id="meta_name">
+                    <datalist id='net_versions_datalist'>
+                </datalist>
+                </div>
+            </div>
+            {%endif%}
             <div class="row margins-bottom-medium">
                 <div class="col-8">
 
                     <label for="meta_name"><h5>Name</h5></label>
-                    <input list="meta_name_datalist" type="text" class="form-control" id="meta_name">
+                    <div class="row">
+                        <input type="text" class="form-control ml-3" id="meta_name"> {% if session['current_window_name']=='Define Complex Net' %}
+                        <h2 id='selected_net' class="ml-3 mb-0"></h2>
+                        {%endif%}
+                    </div>
                     <datalist id='meta_name_datalist'>
-                              <option value="global">kjsdhfskjdf</option>
-                            </datalist>
+                    </datalist>
                 </div>
-                <div class="col-4 d-flex flex-column">
+
+
+                <!-- <div class="col-4 d-flex flex-column">
                     <label for="meta_id"><h5>Id</h5></label>
                     <input type="text" class="form-control" id="meta_id">
-                </div>
+                </div> -->
             </div>
             {% if session['current_window_name']=='Define Stage' %}
             <div class="row margins-bottom-medium">
@@ -116,12 +125,15 @@
             {% endif %}
 
             <label for="meta_owner"><h5>Owner</h5></label>
-            <input type="text" class="form-control margins-bottom-medium" id="meta_owner">
+            <input list="meta_owner_datalist" type="text" class="form-control margins-bottom-medium" id="meta_owner">
+            <datalist id='meta_owner_datalist'>
+              </datalist>
             <label for="meta_tags"><h5>Tags</h5></label>
             <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
             <label for="meta_description"><h5>Description</h5></label>
-            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="10" rows="2"></textarea>
-            <h6><i id="meta_date">changed date : 16:00 27.5.2020</i></h6>
+            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="25" rows="2"></textarea>
+            <h6><i id="meta_date"></i></h6> <br>
+            <h6><i id="meta_changed_by"></i></h6>
             {% endif %}
 
         </div>
