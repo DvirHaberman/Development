@@ -7,21 +7,77 @@ var project_data = {
     output_dir: null
 };
 
+const get_select_value = (select_ele) => select_ele.options[select_ele.selectedIndex].text;
+
 var Site_form_controls = {
     site_name: $('#site_select')[0],
     is_site_active: $('#is_site_active_cb')[0],
-    Site_Conn_Schema: $('#Site_Conn_Schema')[0],
-    excersice_Conn_Schema: $('#excersice_Conn_Schema')[0],
-    Octoups_Conn_Schema: $('#Octoups_Conn_Schema')[0],
+    Site_Conn: $('#Site_Conn')[0],
+    exercise_Conn: $('#exercise_Conn')[0],
+    Octopus_Conn: $('#Octopus_Conn')[0],
     recording_db: $('#recording_db')[0],
-    excersice_db: $('#excersice_db')[0],
-    octoups_db: $('#octoups_db')[0],
+    excercise_db: $('#excercise_db')[0],
+    octopus_db: $('#octopus_db')[0],
     nets: $('#nets')[0],
     stations: $('#stations')[0],
     version_input: $('#version_input')[0],
-
+    ext_scenario_filer: $('#ext_scenario_filer')[0],
+    auto_dir: $('#auto_dir')[0]
 }
 
+const reset_connections = () => {
+    setSchemaNames(Site_form_controls.Site_Conn, SchemaNames, 0); // Site Schema
+    SetRecordingDB(0);
+
+    setSchemaNames(Site_form_controls.exercise_Conn, SchemaNames, 0); // exercise Schema
+    SetExersiceDB(0);
+
+    setSchemaNames(Site_form_controls.Octopus_Conn, SchemaNames, 0); // auto data Schema
+    SetOctopusDB(0);
+}
+
+const set_conn = (obj, names, value) => {
+    if (names.includes(value)) {
+        index = names.indexOf(value);
+    } else {
+        alert(`site connection : ${value} was not found. Please select another`)
+        index = 0;
+    }
+    setSchemaNames(obj, names, index);
+}
+
+const set_schema = (obj, conn_name, value) => {
+    var connData = get_by_name(conn_name)
+    if (connData.is_valid) {
+        if (connData.schemas.includes(value)) {
+            index = connData.schemas.indexOf(value);
+        } else {
+            alert(`site recording db schema : ${value} was not found. Please select another`)
+            index = 0;
+        }
+    } else {
+        connData = get_by_name(SchemaNames[0]);
+        index = 0;
+    }
+    setSchemaNames(obj, connData.schemas, index);
+}
+
+const set_connections = (data) => {
+    //setting site connection
+    set_conn(Site_form_controls.Site_Conn, SchemaNames, data.site_conn);
+    //setting site schema
+    set_schema(Site_form_controls.recording_db, data.site_conn, data.recording_db);
+
+    //setting exercise connection
+    set_conn(Site_form_controls.exercise_Conn, SchemaNames, data.execrsice_conn);
+    //setting exercise schema
+    set_schema(Site_form_controls.excercise_db, data.execrsice_conn, data.execrsice_db);
+
+    //setting octopus connection
+    set_conn(Site_form_controls.Octopus_Conn, SchemaNames, data.octopus_conn);
+    //setting octopus schema
+    set_schema(Site_form_controls.octopus_db, data.octopus_conn, data.octopus_db);
+}
 
 function fill_form_Project_Infras(data) {
     Project_form_controls.project_output_dir.value = data.output_dir;
@@ -30,16 +86,13 @@ function fill_form_Project_Infras(data) {
 function fill_form_Site_Infras(data) {
     if (data) {
         Site_form_controls.is_site_active.checked = data.is_active;
-        Site_form_controls.site_IP.value = data.site_ip;
-        Site_form_controls.excersice_site_ip.value = data.execrsice_site_ip;
-        Site_form_controls.auto_data_IP.value = data.auto_data_site_ip;
         Site_form_controls.nets.value = data.nets;
         Site_form_controls.stations.value = data.stations;
         Site_form_controls.version_input.value = data.version;
-        Site_form_controls.recording_db_ip.value = data.recording_db_ip;
-        Site_form_controls.excersice_db_ip.value = data.execrsice_db_ip;
-        Site_form_controls.auto_run_DB_IP.value = data.auto_data_db_ip;
+        Site_form_controls.ext_scenario_filer.value = data.ext_scenario_filer;
+        Site_form_controls.auto_dir.value = data.auto_dir;
     }
+    set_connections(data);
 }
 
 function get_form(formType) {
@@ -54,14 +107,16 @@ function get_form(formType) {
         data.name = Site_form_controls.site_name.value;
         data.version = Site_form_controls.version_input.value;
         data.is_active = Site_form_controls.is_site_active.checked;
-        data.site_ip = Site_form_controls.site_IP.value;
-        data.recording_db_ip = Site_form_controls.recording_db_ip.value;
-        data.execrsice_site_ip = Site_form_controls.excersice_site_ip.value;
-        data.execrsice_db_ip = Site_form_controls.excersice_db_ip.value;
-        data.auto_data_site_ip = Site_form_controls.auto_data_IP.value;
-        data.auto_data_db_ip = Site_form_controls.auto_run_DB_IP.value;
+        data.site_conn = get_select_value(Site_form_controls.Site_Conn);
+        data.recording_db = get_select_value(Site_form_controls.recording_db);
+        data.exercise_conn = get_select_value(Site_form_controls.exercise_Conn);
+        data.excercise_db = get_select_value(Site_form_controls.excercise_db);
+        data.octopus_conn = get_select_value(Site_form_controls.Octopus_Conn);
+        data.octopus_db = get_select_value(Site_form_controls.octopus_db);
         data.nets = Site_form_controls.nets.value;
         data.stations = Site_form_controls.stations.value;
+        data.ext_scenario_filer = Site_form_controls.ext_scenario_filer.value;
+        data.auto_dir = Site_form_controls.auto_dir.value;
     }
     return data
 }
@@ -69,15 +124,17 @@ function get_form(formType) {
 function siteFormDisable(trueFalse) {
     Site_form_controls.site_name.disabled = trueFalse;
     Site_form_controls.is_site_active.disabled = trueFalse;
-    Site_form_controls.site_IP.disabled = trueFalse;
-    Site_form_controls.excersice_site_ip.disabled = trueFalse;
-    Site_form_controls.auto_data_IP.disabled = trueFalse;
+    Site_form_controls.Site_Conn.disabled = trueFalse;
+    Site_form_controls.exercise_Conn.disabled = trueFalse;
+    Site_form_controls.Octopus_Conn.disabled = trueFalse;
     Site_form_controls.nets.disabled = trueFalse;
     Site_form_controls.stations.disabled = trueFalse;
     Site_form_controls.version_input.disabled = trueFalse;
-    Site_form_controls.recording_db_ip.disabled = trueFalse;
-    Site_form_controls.excersice_db_ip.disabled = trueFalse;
-    Site_form_controls.auto_run_DB_IP.disabled = trueFalse;
+    Site_form_controls.recording_db.disabled = trueFalse;
+    Site_form_controls.excercise_db.disabled = trueFalse;
+    Site_form_controls.octopus_db.disabled = trueFalse;
+    Site_form_controls.ext_scenario_filer.disabled = trueFalse;
+    Site_form_controls.auto_dir.disabled = trueFalse;
     $('#site_toggle')[0].disabled = trueFalse;
     $('#Duplicate_Site')[0].disabled = trueFalse;
     $('#Save_Site')[0].disabled = trueFalse;
@@ -164,19 +221,19 @@ function setSchemaNames(obj, SchemaNames, index) {
 }
 
 function SetOctopusDB(index) {
-    var relevantConnName = Site_form_controls.Octoups_Conn_Schema.options[Site_form_controls.Octoups_Conn_Schema.selectedIndex].text;
+    var relevantConnName = Site_form_controls.Octopus_Conn.options[Site_form_controls.Octopus_Conn.selectedIndex].text;
     var connData = get_by_name(relevantConnName)
-    setSchemaNames(Site_form_controls.octoups_db, connData.schemas, index)
+    setSchemaNames(Site_form_controls.octopus_db, connData.schemas, index)
 }
 
 function SetExersiceDB(index) {
-    var relevantConnName = Site_form_controls.excersice_Conn_Schema.options[Site_form_controls.excersice_Conn_Schema.selectedIndex].text;
+    var relevantConnName = Site_form_controls.exercise_Conn.options[Site_form_controls.exercise_Conn.selectedIndex].text;
     var connData = get_by_name(relevantConnName)
-    setSchemaNames(Site_form_controls.excersice_db, connData.schemas, 0)
+    setSchemaNames(Site_form_controls.excercise_db, connData.schemas, 0)
 }
 
 function SetRecordingDB(index) {
-    var relevantConnName = Site_form_controls.Site_Conn_Schema.options[Site_form_controls.Site_Conn_Schema.selectedIndex].text;
+    var relevantConnName = Site_form_controls.Site_Conn.options[Site_form_controls.Site_Conn.selectedIndex].text;
     var connData = get_by_name(relevantConnName)
     setSchemaNames(Site_form_controls.recording_db, connData.schemas, 0)
 }
@@ -258,7 +315,7 @@ $('#site_toggle').change(function() {
     if ($('#site_toggle')[0].checked) { //new
         infras.new(Site_form_controls, "site_name");
         siteFormDisable(false);
-
+        reset_connections();
     } else { //exist
         infras.exist(Site_form_controls, "site_name", "select", "select-one");
         // select Site
@@ -334,33 +391,26 @@ document.getElementById("check_excersice_db").addEventListener("click", function
 });
 
 // check check_Auto_Run_DB_IP
-document.getElementById("check_Octoups_DB").addEventListener("click", function() {
+document.getElementById("check_Octopus_DB").addEventListener("click", function() {
     alert("checking Auto_Run DB IP");
 });
 
 
-$('#Site_Conn_Schema').change(function() {
+$('#Site_Conn').change(function() {
     SetRecordingDB(0);
 });
 
-$('#excersice_Conn_Schema').change(function() {
+$('#exercise_Conn').change(function() {
     SetExersiceDB(0);
 });
 
-$('#Octoups_Conn_Schema').change(function() {
+$('#octopus_Conn').change(function() {
     SetOctopusDB(0);
 });
 
 var SchemaNames = getSchemaNames();
 
-setSchemaNames(Site_form_controls.Site_Conn_Schema, SchemaNames, 0); // Site Schema
-SetRecordingDB(0);
-
-setSchemaNames(Site_form_controls.excersice_Conn_Schema, SchemaNames, 0); // exercise Schema
-SetExersiceDB(0);
-
-setSchemaNames(Site_form_controls.Octoups_Conn_Schema, SchemaNames, 0); // auto data Schema
-SetOctopusDB(0);
+reset_connections();
 
 var newele = null;
 infras = new form_controls_handler();
