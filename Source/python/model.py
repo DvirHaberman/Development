@@ -2751,19 +2751,19 @@ class Site(db.Model):
     # service_name = db.Column(db.Text) new
     changed_by = db.Column(db.Integer)
 
-    def __init__(self, project_id, name, version, is_active, site_ip, recording_db_ip,
-                 execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
-                 auto_data_db_ip, nets, stations, changed_by):
+    def __init__(self, project_id, name, version, is_active, site_conn, recording_db,
+                 execrsice_conn, execrsice_db, octopus_conn,
+                 octopus_db, nets, stations, changed_by):
         self.project_id = project_id
         self.name = name
         self.version = version
         self.is_active = is_active
-        self.site_ip = site_ip
-        self.recording_db_ip = recording_db_ip
-        self.execrsice_site_ip = execrsice_site_ip
-        self.execrsice_db_ip = execrsice_db_ip
-        self.auto_data_site_ip = auto_data_site_ip
-        self.auto_data_db_ip = auto_data_db_ip
+        self.site_conn = site_conn
+        self.recording_db = recording_db
+        self.execrsice_conn = execrsice_conn
+        self.execrsice_db = execrsice_db
+        self.octopus_conn = octopus_conn
+        self.octopus_db = octopus_db
         self.nets = nets
         self.stations = stations
         self.changed_date = datetime.utcnow()
@@ -2783,12 +2783,12 @@ class Site(db.Model):
                 name = self.name,
                 version = self.version,
                 is_active = self.is_active,
-                site_ip = self.site_ip,
-                recording_db_ip = self.recording_db_ip,
-                execrsice_site_ip = self.execrsice_site_ip,
-                execrsice_db_ip = self.execrsice_db_ip,
-                auto_data_site_ip = self.auto_data_site_ip,
-                auto_data_db_ip = self.auto_data_db_ip,
+                site_conn = self.site_conn,
+                recording_db = self.recording_db,
+                execrsice_conn = self.execrsice_conn,
+                execrsice_db = self.execrsice_db,
+                octopus_conn = self.octopus_conn,
+                octopus_db = self.octopus_db,
                 nets = self.nets,
                 stations = self.stations,
                 changed_date = self.changed_date,
@@ -2845,20 +2845,20 @@ class Site(db.Model):
             name = json_data['name']
             version = json_data['version']
             is_active = json_data['is_active']
-            site_ip = json_data['site_ip']
-            recording_db_ip = json_data['recording_db_ip']
-            execrsice_site_ip = json_data['execrsice_site_ip']
-            execrsice_db_ip = json_data['execrsice_db_ip']
-            auto_data_site_ip = json_data['auto_data_site_ip']
-            auto_data_db_ip = json_data['auto_data_db_ip']
+            site_conn = json_data['site_conn']
+            recording_db = json_data['recording_db']
+            execrsice_conn = json_data['execrsice_conn']
+            execrsice_db = json_data['execrsice_db']
+            octopus_conn = json_data['octopus_conn']
+            octopus_db = json_data['octopus_db']
             nets = json_data['nets']
             stations = json_data['stations']
             changed_date = datetime.utcnow()
             changed_by = User.query.filter_by(name=session['username']).first().id
 
-            site = Site(project_id, name, version, is_active, site_ip, recording_db_ip,
-                    execrsice_site_ip, execrsice_db_ip, auto_data_site_ip,
-                    auto_data_db_ip, nets, stations, changed_by)
+            site = Site(project_id, name, version, is_active, site_conn, recording_db,
+                    execrsice_conn, execrsice_db, octopus_conn,
+                    octopus_db, nets, stations, changed_by)
 
             db.session.add(site)
             db.session.commit()
@@ -2908,12 +2908,12 @@ class Site(db.Model):
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
-                site.site_ip = json_data['site_ip']
-                site.recording_db_ip = json_data['recording_db_ip']
-                site.execrsice_site_ip = json_data['execrsice_site_ip']
-                site.execrsice_db_ip = json_data['execrsice_db_ip']
-                site.auto_data_site_ip = json_data['auto_data_site_ip']
-                site.auto_data_db_ip = json_data['auto_data_db_ip']
+                site.site_conn = json_data['site_conn']
+                site.recording_db = json_data['recording_db']
+                site.execrsice_conn = json_data['execrsice_conn']
+                site.execrsice_db = json_data['execrsice_db']
+                site.octopus_conn = json_data['octopus_conn']
+                site.octopus_db = json_data['octopus_db']
                 site.nets = json_data['nets']
                 site.stations = json_data['stations']
                 site.changed_date = datetime.utcnow()
@@ -2945,12 +2945,12 @@ class Site(db.Model):
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
-                site.site_ip = json_data['site_ip']
-                site.recording_db_ip = json_data['recording_db_ip']
-                site.execrsice_site_ip = json_data['execrsice_site_ip']
-                site.execrsice_db_ip = json_data['execrsice_db_ip']
-                site.auto_data_site_ip = json_data['auto_data_site_ip']
-                site.auto_data_db_ip = json_data['auto_data_db_ip']
+                site.site_conn = json_data['site_conn']
+                site.recording_db = json_data['recording_db']
+                site.execrsice_conn = json_data['execrsice_conn']
+                site.execrsice_db = json_data['execrsice_db']
+                site.octopus_conn = json_data['octopus_conn']
+                site.octopus_db = json_data['octopus_db']
                 site.nets = json_data['nets']
                 site.stations = json_data['stations']
                 site.changed_date = datetime.utcnow()
