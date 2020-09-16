@@ -843,8 +843,10 @@ class Project(db.Model):
         try:
             if json_data['name'] in [project.name for project in Project.query.all()]:
                 return jsonify(status=0, message='Not saved! a project with this name already exist')
-            name = json_data['name']
+            if len(json_data['name'].replace(" ","")) == 0:
+                return jsonify(status=0, message='Not saved! Project name cannot be empty')
             output_dir = json_data['output_dir']
+            name = json_data['name']
             project = Project(name, output_dir)
 
             db.session.add(project)
@@ -1879,7 +1881,7 @@ class FunctionsGroup(db.Model):
 
             if 'owner' in json_data:
                 owner=json_data['owner']
-                if len(owner.replace(' ','')) == 0:
+                if len(owner.replace(" ","")) == 0:
                     owner=session['username']
             else:
                 owner=session['username']
@@ -2747,13 +2749,13 @@ class Site(db.Model):
     nets = db.Column(db.Text)
     stations = db.Column(db.Text)
     changed_date = db.Column(db.DateTime)
-    # port = db.Column(db.Integer) new
-    # service_name = db.Column(db.Text) new
     changed_by = db.Column(db.Integer)
+    ext_scenario_filer = db.Column(db.Text)
+    auto_dir = db.Column(db.Text)
 
     def __init__(self, project_id, name, version, is_active, site_conn, recording_db,
                  execrsice_conn, execrsice_db, octopus_conn,
-                 octopus_db, nets, stations, changed_by):
+                 octopus_db, nets, stations, changed_by, ext_scenario_filer, auto_dir):
         self.project_id = project_id
         self.name = name
         self.version = version
@@ -2768,6 +2770,8 @@ class Site(db.Model):
         self.stations = stations
         self.changed_date = datetime.utcnow()
         self.changed_by = changed_by
+        self.ext_scenario_filer = ext_scenario_filer
+        self.auto_dir = auto_dir
 
     def self_jsonify(self):
         if self.changed_by:
@@ -2792,7 +2796,9 @@ class Site(db.Model):
                 nets = self.nets,
                 stations = self.stations,
                 changed_date = self.changed_date,
-                changed_by = user_name
+                changed_by = user_name,
+                ext_scenario_filer = self.ext_scenario_filer,
+                auto_dir = self.auto_dir
             ).json
 
     @staticmethod
@@ -2817,16 +2823,6 @@ class Site(db.Model):
             db.session.close()
 
     @staticmethod
-    def get_by_id(site_id):
-        try:
-            site = Site.query.get(int(site_id))
-            return jsonify(status=1, message=None, data=site.self_jsonify())
-        except:
-            return jsonify(status=0, message='something went wrong', data=None)
-        finally:
-            db.session.close()
-
-    @staticmethod
     def get_by_name(site_name):
         try:
             site = Site.query.filter_by(name=site_name).first()
@@ -2839,26 +2835,28 @@ class Site(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            if json_data['name'] in [site.name for site in Site.query.all()]:
-                return jsonify(status=0, message='Not saved! a site with this name already exist')
             project_id = Project.query.filter_by(name=json_data['project_name']).first().id
+            if json_data['name'] in [site.name for site in Site.query.filter_by(project_id=project_id).all()]:
+                return jsonify(status=0, message='Not saved! a site with this name already exist')
             name = json_data['name']
             version = json_data['version']
             is_active = json_data['is_active']
             site_conn = json_data['site_conn']
             recording_db = json_data['recording_db']
-            execrsice_conn = json_data['execrsice_conn']
-            execrsice_db = json_data['execrsice_db']
+            execrsice_conn = json_data['exercise_conn']
+            execrsice_db = json_data['excercise_db']
             octopus_conn = json_data['octopus_conn']
             octopus_db = json_data['octopus_db']
             nets = json_data['nets']
             stations = json_data['stations']
+            ext_scenario_filer = json_data['ext_scenario_filer']
+            auto_dir = json_data['auto_dir']
             changed_date = datetime.utcnow()
             changed_by = User.query.filter_by(name=session['username']).first().id
 
             site = Site(project_id, name, version, is_active, site_conn, recording_db,
                     execrsice_conn, execrsice_db, octopus_conn,
-                    octopus_db, nets, stations, changed_by)
+                    octopus_db, nets, stations, changed_by, ext_scenario_filer, auto_dir)
 
             db.session.add(site)
             db.session.commit()
@@ -2884,38 +2882,28 @@ class Site(db.Model):
         finally:
             db.session.close()
 
-    @staticmethod
-    def delete_by_id(site_id):
-        try:
-            site = Site.query.get(int(site_id))
-            if site:
-                db.session.delete(site)
-                db.session.commit()
-                return jsonify(status=1,message='site ' + name + ' succefully deleted')
-            else:
-                return jsonify(status=0,message='Not deleted! No site with this id')
-        except:
-            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
 
     @staticmethod
     def update_by_name(name, json_data):
         try:
-            site = Site.query.filter_by(name=name).first()
+            project_id = Project.query.filter_by(name=json_data['project_name']).first().id
+
+            site = Site.query.filter_by(name=name, project_id=project_id).first()
             if site:
-                site.project_id = Project.query.filter_by(name=json_data['project_name']).first().id
+                site.project_id = project_id
                 site.name = json_data['name']
                 site.version = json_data['version']
                 site.is_active = json_data['is_active']
                 site.site_conn = json_data['site_conn']
                 site.recording_db = json_data['recording_db']
-                site.execrsice_conn = json_data['execrsice_conn']
-                site.execrsice_db = json_data['execrsice_db']
+                site.execrsice_conn = json_data['exercise_conn']
+                site.execrsice_db = json_data['excercise_db']
                 site.octopus_conn = json_data['octopus_conn']
                 site.octopus_db = json_data['octopus_db']
                 site.nets = json_data['nets']
                 site.stations = json_data['stations']
+                site.ext_scenario_filer = json_data['ext_scenario_filer']
+                site.auto_dir = json_data['auto_dir']
                 site.changed_date = datetime.utcnow()
 
                 user_id = User.query.filter_by(name=session['username']).first().id
@@ -2930,41 +2918,6 @@ class Site(db.Model):
                 return jsonify(status=0,message='Not deleted! No site with this name')
 
 
-            return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
-        except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-    @staticmethod
-    def update_by_id(site_id, json_data):
-        try:
-            site = Site.query.get(int(site_id))
-            if site:
-                site.project_id = json_data['project_id']
-                site.name = json_data['name']
-                site.version = json_data['version']
-                site.is_active = json_data['is_active']
-                site.site_conn = json_data['site_conn']
-                site.recording_db = json_data['recording_db']
-                site.execrsice_conn = json_data['execrsice_conn']
-                site.execrsice_db = json_data['execrsice_db']
-                site.octopus_conn = json_data['octopus_conn']
-                site.octopus_db = json_data['octopus_db']
-                site.nets = json_data['nets']
-                site.stations = json_data['stations']
-                site.changed_date = datetime.utcnow()
-
-                user_id = User.query.filter_by(name=json_data['changed_by']).first().id
-                if user_id:
-                    site.changed_by = user_id
-                else:
-                    return jsonify(status=0,message='Not updated! No user with given name')
-                db.session.add(site)
-                db.session.commit()
-                return jsonify(status=1,message='site ' + site.name + ' succefully updated')
-            else:
-                return jsonify(status=0,message='Not deleted! No site with this name')
             return jsonify(status= 1, message='site '  + site.name + ' succesfully updated')
         except Exception as error:
             return jsonify(status=0, message='Not updated! something went wrong - please try again later')

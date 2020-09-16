@@ -44,15 +44,15 @@
     </div>
 
 
-    <div class="row mb-auto site-data-div">
-        <div class="col-10 mb-auto first-column">
+    <div class="row mb-auto">
+        <div class="col-12 mb-auto site-data-wrapper">
 
             <div class="row site-data-div">
-                <div class="col-5 mb-auto first-column">
+                <div class="col-4 mb-auto first-column">
                     <div class="form-inline">
-                        <label for="Site_Conn_Schema"><h5>Site Connection</h5></label>
+                        <label for="Site_Conn"><h5>Site Connection</h5></label>
                         <!-- <input type="text" id="auto_data_IP" class="form-control medium-margin"> -->
-                        <select id="Site_Conn_Schema" class="form-control medium-margin" type="text">
+                        <select id="Site_Conn" class="form-control medium-margin" type="text">
                             <option value="Tamnon1">Tamnon1</option>
                             <option value="Tamnon2">Tamnon2</option>
                             <option value="Tamnon3">Tamnon3</option>
@@ -61,9 +61,9 @@
                     </div>
 
                     <div class="form-inline">
-                        <label for="excersice_Conn_Schema"><h5>Excersice Connection</h5></label>
+                        <label for="exercise_Conn"><h5>Excersice Connection</h5></label>
                         <!-- <input type="text" id="auto_data_IP" class="form-control medium-margin"> -->
-                        <select id="excersice_Conn_Schema" class="form-control medium-margin" type="text">
+                        <select id="exercise_Conn" class="form-control medium-margin" type="text">
                             <option value="Tamnon1">Tamnon1</option>
                             <option value="Tamnon2">Tamnon2</option>
                             <option value="Tamnon3">Tamnon3</option>
@@ -72,9 +72,9 @@
                     </div>
 
                     <div class="form-inline">
-                        <label for="Octoups_Conn_Schema"><h5>Octoups Connection</h5></label>
+                        <label for="Octopus_Conn"><h5>Octopus Connection</h5></label>
                         <!-- <input type="text" id="auto_data_IP" class="form-control medium-margin"> -->
-                        <select id="Octoups_Conn_Schema" class="form-control medium-margin" type="text">
+                        <select id="Octopus_Conn" class="form-control medium-margin" type="text">
                             <option value="Tamnon1">Tamnon1</option>
                             <option value="Tamnon2">Tamnon2</option>
                             <option value="Tamnon3">Tamnon3</option>
@@ -101,8 +101,8 @@
                         <button id="check_Recording_DB" class="medium-margin"><i class="far fa-check-square"></i></button>
                     </div>
                     <div class="form-inline">
-                        <label for="excersice_db"><h5>Excersice DB</h5></label>
-                        <select id="excersice_db" class="form-control medium-margin" type="text">
+                        <label for="excercise_db"><h5>Excersice DB</h5></label>
+                        <select id="excercise_db" class="form-control medium-margin" type="text">
                             <option value="Excersice_DB1">Excersice_DB1</option>
                             <option value="Excersice_DB2">Excersice_DB2</option>
                             <option value="Excersice_DB3">Excersice_DB3</option>
@@ -111,37 +111,51 @@
                         <button id="check_excersice_db" class="medium-margin"><i class="far fa-check-square"></i></button>
                     </div>
                     <div class="form-inline">
-                        <label for="octoups_db"><h5>Octoups DB</h5> </ label>
-                            <select id="octoups_db" class="form-control medium-margin" type="text">
-                                <option value="Octoups_DB1">Octoups_DB1</option>
-                                <option value="Octoups_DB2">Octoups_DB2</option>
-                                <option value="Octoups_DB3">Octoups_DB3</option>
-                                <option value="Octoups_DB4">Octoups_DB4</option>
-                            </select> 
-                        <button id="check_Octoups_DB" class="medium-margin"><i class="far fa-check-square"></i></button>
+                        <label for="octopus_db"><h5>Octopus DB</h5> </label>
+                        <select id="octopus_db" class="form-control medium-margin" type="text">
+                                <option value="Octopus_DB1">Octopus_DB1</option>
+                                <option value="Octopus_DB2">Octopus_DB2</option>
+                                <option value="Octopus_DB3">Octopus_DB3</option>
+                                <option value="Octopus_DB4">Octopus_DB4</option>
+                            </select>
+                        <button id="check_Octopus_DB" class="medium-margin"><i class="far fa-check-square"></i></button>
                     </div>
                 </div>
 
             </div>
-            <div class="form-inline">
-                <label for="nets"><h5>Nets</h5></label>
+            <div class="additional-data flex-container">
+                <div class="first-div">
+                    <div class="form-inline">
+                        <label for="nets" class="right-align-container"><h5>Nets</h5></label>
                         <input type="text" id="nets" class="form-control medium-margin">
                     </div>
                     <div class="form-inline">
-                        <label for="stations"><h5>Stations</h5></label>
+                        <label class="right-align-container" for="stations"><h5>Stations</h5></label>
                         <input type="text" id="stations" class="form-control medium-margin">
                     </div>
 
                     <div class="form-inline">
-                        <label for="version_input"><h5>Version</h5></label>
-                        <input type="text" id="version_input" class="form-control medium-margin">
+                        <label class="right-align-container" for="version_input"><h5>Version</h5></label>
+                        <input type="text" id="version_input" class="form-control medium-margin mr-auto">
+                    </div>
+                </div>
+                <div class="second-div">
+                    <div class="form-inline">
+                        <label class="right-align-container" for="ext_scenario_filer"><h5>Ext. Scenario Filer</h5></label>
+                        <input type="text" id="ext_scenario_filer" class="form-control medium-margin mr-auto">
+                    </div>
+                    <div class="form-inline">
+                        <label class="right-align-container" for="auto_dir "><h5>Auto dir</h5></label>
+                        <input type="text" id="auto_dir" class="form-control medium-margin mr-auto">
                     </div>
                 </div>
             </div>
         </div>
-        {% endblock %} {%block scripts%}
+    </div>
+</div>
+{% endblock %} {%block scripts%}
 
-        <script src="../static/js/OctoUtils.js"></script>
-        <script src="../static/js/infras.js"></script>
+<script src="../static/js/OctoUtils.js"></script>
+<script src="../static/js/infras.js"></script>
 
-        {% endblock %}
+{% endblock %}
