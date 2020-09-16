@@ -2738,13 +2738,13 @@ class Site(db.Model):
     name = db.Column(db.Text)
     version = db.Column(db.Text)
     is_active = db.Column(db.Integer)
-    site_ip = db.Column(db.Text)
-    recording_db_ip = db.Column(db.Text)
-    execrsice_site_ip = db.Column(db.Text)
-    execrsice_db_ip = db.Column(db.Text)
-    auto_data_site_ip = db.Column(db.Text)
-    auto_data_db_ip = db.Column(db.Text)
-    nets =db.Column(db.Text)
+    site_conn = db.Column(db.Text)
+    recording_db = db.Column(db.Text)
+    execrsice_conn = db.Column(db.Text)
+    execrsice_db = db.Column(db.Text)
+    octopus_conn = db.Column(db.Text)
+    octopus_db = db.Column(db.Text)
+    nets = db.Column(db.Text)
     stations = db.Column(db.Text)
     changed_date = db.Column(db.DateTime)
     # port = db.Column(db.Integer) new
@@ -3255,7 +3255,10 @@ class ComplexNet(db.Model):
     def get_by_name(complex_net_name):
         try:
             complex_net = ComplexNet.query.filter_by(name=complex_net_name, project_id=session['current_project_id']).first()
-            with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton_'+complex_net.config_version+'.json', 'r') as skeleton_file:
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            path = sep.join(basedir.split(sep)[0:-2]+['Data'])
+            print(path+ sep+ 'complexNetSkeleton_'+complex_net.config_version+'.json')
+            with open(path+ sep+ 'complexNetSkeleton_'+complex_net.config_version+'.json', 'r') as skeleton_file:
                 skeleton_json = json.load(skeleton_file)
             skeleton = complex_net.modify_skeleton(skeleton_json)
             return jsonify(status=1, message=None, data={"net":complex_net.self_jsonify(), "skeleton" : skeleton})
@@ -3334,7 +3337,11 @@ class ComplexNet(db.Model):
     @staticmethod
     def get_skeleton_versions():
         project = Project.query.get(session['current_project_id']).name
-        with open('C:\Projects\OctopusDev\Development\Data\ComplexNetVersions.json', 'r') as versions_file:
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        path = sep.join(basedir.split(sep)[0:-2]+['Data'])
+        print (path + sep+ 'ComplexNetVersions.json')
+        print(sep)
+        with open(path + sep+ 'ComplexNetVersions.json', 'r') as versions_file:
             versions_json = json.load(versions_file)
             versions = versions_json[project]['versions']
             latest = versions_json[project]['latest']
@@ -3343,7 +3350,11 @@ class ComplexNet(db.Model):
 
     @staticmethod
     def get_skeleton(version):
-        with open('C:\Projects\OctopusDev\Development\Data\complexNetSkeleton_'+version+'.json', 'r') as skeleton_file:
+        basedir = os.path.abspath(os.path.dirname(__file__)) 
+        #basedir = "C:\\Users\\Ilan\\github\\Development\\Source\\python"
+        path = sep.join(basedir.split(sep)[0:-2]+['Data'])
+        print(path + sep+ 'complexNetSkeleton_'+version+'.json')
+        with open(path + sep + 'complexNetSkeleton_'+version+'.json', 'r') as skeleton_file:
             skeleton = json.load(skeleton_file)
         return jsonify(status=1, skeleton = skeleton)
 
