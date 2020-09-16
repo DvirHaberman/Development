@@ -1,0 +1,9 @@
+{
+    "hats": {
+        "latest": "V1",
+        "versions": [
+            "V1",
+            "V2"
+        ]
+    }
+}

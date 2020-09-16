@@ -1,0 +1,116 @@
+{
+    "version": "V2",
+    "data": [{
+            "name": "Simulation",
+            "location": "external_simulators_div",
+            "width": 4,
+            "isCentered": "no",
+            "elements": [{
+                    "type": "select",
+                    "amount": 1,
+                    "labels": ["watch"],
+                    "options": ["watch1", "watch2", "watch3"],
+                    "indices": [0]
+                },
+                {
+                    "type": "select",
+                    "amount": 1,
+                    "labels": ["DIS"],
+                    "options": ["DIS1", "DIS2", "DIS3"],
+                    "indices": [0]
+                },
+                {
+                    "type": "checkbox",
+                    "amount": 1,
+                    "labels": ["Ext. simulation"],
+                    "indices": [0]
+                }
+            ]
+        },
+        {
+            "name": "C",
+            "location": "external_simulators_div",
+            "width": 4,
+            "isCentered": "no",
+            "elements": [{
+                    "type": "select",
+                    "amount": 1,
+                    "labels": ["Backup Env:"],
+                    "options": ["env1", "env2", "env3"],
+                    "indices": [0]
+                },
+                {
+                    "type": "checkbox",
+                    "amount": 1,
+                    "labels": ["Ext. simulation"],
+                    "indices": [0]
+                }
+            ]
+        },
+        {
+            "name": "comp1",
+            "location": "sensors_div_line1",
+            "width": 3,
+            "isCentered": "yes",
+            "elements": [{
+                "type": "select",
+                "amount": 3,
+                "labels": [1, 2, 3],
+                "options": ["one1", "two1", "three1"],
+                "indices": [0, 0, 0]
+            }]
+        },
+        {
+            "name": "NEW",
+            "location": "sensors_div_line1",
+            "width": 3,
+            "isCentered": "no",
+            "elements": [{
+                "type": "select",
+                "amount": 6,
+                "labels": [1, 2, 3, 4, 5, 6],
+                "options": ["one2", "two2", "three2", "three2222"],
+                "indices": [0, 0, 0, 0, 0, 0]
+            }]
+        },
+        {
+            "name": "comp3",
+            "location": "sensors_div_line1",
+            "width": 3,
+            "isCentered": "yes",
+            "elements": [{
+                "type": "select",
+                "amount": 5,
+                "labels": [1, 2, 3, 4, 5],
+                "options": ["one3", "two3", "three3"],
+                "indices": [0, 0, 0, 0, 0]
+            }]
+        },
+        {
+            "name": "comp2",
+            "location": "sensors_div_line1",
+            "width": 3,
+            "isCentered": "yes",
+            "elements": [{
+                "type": "select",
+                "amount": 4,
+                "labels": [1, 2, 3, 4],
+                "options": ["one2", "two2", "three2"],
+                "indices": [0, 0, 0, 0]
+            }]
+        },
+        {
+            "name": "comp3",
+            "location": "sensors_div_line1",
+            "width": 3,
+            "isCentered": "yes",
+            "elements": [{
+                "type": "select",
+                "amount": 5,
+                "labels": [1, 2, 3, 4, 5],
+                "options": ["one3", "two3", "three3"],
+                "indices": [0, 0, 0, 0, 0]
+            }]
+        }
+    ]
+}
