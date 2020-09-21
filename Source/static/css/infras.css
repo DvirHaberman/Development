@@ -81,13 +81,13 @@ hr {
 }
 
 .site-data-div .first-column h3 {
-    width: 140px;
+    width: 180px;
 }
 
 .site-data-div .first-column h5 {
     FONT-WEIGHT: 200;
     FONT-WEIGHT: 200;
-    width: 180px;
+    width: 200px;
     /* width: 140px; */
 }
 
@@ -115,6 +115,10 @@ hr {
 .second-div .form-inline h5 {
     width: 180px;
     margin-left: 50px;
+}
+
+strong {
+    font-weight: 500;
 }
 
 

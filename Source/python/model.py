@@ -324,7 +324,10 @@ class DbConnector:
         if self.status == 'valid':
             self.connection = create_engine(self.conn_string, connect_args={'connect_timeout': 5})
             conn = self.connection.connect()
-            data = pd.read_sql(sql,con=conn)
+            try:
+                data = pd.read_sql(sql,con=conn)
+            except:
+                data = "'sql didn't run properly - check if sceario table is defined"
             conn.close()
             self.connection.dispose()
             self.connection = None
@@ -391,6 +394,7 @@ class DbConnector:
         except:
             return jsonify(status = 1,  message = None, data={'conn_data' : conn.self_jsonify(), 'schemas' : None, 'is_valid':0})
     
+    @staticmethod
     def is_valid(conn_name, schema):
         conn = DbConnections.query.filter_by(name=conn_name).first()
         if not conn:
@@ -2811,6 +2815,17 @@ class Site(db.Model):
         finally:
             db.session.close()
 
+    @staticmethod
+    def get_names_current_project():
+        try:
+            project_id = session['current_project_id']
+            names = Site.query.filter_by(project_id=project_id).with_entities(Site.name).all()
+            return jsonify(status=1, message=None, data=list(*zip(*names)))
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
 
     def get_names_by_project_name(project_name):
         try:
@@ -2827,6 +2842,27 @@ class Site(db.Model):
         try:
             site = Site.query.filter_by(name=site_name).first()
             return jsonify(status=1, message=None, data=site.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    def get_folder(self):
+        conn = DbConnector.load_conn_by_name(self.execrsice_conn)
+        conn.set_schema(self.execrsice_db)
+        paths = conn.run_sql('select path, file from fake_paths')
+        if isinstance(paths,type("1")):
+            return paths
+        return paths.groupby('path').apply(list).to_dict()
+
+    @staticmethod
+    def get_scenario_folder(site_name):
+        try:
+            site = Site.query.filter_by(name=site_name).first()
+            scenario_folder = site.get_folder()
+            if isinstance(scenario_folder,type("1")):
+                return jsonify(status=0, message='something went wrong', data=None)
+            return jsonify(status=1, message=None, data=scenario_folder)
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
@@ -3419,6 +3455,7 @@ class StageRunMani(db.Model):
     is_env_shutdown = db.Column(db.Boolean)
     env_shutdown_time = db.Column(db.Integer)
     changed_date = db.Column(db.DateTime)
+    changed_by = db.Column(db.Integer)
 
     def __init__(self,name, owner_id, tags, description, concequences, complex_net_id, site_id, net,
                  scenario_folder, scenario_file, is_run_all_scenarios, dp_folder, dp_file, ovr_file,
