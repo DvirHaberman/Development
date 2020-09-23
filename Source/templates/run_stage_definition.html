@@ -8,23 +8,23 @@
     </div>
     <hr>
     <div class="row main-selectors-div stage-def-inputs">
-        <div class="col-2">
+        <div class="col-3">
             <label for="site_select"><h5>Site</h5></label>
-            <select name="" id="site_select" class="form-control">
+            <select name="" id="site_select" class="form-control col-8">
                 <option value="Site1"></option>
                 <option value="Site2"></option>
                 <option value="Site3"></option>
             </select>
         </div>
-        <div class="col-1">
+        <div class="col-3">
             <label for="site_net"><h5>Net</h5></label>
-            <select name="" id="site_net" class="form-control">
+            <select name="" id="site_net" class="form-control col-8">
                 <option value="Site1"></option>
                 <option value="Site2"></option>
                 <option value="Site3"></option>
             </select>
         </div>
-        <div class="col-4">
+        <div class="col-3">
             <label for="site_config"><h5>Configuration</h5> </label>
             <div class="form-inline">
                 <select name="" id="site_config" class="form-control col-8">
@@ -32,7 +32,7 @@
                   <option value="Site2"></option>
                   <option value="Site3"></option>
               </select>
-                <a href="" role="button" class="displayInline"><i class="far fa-eye samll-margin"></i></a>
+                <a href="" role="button" class="displayInline" data-toggle="tooltip" data-placement="top" title=""><i class="far fa-eye samll-margin"></i></a>
                 <a href="" role="button" class="displayInline"><i class="fas fa-network-wired samll-margin"></i></a>
             </div>
         </div>
@@ -43,7 +43,7 @@
 
         <div class="col-5">
             <label for="scenario_folder"><h5>Scenario Folder</h5></label>
-            <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control">
+            <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control col-10">
             <datalist id="scenario_folder_dl">
                   <option value="scenarioFolder1"></option>
                   <option value="scenarioFolder2"></option>
@@ -53,7 +53,7 @@
         </div>
 
         <div class="col-7">
-            <label for="scenario_file_name"><h5>Scenario File</h5></label>
+            <label for="scenario_file_name"><h5>Scenario Name</h5></label>
             <div class="form-inline">
                 <input list="scenario_file_dl" type="text" name="" id="scenario_file_name" class="form-control">
                 <div class="form-check-inline extra-margin">
@@ -80,7 +80,7 @@
 
         <div class="col-5">
             <label for="dp_folder"><h5>DP Folder</h5></label>
-            <input list="dp_folder_dl" type="text" name="" id="dp_folder" class="form-control">
+            <input list="dp_folder_dl" type="text" name="" id="dp_folder" class="form-control col-10">
             <datalist id="dp_folder_dl">
                   <option value="dpFolder1"></option>
                   <option value="dpFolder2"></option>
@@ -105,7 +105,7 @@
 
     <div class="row stage-def-inputs marginCard">
         <div class="col-5">
-            <label id="run_time" for="ovr_file"><h5>ovr File</h5></label>
+            <label for="ovr_file"><h5>ovr File</h5></label>
             <div class="form-inline">
                 <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control col-10">
                 <datalist id="ovr_file_dl">
@@ -121,7 +121,7 @@
         <div class="col-5">
             <label for=""><h5>Run time [min]</h5></label>
             <div class="form-inline">
-                <input type="text" class="form-control">
+                <input id="run_time" type="text" class="form-control">
                 <button class="btn btn-secondary btn-sm rightmost-control" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
                   <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
             </div>

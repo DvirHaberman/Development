@@ -741,7 +741,21 @@ class User(db.Model):
     @staticmethod
     def get_names():
         try:
-            names = User.query.with_entities(User.name).all()
+            project_id = session['current_project_id']
+            users = User.query.all()
+            names = [user.name for user in users if project_id in [proj.id for proj in user.projects]]
+            status = 1
+            
+        except:
+            names = []
+            status = 0
+        return jsonify(status=status, data=names)
+
+    @staticmethod
+    def get_all_names():
+        try:
+            users = User.query.all()
+            names = [user.name for user in users]
             names = list(*zip(*names))
             status = 1
             
@@ -749,6 +763,7 @@ class User(db.Model):
             names = []
             status = 0
         return jsonify(status=status, data=names)
+
     @staticmethod
     def get_names_and_ids():
         users = User.query.with_entities(User.name, User.id).all()
@@ -2787,6 +2802,7 @@ class Site(db.Model):
         else:
             user_name = None
         return jsonify(
+                id = self.id,
                 project_id = self.project_id,
                 name = self.name,
                 version = self.version,
@@ -2853,12 +2869,26 @@ class Site(db.Model):
         paths = conn.run_sql('select path, file from fake_paths')
         if isinstance(paths,type("1")):
             return paths
-        return paths.groupby('path').apply(list).to_dict()
+        return paths.groupby('path')['file'].apply(list).to_dict()
+
+    @staticmethod
+    def get_ovr_files(site_name):
+        try:
+            project_id = session['current_project_id']
+            site = Site.query.filter_by(name=site_name, project_id=project_id).first()
+            auto_dir = site.auto_dir
+            ovr_files=[f for f in listdir(auto_dir) if isfile(join(auto_dir, f)) and (f.endswith('.ovr'))]            
+            return jsonify(status=1, message=None, data=ovr_files)
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
 
     @staticmethod
     def get_scenario_folder(site_name):
         try:
-            site = Site.query.filter_by(name=site_name).first()
+            project_id = session['current_project_id']
+            site = Site.query.filter_by(name=site_name, project_id=project_id).first()
             scenario_folder = site.get_folder()
             if isinstance(scenario_folder,type("1")):
                 return jsonify(status=0, message='something went wrong', data=None)
@@ -3432,6 +3462,7 @@ class StageRunMani(db.Model):
     __tablename__ = 'stagerunmani'
     id = db.Column(db.Integer, primary_key=True)
     name  = db.Column(db.Text)
+    project_id = db.Column(db.Integer)
     owner_id = db.Column(db.Integer)
     tags = db.Column(db.Text)
     description = db.Column(db.Text)
@@ -3441,7 +3472,7 @@ class StageRunMani(db.Model):
     net = db.Column(db.Text)
     scenario_folder = db.Column(db.Text)
     scenario_file = db.Column(db.Text)
-    is_run_all_scenarios = db.Column(db.Boolean)
+    is_run_all_scenarios = db.Column(db.Boolean, default=False)
     dp_folder = db.Column(db.Text)
     dp_file = db.Column(db.Text)
     ovr_file = db.Column(db.Text)
@@ -3457,11 +3488,12 @@ class StageRunMani(db.Model):
     changed_date = db.Column(db.DateTime)
     changed_by = db.Column(db.Integer)
 
-    def __init__(self,name, owner_id, tags, description, concequences, complex_net_id, site_id, net,
-                 scenario_folder, scenario_file, is_run_all_scenarios, dp_folder, dp_file, ovr_file,
-                 run_time, is_auto_user_cmd, user_cmd_file, is_fmc, fmc_config_file, fmc_connection_file,
-                 fmc_scenario_file, is_env_shutdown, env_shutdown_time):
+    def __init__(self,name, project_id, owner_id, tags, description, concequences, complex_net_id, site_id, net,
+                 scenario_folder, scenario_file, dp_folder, dp_file, ovr_file,
+                 run_time, is_run_all_scenarios=False, is_auto_user_cmd=False, user_cmd_file=None, is_fmc=False, fmc_config_file=None, fmc_connection_file=None,
+                 fmc_scenario_file=None, is_env_shutdown=False, env_shutdown_time=None, changed_by=None):
         self.name  = name
+        self.project_id = project_id
         self.owner_id = owner_id
         self.tags = tags
         self.description = description
@@ -3484,6 +3516,7 @@ class StageRunMani(db.Model):
         self.is_env_shutdown = is_env_shutdown
         self.env_shutdown_time = env_shutdown_time
         self.changed_date = datetime.utcnow()
+        self.changed_by = changed_by
 
     def self_jsonify(self):
         owner = User.query.get(self.owner_id)
@@ -3504,10 +3537,17 @@ class StageRunMani(db.Model):
         else:
             site_name = None
 
+        if self.changed_by:
+            user = User.query.get(self.changed_by)
+            if user:
+                changed_by = user.name
+        else:
+            changed_by = 'deleted user'
 
         return jsonify(
                 id = self.id,
                 name  = self.name,
+                project_id = self.project_id,
                 owner = owner_name,
                 tags = self.tags,
                 description = self.description,
@@ -3530,7 +3570,8 @@ class StageRunMani(db.Model):
                 fmc_scenario_file = self.fmc_scenario_file,
                 is_env_shutdown = self.is_env_shutdown,
                 env_shutdown_time = self.env_shutdown_time,
-                changed_date = self.changed_date
+                changed_date = self.changed_date,
+                changed_by = changed_by
             ).json
 
     @staticmethod
@@ -3546,8 +3587,20 @@ class StageRunMani(db.Model):
     @staticmethod
     def get_by_name(stage_run_mani_name):
         try:
-            stage_run_mani = StageRunMani.query.filter_by(name=stage_run_mani_name).first()
+            project_id = session['current_project_id']
+            stage_run_mani = StageRunMani.query.filter_by(name=stage_run_mani_name, project_id = project_id).first()
             return jsonify(status=1, message=None, data=stage_run_mani.self_jsonify())
+        except:
+            return jsonify(status=0, message='something went wrong', data=None)
+        finally:
+            db.session.close()
+
+    @staticmethod
+    def get_names():
+        try:
+            project_id = session['current_project_id']
+            stages = StageRunMani.query.filter_by(project_id = project_id).all()
+            return jsonify(status=1, message=None, data=[stage.name for stage in stages])
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
@@ -3556,51 +3609,89 @@ class StageRunMani(db.Model):
     @staticmethod
     def save(json_data):
         try:
-            owner = User.query.filter_by(name=json_data['changed_by']).first()
+            
+            project_id = session['current_project_id']
+
+            #validating meta data
+            meta_data = json_data['meta']
+            stage_name = meta_data['stage_name']
+            owner_name = meta_data['owner']
+            tags = meta_data['tags']
+            description = meta_data['description']
+            concequences = meta_data['concequences']
+            changed_by = session['username']
+            user = User.query.filter_by(name=changed_by).first()
+            if user:
+                changed_by = user.id
+            else:
+                changed_by = None
+
+            owner = User.query.filter_by(name=owner_name).first()
             if owner:
                 owner_id = owner.id
             else:
-                return jsonify(status= 0, message='Not saved! No user named ' + json_data['changed_by'])
+                return jsonify(status= 0, message='Not saved! No user named ' + meta_data['owner'])
 
-            complex_net = ComplexNet.query.filter_by(name=json_data['complex_net_name']).first()
+            stage = StageRunMani.query.filter_by(name=stage_name, project_id=project_id).first()
+            if stage:
+                return jsonify(status= 0, message='Not saved! Stage name already exists')
+                
+            #validating site data
+            site_data = json_data['site']
+            complex_net_name = site_data['config']
+            site_name = site_data['site']
+            net = site_data['net']
+            scenario_folder = site_data['scenario_folder']
+            scenario_file = site_data['scenario_file']
+            dp_folder = site_data['dp_folder']
+            dp_file = site_data['dp_file']
+            ovr_file = site_data['ovr_file']
+            run_time = site_data['run_time']
+            is_run_all = site_data['is_run_all']
+
+            complex_net = ComplexNet.query.filter_by(name=complex_net_name, project_id=project_id).first()
             if complex_net:
                 complex_net_id = complex_net.id
             else:
-                return jsonify(status= 0, message='Not saved! No complex net named ' + json_data['complex_net_name'])
+                return jsonify(status= 0, message='Not saved! No complex net named ' + complex_net_name)
 
-            site = Site.query.filter_by(name=json_data['site_name']).first()
+            site = Site.query.filter_by(name=site_name, project_id=project_id).first()
             if site:
                 site_id = site.id
+                if not ((net in site.nets.split(',')) or (net=='any')):
+                    return jsonify(status= 0, message='Not saved! No net named ' + net + 'in site ' + site_name)
             else:
-                return jsonify(status= 0, message='Not saved! No site named ' + json_data['site_name'])
-
-            name  = json_data['name']
-            tags = json_data['tags']
-            description = json_data['description']
-            concequences = json_data['concequences']
-            net = json_data['net']
-            scenario_folder = json_data['scenario_folder']
-            scenario_file = json_data['scenario_file']
-            is_run_all_scenarios = json_data['is_run_all_scenarios']
-            dp_folder = json_data['dp_folder']
-            dp_file = json_data['dp_file']
-            ovr_file = json_data['ovr_file']
-            run_time = int(json_data['run_time'])
-            is_auto_user_cmd = json_data['is_auto_user_cmd']
-            user_cmd_file = json_data['user_cmd_file']
-            is_fmc = json_data['is_fmc']
-            fmc_config_file = json_data['fmc_config_file']
-            fmc_connection_file = json_data['fmc_connection_file']
-            fmc_scenario_file = json_data['fmc_scenario_file']
-            is_env_shutdown = json_data['is_env_shutdown']
-            env_shutdown_time = int(json_data['env_shutdown_time'])
-            changed_date = datetime.utcnow()
+                return jsonify(status= 0, message='Not saved! No site named ' + site_name)
+            # is_auto_user_cmd = json_data['is_auto_user_cmd']
+            # user_cmd_file = json_data['user_cmd_file']
+            # is_fmc = json_data['is_fmc']
+            # fmc_config_file = json_data['fmc_config_file']
+            # fmc_connection_file = json_data['fmc_connection_file']
+            # fmc_scenario_file = json_data['fmc_scenario_file']
+            # is_env_shutdown = json_data['is_env_shutdown']
+            # env_shutdown_time = int(json_data['env_shutdown_time'])
+            # changed_date = datetime.utcnow()
 
 
-            stage_run_mani = StageRunMani(name, owner_id, tags, description, concequences, complex_net_id, site_id, net,
-                 scenario_folder, scenario_file, is_run_all_scenarios, dp_folder, dp_file, ovr_file,
-                 run_time, is_auto_user_cmd, user_cmd_file, is_fmc, fmc_config_file, fmc_connection_file,
-                 fmc_scenario_file, is_env_shutdown, env_shutdown_time)
+            stage_run_mani = StageRunMani(
+                name=stage_name, 
+                project_id=project_id, 
+                owner_id=owner_id, 
+                tags=tags, 
+                description=description, 
+                concequences=concequences, 
+                complex_net_id=complex_net_id, 
+                site_id=site_id, 
+                net=net,
+                scenario_folder=scenario_folder, 
+                scenario_file=scenario_file, 
+                is_run_all_scenarios=is_run_all, 
+                dp_folder=dp_folder, 
+                dp_file=dp_file, 
+                ovr_file=ovr_file,
+                run_time=run_time,
+                changed_by=changed_by
+            )
 
             db.session.add(stage_run_mani)
             db.session.commit()
@@ -3612,24 +3703,9 @@ class StageRunMani(db.Model):
             db.session.close()
 
     @staticmethod
-    def delete_by_id(stage_run_mani_id):
-        try:
-            stage_run_mani = StageRunMani.query.get(int(stage_run_mani_id))
-            if stage_run_mani:
-                db.session.delete(stage_run_mani)
-                db.session.commit()
-                return jsonify(status=1)
-            else:
-                return jsonify(status=0,message='Not deleted! No net system with this id')
-        except:
-            return jsonify(status=0,message='Not deleted! Something went wrong in the delete process')
-        finally:
-            db.session.close()
-
-    @staticmethod
     def delete_by_name(name):
         try:
-            stage_run_mani = StageRunMani.query.filter_by(name=name,project=session['current_project_id']).first()
+            stage_run_mani = StageRunMani.query.filter_by(name=name,project_id=session['current_project_id']).first()
             if stage_run_mani:
                 db.session.delete(stage_run_mani)
                 db.session.commit()
@@ -3641,100 +3717,93 @@ class StageRunMani(db.Model):
         finally:
             db.session.close()
 
+
     @staticmethod
-    def update_by_id(stage_run_mani_id, json_data):
-        try:
-            stage_run_mani = StageRunMani.query.get(int(stage_run_mani_id))
-            if stage_run_mani:
-                complex_net = ComplexNet.query.filter_by(name=json_data['complex_net_name']).first()
-                if complex_net:
-                    complex_net_id = complex_net.id
-                else:
-                    return jsonify(status= 0, message='Not saved! No complex net named ' + json_data['complex_net_name'])
+    def update(json_data):
+        try:          
+            project_id = session['current_project_id']
 
-                site = Site.query.filter_by(name=json_data['site_name']).first()
-                if site:
-                    site_id = site.id
-                else:
-                    return jsonify(status= 0, message='Not saved! No site named ' + json_data['site_name'])
-
-                name  = json_data['name']
-                tags = json_data['tags']
-                description = json_data['description']
-                concequences = json_data['concequences']
-                net = json_data['net']
-                scenario_folder = json_data['scenario_folder']
-                scenario_file = json_data['scenario_file']
-                is_run_all_scenarios = json_data['is_run_all_scenarios']
-                dp_folder = json_data['dp_folder']
-                dp_file = json_data['dp_file']
-                ovr_file = json_data['ovr_file']
-                run_time = int(json_data['run_time'])
-                is_auto_user_cmd = json_data['is_auto_user_cmd']
-                is_fmc = json_data['is_fmc']
-                fmc_config_file = json_data['fmc_config_file']
-                fmc_connection_file = json_data['fmc_connection_file']
-                fmc_scenario_file = json_data['fmc_scenario_file']
-                is_env_shutdown = json_data['is_env_shutdown']
-                env_shutdown_time = int(json_data['env_shutdown_time'])
-                changed_date = datetime.utcnow()
-
-                db.session.add(stage_run_mani)
-                db.session.commit()
-                return jsonify(status=1,message='stage ' + stage_run_mani.name + ' succesfully updated')
+            #validating meta data
+            meta_data = json_data['meta']
+            orig_stage_name = meta_data['orig_stage_name']
+            stage_name = meta_data['stage_name']
+            owner_name = meta_data['owner']
+            tags = meta_data['tags']
+            description = meta_data['description']
+            concequences = meta_data['concequences']
+            changed_by = session['username']
+            user = User.query.filter_by(name=changed_by).first()
+            if user:
+                changed_by = user.id
             else:
-                return jsonify(status=0,message='Not deleted! No stage with this name')
+                changed_by = None
 
-        except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
-        finally:
-            db.session.close()
-
-    def update_by_name(name, json_data):
-        try:
-            stage_run_mani = StageRunMani.query.filter_by(name=name).first()
-            if stage_run_mani:
-                complex_net = ComplexNet.query.filter_by(name=json_data['complex_net_name']).first()
-                if complex_net:
-                    complex_net_id = complex_net.id
-                else:
-                    return jsonify(status= 0, message='Not saved! No complex net named ' + json_data['complex_net_name'])
-
-                site = Site.query.filter_by(name=json_data['site_name']).first()
-                if site:
-                    site_id = site.id
-                else:
-                    return jsonify(status= 0, message='Not saved! No site named ' + json_data['site_name'])
-
-                name  = json_data['name']
-                tags = json_data['tags']
-                description = json_data['description']
-                concequences = json_data['concequences']
-                net = json_data['net']
-                scenario_folder = json_data['scenario_folder']
-                scenario_file = json_data['scenario_file']
-                is_run_all_scenarios = json_data['is_run_all_scenarios']
-                dp_folder = json_data['dp_folder']
-                dp_file = json_data['dp_file']
-                ovr_file = json_data['ovr_file']
-                run_time = int(json_data['run_time'])
-                is_auto_user_cmd = json_data['is_auto_user_cmd']
-                is_fmc = json_data['is_fmc']
-                fmc_config_file = json_data['fmc_config_file']
-                fmc_connection_file = json_data['fmc_connection_file']
-                fmc_scenario_file = json_data['fmc_scenario_file']
-                is_env_shutdown = json_data['is_env_shutdown']
-                env_shutdown_time = int(json_data['env_shutdown_time'])
-                changed_date = datetime.utcnow()
-
-                db.session.add(stage_run_mani)
-                db.session.commit()
-                return jsonify(status=1,message='stage ' + stage_run_mani.name + ' succesfully updated')
+            owner = User.query.filter_by(name=owner_name).first()
+            if owner:
+                owner_id = owner.id
             else:
-                return jsonify(status=0,message='Not deleted! No stage with this name')
+                return jsonify(status= 0, message='Not saved! No user named ' + meta_data['owner'])
+            
+            if orig_stage_name != stage_name:
+                stage = StageRunMani.query.filter_by(name=stage_name, project_id=project_id).first()
+                if stage:
+                    return jsonify(status= 0, message='Not saved! Stage name already exists')
 
+            stage = StageRunMani.query.filter_by(name=orig_stage_name, project_id=project_id).first()
+            if not stage:
+                return jsonify(status= 0, message='Not saved! No stage with this name')    
+                
+            #validating site data
+            site_data = json_data['site']
+            complex_net_name = site_data['config']
+            site_name = site_data['site']
+            net = site_data['net']
+            scenario_folder = site_data['scenario_folder']
+            scenario_file = site_data['scenario_file']
+            dp_folder = site_data['dp_folder']
+            dp_file = site_data['dp_file']
+            ovr_file = site_data['ovr_file']
+            run_time = site_data['run_time']
+            is_run_all = site_data['is_run_all']
+
+            complex_net = ComplexNet.query.filter_by(name=complex_net_name, project_id=project_id).first()
+            if complex_net:
+                complex_net_id = complex_net.id
+            else:
+                return jsonify(status= 0, message='Not saved! No complex net named ' + complex_net_name)
+
+            site = Site.query.filter_by(name=site_name, project_id=project_id).first()
+            if site:
+                site_id = site.id
+                if not ((net in site.nets.split(',')) or (net=='any')):
+                    return jsonify(status= 0, message='Not saved! No net named ' + net + 'in site ' + site_name)
+            else:
+                return jsonify(status= 0, message='Not saved! No site named ' + site_name)
+
+            stage.name=stage_name
+            stage.owner_id=owner_id
+            stage.tags=tags
+            stage.description=description 
+            stage.concequences=concequences
+            stage.complex_net_id=complex_net_id
+            stage.site_id=site_id
+            stage.net=net
+            stage.scenario_folder=scenario_folder
+            stage.scenario_file=scenario_file
+            stage.is_run_all_scenarios=is_run_all
+            stage.dp_folder=dp_folder
+            stage.dp_file=dp_file
+            stage.ovr_file=ovr_file
+            stage.run_time=run_time
+            stage.changed_by=changed_by
+            stage.changed_date = datetime.utcnow()
+
+            db.session.add(stage)
+            db.session.commit()
+
+            return jsonify(status= 1, message='Stage ' + stage.name + ' successfuly updated')
         except Exception as error:
-            return jsonify(status=0, message='Not updated! something went wrong - please try again later')
+            return jsonify(status=0, message='Not saved! something went wrong - please try again later')
         finally:
             db.session.close()
 
