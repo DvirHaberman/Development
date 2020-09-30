@@ -2290,12 +2290,15 @@ class Mission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     project = db.Column(db.Integer)
-    def __init__(self, name=None, project=None):
+    mission_type = db.Column(db.Integer)
+
+    def __init__(self, name=None, project=None, mission_type=0):
         if name:
             self.name=name
         else:
             self.name='mission'+str(self.id)
         self.project = project
+        self.mission_type = mission_type
 
     # @staticmethod
     # def push_task(user_id, function, run_id, db_conn)
@@ -3807,6 +3810,59 @@ class StageRunMani(db.Model):
         finally:
             db.session.close()
 
+class AutoRunData():
+
+    def __init__(
+        self, 
+        mission_id, 
+        excercise_name,
+        project,
+        net_comp_net_name,
+        net_to_run,            
+        ovr_file,
+        reset_id = -1, 
+        site = None,
+        user_id = None,
+        user_serial_run = None,
+        process_id = None,
+        curr_step_in_process = None,
+        stage_id = None,
+        curr_step_in_stage = None,
+        unique_id = None,
+        fmc_connection_file_name = None,
+        fmc_trigger_name = None,
+        auto_user_cmds= None,
+        net_type = 'Training',
+        seconds_to_run = 900,
+        priority = 10,
+        prof_mode = 'N',
+        reset_mode = 'N',
+        fragment_mode = 'N',
+        speed = 'Normal',
+        time_from_file = 'N.A.',
+        scenario_start_time = 'N.A.',
+        rec_file = 'N.A.',
+        switch = 'No',
+        get_up_in = 0,
+        net_id = 0,
+        rejected_job = 'N'
+        ):
+
+        t = time.localtime( time.time() )
+        date_num = t.tm_hour*3600 + t.tm_minute*60 + t.tm_seconds
+        date_run = time.asctime( time.localtime(time.time()) )
+
+        self.mission_id = mission_id, 
+        self.excercise_name = excercise_name
+        self.project = project
+        self.ovr_file = ovr_file
+        self.net_type = 'Training'
+        self.seconds_to_run = 900
+        self.priority = 10
+        self.date_num = date_num
+        self.date_run = date_run
+        self.net_comp_net_name = net_comp_net_name,
+        self.net_to_run = net_to_run,
 
 class RunList(db.Model):
     __tablename__ = 'runlist'
@@ -4320,3 +4376,78 @@ class SetupRuns(db.Model):
             scenario_name = self.scenario_name,
             project = Project.query.get(self.project).name
         ).json
+
+class RunMission(db.Model):
+    __tablename__ = 'runmission'
+    id = db.Column(db.Integer, primary_key=True)
+    mission_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
+    stage_id = db.Column(db.Integer)
+    site_version = db.Column(db.Text)
+    priority = db.Column(db.Integer)
+
+    def __init__(self, mission_id, user_id, stage_id, site_version, priority = 10):
+        self.mission_id = mission_id
+        self.user_id = user_id
+        self.stage_id = stage_id
+        self.site_version = site_version
+        self.priority = priority
+
+    # @staticmethod
+    # def create_mission(json_data):
+    #     project_id = project=session['current_project_id']
+
+    #     project = Project.query.get(project_id).name
+    #     user_name = session['username']
+    #     stage_name = json_data['stage_name']
+    #     site_version = json_data['site_version']
+    #     priority = json_data['priority']
+    #     user = User.query.filter_by(name=user_name).first()
+    #     if user:
+    #         user_id = user.id
+    #     else:
+    #         return jsonify(status = 0, message="no user with this name")
+
+    #     stage = StageRunMani.query.filter_by(name=stage_name, project_id=project_id ).first()
+    #     if stage:
+    #         stage_id = stage.id
+    #         site = Site.query.get(stage_id.site_id)
+    #         site_version = site.version
+    #     else:
+    #         return jsonify(status = 0, message="no stage with this name")
+
+        
+    #     mission = Mission(stage_name + '_' + user_name, project=project, mission_type=1)
+    #     db.session.add(mission)
+    #     db.session.commit()
+
+
+    #     run_mission = RunMission(
+    #         mission_id = mission.id,
+    #         user_id = user_id,
+    #         stage_id = stage_id,
+    #         site_version = site_version,
+    #         priority = priority
+    #         )
+    #     if stage.net == "any":
+    #         net_to_run = int(site.nets.split(',')[0])
+    #     else:
+    #         net_to_run = int(stage.net)
+    #     try:
+    #         net_comp_net_name = ComplexNet.query.get(stage.complex_net_id).name
+    #     except:
+
+    #     auto_run = AutoRunData(
+    #                             mission_id = run_mission.id, 
+    #                             excercise_name= site.scenario_file,
+    #                             project=project,   
+    #                             net_comp_net_name = stage.,
+    #                             net_to_run = net_to_run,            
+    #                             ovr_file = stage.ovr_file,
+    #                             site = run_mission.site_id,
+    #                             user_id = run_mission.user_id,
+    #                             stage_id = stage_id,
+    #                             seconds_to_run = 900,
+    #                             priority = run_mission.priority,
+    #     )
+        
