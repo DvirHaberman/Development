@@ -716,6 +716,13 @@ function Function_Definition_form_controls_handler() {
                     }
                 }
             });
+            if (Stage == 'new') {
+                set_callbacks(false, false, false);
+            } else {
+                set_callbacks(false, false, true);
+
+            }
+
             setOperLineString();
         },
         this.get_form_data = function() {
@@ -878,20 +885,18 @@ function manual_clear() {
     //clear callback
     //clear class name and checkbox
     //clear full path
-    clear_callback_data()
+    clear_callback_data();
+    form_controls.location.value = '';
     form_controls.oper_line.innerHTML = '';
-    let new_thead = document.createElement('thead');
-    let old_thead = form_controls.function_parameters.children[0];
-    form_controls.function_parameters.replaceChild(new_thead, old_thead);
+    var num_of_rows = form_controls.function_parameters.rows.length;
+    for (i = 0; i < num_of_rows - 1; i++) {
+        form_controls.function_parameters.deleteRow(1);
+    }
     //clear table
     //clear oper line
 }
 
-function clear_callback_data() {
-    //clear callback
-    //clear class name and checkbox
-    //clear full path
-}
+
 
 function manual_disable() {
     //disable callback
@@ -954,6 +959,7 @@ function get_seperator() {
 
 function get_files_in_dir() {
     let kind = $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text;
+    form_controls.oper_line.innerHTML = '---------';
     if (kind == "Manual") {
         manual_clear();
         manual_disable();
@@ -992,12 +998,13 @@ function get_files_in_dir() {
             let splitted_location = file.split(sep)
             if (kind == 'Python') {
                 // 1. get callbacks
-                set_callbacks();
+                set_callbacks(true, true, false);
             } else {
                 // 1. is class = false and disabled
                 form_controls.is_class_method.checked = false;
                 form_controls.is_class_method.disabled = true;
-                form_controls.callback.value = splitted_location[splitted_location.length - 1]
+                form_controls.callback.value = splitted_location[splitted_location.length - 1].split('.')[0];
+                setOperLineString();
             }
         }
 
@@ -1006,7 +1013,16 @@ function get_files_in_dir() {
 
 // form_handler.clear_form();
 form_controls.location.addEventListener("input", get_files_in_dir);
-form_controls.kind.addEventListener("change", get_files_in_dir);
+form_controls.kind.addEventListener("change", () => {
+    $.ajax({
+        url: "/api/OctopusUtils/get_functions_basedir",
+        async: false,
+        success: function(result) {
+            form_controls.location.value = result.dir;
+        }
+    });
+    get_files_in_dir();
+});
 $('#NewExist_toggle').change(function() {
     $('.alert')[0].hidden = true;
     if (action === "saveNewFunction") {
@@ -1104,17 +1120,53 @@ async function get_callbacks_from_class(file_full_path, class_name) {
     return callbacks;
 }
 
-async function set_callbacks() {
+async function set_callbacks(is_clear_data, is_set_disable, is_validate) {
     //get file name
     let file = form_controls.location.value;
+    let class_name = form_controls.class_name.value;
     let is_checked = form_controls.is_class_method.checked;
+    let kind = $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text;
+    let status = form_controls.status.options[form_controls.status.selectedIndex].text;
+    let errors = null;
+    let to_validate = false;
+    if (status != 'Needed' && kind != 'Manual' && is_validate) {
+        to_validate = true;
+    }
+    if (is_clear_data) {
+        form_controls.callback.value = '';
+        form_controls.class_name.value = '';
+    }
+
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/api/OctopusUtils/get_files_in_dir",
+        dataType: "json",
+        data: JSON.stringify({ "path": form_controls.location.value, "kind": kind }),
+        contentType: 'application/json',
+        success: function(result) {
+            var datalistObj = $('#location_datalist')[0]
+            var numOfEle = datalistObj.children.length;
+            for (i = 0; i < numOfEle; i++) {
+                datalistObj.removeChild(datalistObj.options[0]);
+            }
+            if (result.status) {
+                for (i = 0; i < result.all.length; i++) {
+                    // insert
+                    var option = document.createElement("option");
+                    option.value = result.all[i];
+                    datalistObj.appendChild(option);
+                }
+            }
+        }
+    });
 
     //if checked:
     if (is_checked) {
         //--------callback-----------
 
         //clear and disable callback
-        form_controls.callback.value = '';
+
         form_controls.callback.disabled = true;
 
         //clear callback dl
@@ -1123,9 +1175,9 @@ async function set_callbacks() {
         //--------class name-------------
 
         //clear and enable class
-        form_controls.class_name.value = '';
-        form_controls.class_name.disabled = false;
-
+        if (is_set_disable) {
+            form_controls.class_name.disabled = false;
+        }
         //clear class dl
         clear_datalist('classname_datalist');
 
@@ -1133,11 +1185,31 @@ async function set_callbacks() {
         let classes = await get_classes(file);
 
         fill_datalist('classname_datalist', classes);
+        if (to_validate) {
+            //check that file is in location
+            //check that class is in file
+            //check that callback is in class
+            if (to_validate) {
+                //check that file is in location
+                if (not_in_datalist($('#location_datalist')[0], file)) {
+                    errors = 'loaded file name is not in location';
+                }
+                //check that class is in file
+                if (not_in_datalist($('#classname_datalist')[0], class_name)) {
+                    errors = errors ? errors + '\n' + 'loaded class "' + class_name + '" is not in file' : 'loaded class "' + class_name + '" is not in file';
+                }
+                let callbacks = await get_callbacks_from_class(file, class_name);
+                fill_datalist('callback_datalist', callbacks);
+                //check that callback is in file
+                if (not_in_datalist($('#callback_datalist')[0], form_controls.callback.value)) {
+                    errors = errors ? errors + '\n' + 'loaded callback "' + form_controls.callback.value + '" is not in class' : 'loaded callback "' + form_controls.callback.value + '" is not in class';
+                }
+            }
+        }
     } else {
         //--------class name-----------
 
         //clear and disable class
-        form_controls.class_name.value = '';
         form_controls.class_name.disabled = true;
 
         //clear class dl
@@ -1146,9 +1218,9 @@ async function set_callbacks() {
         //--------callback-------------
 
         //clear and enable callback
-        form_controls.callback.value = '';
-        form_controls.callback.disabled = false;
-
+        if (is_set_disable) {
+            form_controls.callback.disabled = false;
+        }
         //clear callback dl
         clear_datalist('callback_datalist');
 
@@ -1157,10 +1229,23 @@ async function set_callbacks() {
 
         //fill callback dl
         fill_datalist('callback_datalist', callbacks);
+        if (to_validate) {
+            //check that file is in location
+            if (not_in_datalist($('#location_datalist')[0], file)) {
+                errors = 'loaded file name is not in location';
+            }
+            //check that callback is in file
+            if (not_in_datalist($('#callback_datalist')[0], form_controls.callback.value)) {
+                errors = errors ? errors + '\n' + 'loaded callback "' + form_controls.callback.value + '" is not in file' : 'loaded callback "' + form_controls.callback.value + '" is not in file';
+            }
+        }
+    }
+    if (errors) {
+        alert(errors);
     }
 }
 
-form_controls.is_class_method.addEventListener('change', set_callbacks);
+form_controls.is_class_method.addEventListener('change', () => { set_callbacks(true, true, false) });
 
 form_controls.class_name.addEventListener('change', async() => {
     file = form_controls.location.value;
@@ -1185,6 +1270,7 @@ $('#meta_duplicate')[0].addEventListener("click", function() {
     setToggle("NewExist_toggle", "on"); //(new)
     form_handler.fill_form(functoinIndex, []);
     form_controls.function_select.value = "";
+    Stage = 'new';
 });
 
 
