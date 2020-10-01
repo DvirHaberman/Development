@@ -16,7 +16,7 @@ var funciton_kinds = ["Python", "Matlab", "SQL"];
 var Flag_toggle = 0;
 var action = "update";
 var group_permissions = {};
-
+var sep = null;
 
 var form_controls = {
     function_select: $('#meta_function_name')[0],
@@ -34,8 +34,9 @@ var form_controls = {
     class_name: $("input[name='outputClassName']")[0],
     function_parameters: $("table[name='function_parameters']")[0],
     groups: $("ul[name='GroupsListNames']")[0],
-    changed_by: $("#function_last_changed_by")[0]
-
+    changed_by: $("#function_last_changed_by")[0],
+    add_param: $("button[name='plus_param_row_button']")[0],
+    oper_line: $('#oper_line')[0]
 };
 
 function FindSelectFuncIndex() {
@@ -623,6 +624,37 @@ function Add_Group(ul, li_Name, numOfRows) {
     // ul.push(li);
 }
 
+const validate_name = (name, field_name) => {
+    let result = {
+        status: 1,
+        message: null,
+        data: null
+    };
+    name = name.trim();
+    if (name.replace(' ', '').length == 0) {
+        result.status = 0;
+        result.message = field_name + ' : name cannot be empty';
+    }
+    if (/[^a-z_\-A-Z0-9]/.test(name.replace(' ', ''))) {
+        result.status = 0;
+        result.message += '\n' + field_name + `: name can only contain letters, numbers and the - , _ characters`;
+    }
+    result.data = name;
+    return result;
+};
+
+const not_in_datalist = (datalist, lookup_value) => {
+    let numOfEle = datalist.children.length;
+    for (let index = 0; index < numOfEle; index++) {
+        if (lookup_value == datalist.children[index].value) {
+            return 0;
+        }
+
+    }
+
+    return 1;
+}
+
 function Function_Definition_form_controls_handler() {
     this.form_controls = form_controls;
     this.clear_form = function(exclude) {
@@ -687,18 +719,23 @@ function Function_Definition_form_controls_handler() {
             setOperLineString();
         },
         this.get_form_data = function() {
+            let final_result = {
+                status: 1,
+                message: null,
+                data: null
+            };
 
             var tableRowsLength = $("table[name='function_parameters']")[0].rows.length;
             tableData = [];
             for (i = 1; i < tableRowsLength; i++) {
-                var currRow = $("table[name='function_parameters']")[0].rows[i]
+                let currRow = $("table[name='function_parameters']")[0].rows[i]
 
                 // index
-                var index = currRow.cells[0].innerHTML;
+                let index = currRow.cells[0].innerHTML;
 
                 // kind
-                var selectObj = currRow.cells[1].children[0];
-                var kind = selectObj.options[selectObj.selectedIndex].text;
+                let selectObj = currRow.cells[1].children[0];
+                let kind = selectObj.options[selectObj.selectedIndex].text;
 
                 // value
                 if (currRow.cells[2].childElementCount > 0) {
@@ -709,7 +746,7 @@ function Function_Definition_form_controls_handler() {
 
 
                 // type
-                var selectObj = currRow.cells[3].children[0];
+                selectObj = currRow.cells[3].children[0];
                 var type = selectObj.options[selectObj.selectedIndex].text;
 
                 var paramRowData = {
@@ -722,30 +759,95 @@ function Function_Definition_form_controls_handler() {
                 tableData.push(paramRowData)
             }
 
-
-            var function_data = {
-
-                name: $('#meta_function_name')[0].value,
-                owner: $('#meta_owner')[0].value,
-                status: $("select[name='meta_status']")[0].selectedIndex,
-                changed_date: $("input[name='changed_date']")[0],
-
-                feature: $("input[name='feature']")[0].value,
-                requirement: $("input[name='requirement']")[0].value,
-                tags: $("input[name='tags']")[0].value,
-                callback: $("input[name='callback']")[0].value,
-
-                kind: $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text,
-                location: $("input[name='Location']")[0].value,
-                description: $('#function_description')[0].value,
-                is_class_method: $("input[name='isOutputIsAClass']")[0].checked,
-                class_name: $("input[name='outputClassName']")[0].value,
-
-                groups: selected_Groups,
-                function_parameters: tableData
+            //--------------- validation -------------------------
+            //validate manual/needed - only name
+            //validate indev/completed//
+            // 1. not empty or space only.
+            // 2. legal characters
+            // 3. trim spaces.
+            let name_result = validate_name($('#meta_function_name')[0].value, 'function name')
+            if (name_result.status) {
+                name = name_result.data;
+            } else {
+                final_result.status = 0;
+                final_result.message = final_result.message ? final_result.message + '\n' + name_result.message : name_result.message;
             }
 
-            return function_data;
+            // owner - backend validation
+
+            // status - closed list does not need validation
+
+            // feature - future validation needed when TFS or other managment tool is integrated
+            // requirement - future validation needed when TFS or other managment tool is integrated
+            // tags - no need
+            //-----------------------------------------------------
+            // File Full Path
+            // in list
+            if (not_in_datalist($('#location_datalist')[0], $("input[name='Location']")[0].value)) {
+                final_result.status = 0;
+                let message = 'file not in given path';
+                final_result.message = final_result.message ? final_result.message + '\n' + message : message;
+            }
+            // description - no need 
+            // callback - 
+            //1. if matlab and sql-> not empty
+            //2. if python -> not empty in list
+            let kind = $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text;
+            let callback_result = validate_name($("input[name='callback']")[0].value, 'callback');
+            if (callback_result.status) {
+                callback = callback_result.data;
+            } else {
+                final_result.status = 0;
+                final_result.message = final_result.message ? final_result.message + '\n' + callback_result.message : callback_result.message;
+            }
+            if (kind.toLowerCase() == 'python') { // will be commented
+                if (not_in_datalist($('#callback_datalist')[0], callback_result.data)) {
+                    final_result.status = 0;
+                    let message = 'callback not found in given python file';
+                    final_result.message = final_result.message ? final_result.message + '\n' + message : message;
+                }
+            }
+            // is_class_method - no need
+            let is_class_method = $("input[name='isOutputIsAClass']")[0].checked;
+            let class_name = $("input[name='outputClassName']")[0].value;
+            if (is_class_method) {
+                // class_name - if class method is checked - check for this class in file
+                if (not_in_datalist($('#classname_datalist')[0], class_name)) {
+                    final_result.status = 0;
+                    let message = 'class name not found in given python file';
+                    final_result.message = final_result.message ? final_result.message + '\n' + message : message;
+                }
+            }
+
+
+            // groups - backend validation
+            // function_parameters - no need
+            if (final_result.status) {
+                let function_data = {
+
+                    name: name,
+                    owner: $('#meta_owner')[0].value,
+                    status: $("select[name='meta_status']")[0].selectedIndex,
+                    // changed_date: $("input[name='changed_date']")[0],
+
+                    feature: $("input[name='feature']")[0].value,
+                    requirement: $("input[name='requirement']")[0].value,
+                    tags: $("input[name='tags']")[0].value,
+                    callback: $("input[name='callback']")[0].value,
+
+                    kind: kind,
+                    location: $("input[name='Location']")[0].value,
+                    description: $('#function_description')[0].value,
+                    is_class_method: is_class_method,
+                    class_name: class_name,
+
+                    groups: selected_Groups,
+                    function_parameters: tableData
+                };
+                final_result.data = function_data;
+            }
+
+            return final_result;
         },
         this.get_all_functions = function(mode) {
             $.ajax({
@@ -770,31 +872,139 @@ function Function_Definition_form_controls_handler() {
 form_handler = new Function_Definition_form_controls_handler();
 modal_form_controls_handler = new form_controls_handler();
 
+function manual_clear() {
+    //clear callback
+    //clear class name and checkbox
+    //clear full path
+    clear_callback_data()
+    form_controls.oper_line.innerHTML = '';
+    let new_thead = document.createElement('thead');
+    let old_thead = form_controls.function_parameters.children[0];
+    form_controls.function_parameters.replaceChild(new_thead, old_thead);
+    //clear table
+    //clear oper line
+}
 
-// form_handler.clear_form();
-form_controls.location.addEventListener("input", function() {
-    $.ajax({
-        type: "POST",
-        url: "/api/OctopusUtils/get_files_in_dir",
-        dataType: "json",
-        data: JSON.stringify({ "path": form_controls.location.value }),
-        contentType: 'application/json',
-        success: function(result) {
-            var datalistObj = $('#location_datalist')[0]
-            var numOfEle = datalistObj.children.length;
-            for (i = 0; i < numOfEle; i++) {
-                datalistObj.removeChild(datalistObj.options[0]);
+function clear_callback_data() {
+    //clear callback
+    //clear class name and checkbox
+    //clear full path
+}
+
+function manual_disable() {
+    //disable callback
+    //disable class name and checkbox
+    //disable full path
+    //diable table add
+}
+
+function manual_disable() {
+    form_controls.callback.disabled = true;
+    form_controls.location.disabled = true;
+    form_controls.is_class_method.disabled = true;
+    form_controls.class_name.disabled = true;
+    form_controls.add_param.disabled = true;
+    form_controls.function_parameters.disabled = true;
+}
+
+function clear_callback_data() {
+    form_controls.callback.value = '';
+    clear_datalist('callback_datalist');
+    form_controls.class_name.value = '';
+    clear_datalist('classname_datalist');
+    form_controls.is_class_method.checked = false;
+}
+
+function clear_datalist(dl_id) {
+    let dl = document.getElementById(dl_id);
+    let numOfEle = dl.children.length;
+    for (let index = 0; index < numOfEle; index++) {
+        dl.removeChild(dl.children[0]);
+    }
+}
+
+function set_new_valid_file() {
+    form_controls.callback.disabled = false;
+    form_controls.location.disabled = false;
+    form_controls.is_class_method.disabled = false;
+    form_controls.class_name.disabled = true;
+    form_controls.add_param.disabled = false;
+    form_controls.function_parameters.disabled = false;
+    clear_callback_data();
+}
+
+function set_new_invalid_file() {
+    form_controls.callback.disabled = true;
+    form_controls.location.disabled = false;
+    form_controls.is_class_method.disabled = true;
+    form_controls.class_name.disabled = true;
+    form_controls.add_param.disabled = false;
+    form_controls.function_parameters.disabled = false;
+    clear_callback_data();
+}
+
+function get_seperator() {
+    // let seperator = null;
+    fetch('api/OctopusUtils/get_seperator')
+        .then(resp => resp.json()).then(result => { sep = result.data; })
+        // return seperator;
+}
+
+function get_files_in_dir() {
+    let kind = $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text;
+    if (kind == "Manual") {
+        manual_clear();
+        manual_disable();
+    } else {
+
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: "/api/OctopusUtils/get_files_in_dir",
+            dataType: "json",
+            data: JSON.stringify({ "path": form_controls.location.value, "kind": kind }),
+            contentType: 'application/json',
+            success: function(result) {
+                var datalistObj = $('#location_datalist')[0]
+                var numOfEle = datalistObj.children.length;
+                for (i = 0; i < numOfEle; i++) {
+                    datalistObj.removeChild(datalistObj.options[0]);
+                }
+                if (result.status) {
+                    for (i = 0; i < result.all.length; i++) {
+                        // insert
+                        var option = document.createElement("option");
+                        option.value = result.all[i];
+                        datalistObj.appendChild(option);
+                    }
+                }
             }
-            for (i = 0; i < result.all.length; i++) {
-                // insert
-                var option = document.createElement("option");
-                option.value = result.all[i];
-                datalistObj.appendChild(option);
+        });
+        //if file is full valid enable is class checkbox and callback
+        //if not, disable
+        let file = form_controls.location.value;
+        if (not_in_datalist($('#location_datalist')[0], file)) {
+            set_new_invalid_file();
+        } else {
+            set_new_valid_file();
+            let splitted_location = file.split(sep)
+            if (kind == 'Python') {
+                // 1. get callbacks
+                set_callbacks();
+            } else {
+                // 1. is class = false and disabled
+                form_controls.is_class_method.checked = false;
+                form_controls.is_class_method.disabled = true;
+                form_controls.callback.value = splitted_location[splitted_location.length - 1]
             }
         }
-    });
-});
 
+    }
+}
+
+// form_handler.clear_form();
+form_controls.location.addEventListener("input", get_files_in_dir);
+form_controls.kind.addEventListener("change", get_files_in_dir);
 $('#NewExist_toggle').change(function() {
     $('.alert')[0].hidden = true;
     if (action === "saveNewFunction") {
@@ -830,7 +1040,142 @@ $('#NewExist_toggle').change(function() {
 
 });
 
-//
+function fill_datalist(dl_id, values) {
+    obj = document.getElementById(dl_id);
+    numOfEle = values.length;
+    for (let index = 0; index < numOfEle; index++) {
+        option = document.createElement('option');
+        option.text = values[index];
+        obj.appendChild(option);
+    }
+}
+
+async function get_classes(file_full_path) {
+    let classes = [];
+    await fetch('api/OctopusUtils/get_classes_from_file', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "path": file_full_path })
+    }).then(resp => resp.json()).then(result => {
+        if (result.status) {
+            classes = result.data;
+        }
+    })
+    return classes;
+}
+
+async function get_callbacks(file_full_path) {
+    let callbacks = [];
+    await fetch('api/OctopusUtils/get_callbacks_from_file', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "path": file_full_path })
+    }).then(resp => resp.json()).then(result => {
+        if (result.status) {
+            callbacks = result.data;
+        }
+    })
+    return callbacks;
+}
+
+async function get_callbacks_from_class(file_full_path, class_name) {
+    let callbacks = [];
+    await fetch('api/OctopusUtils/get_callbacks_from_class', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "path": file_full_path, "class_name": class_name })
+    }).then(resp => resp.json()).then(result => {
+        if (result.status) {
+            callbacks = result.data;
+        }
+    })
+    return callbacks;
+}
+
+async function set_callbacks() {
+    //get file name
+    let file = form_controls.location.value;
+    let is_checked = form_controls.is_class_method.checked;
+
+    //if checked:
+    if (is_checked) {
+        //--------callback-----------
+
+        //clear and disable callback
+        form_controls.callback.value = '';
+        form_controls.callback.disabled = true;
+
+        //clear callback dl
+        clear_datalist('callback_datalist');
+
+        //--------class name-------------
+
+        //clear and enable class
+        form_controls.class_name.value = '';
+        form_controls.class_name.disabled = false;
+
+        //clear class dl
+        clear_datalist('classname_datalist');
+
+        //get classes form the file
+        let classes = await get_classes(file);
+
+        fill_datalist('classname_datalist', classes);
+    } else {
+        //--------class name-----------
+
+        //clear and disable class
+        form_controls.class_name.value = '';
+        form_controls.class_name.disabled = true;
+
+        //clear class dl
+        clear_datalist('classname_datalist');
+
+        //--------callback-------------
+
+        //clear and enable callback
+        form_controls.callback.value = '';
+        form_controls.callback.disabled = false;
+
+        //clear callback dl
+        clear_datalist('callback_datalist');
+
+        //get callbacks form the file
+        let callbacks = await get_callbacks(file);
+
+        //fill callback dl
+        fill_datalist('callback_datalist', callbacks);
+    }
+}
+
+form_controls.is_class_method.addEventListener('change', set_callbacks);
+
+form_controls.class_name.addEventListener('change', async() => {
+    file = form_controls.location.value;
+    class_name = form_controls.class_name.value;
+    if (!not_in_datalist($('#location_datalist')[0], file) &&
+        !not_in_datalist($('#classname_datalist')[0], class_name)) {
+        clear_datalist('callback_datalist');
+        form_controls.callback.disabled = false;
+        let callbacks = await get_callbacks_from_class(file, class_name);
+        fill_datalist('callback_datalist', callbacks);
+    } else {
+        clear_datalist('callback_datalist');
+        form_controls.callback.value = '';
+        form_controls.callback.disabled = true;
+    }
+
+});
+
 $('#meta_duplicate')[0].addEventListener("click", function() {
     $('.alert')[0].hidden = true;
     var functoinIndex = FindSelectFuncIndex()
@@ -873,48 +1218,53 @@ $('#meta_delete')[0].addEventListener("click", function() {
 //
 $('#meta_save')[0].addEventListener("click", function() {
     $('.alert')[0].hidden = true;
-    data = form_handler.get_form_data();
+    let result = form_handler.get_form_data();
+    if (result.status) {
+        if (Stage === "new") {
+            $.ajax({
+                type: "POST",
+                url: "/api/OctopusFunction/save_function",
+                dataType: "json",
+                data: JSON.stringify(result.data),
+                contentType: 'application/json',
+                success: function(resp) {
 
-    if (Stage === "new") {
-        $.ajax({
-            type: "POST",
-            url: "/api/OctopusFunction/save_function",
-            dataType: "json",
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            success: function(msg) {
-                $('#main_dissmisable_alert_text')[0].innerHTML = msg;
-                $('#main_alert')[0].hidden = false;
-                if (msg == "function " + data.name + " was succefully saved") {
-                    action = "saveNewFunction";
-                    setToggle("NewExist_toggle", "off");
+                    $('#main_dissmisable_alert_text')[0].innerHTML = resp.message;
                     $('#main_alert')[0].hidden = false;
-                    form_handler.get_all_functions('save');
-                    Stage = "update";
-                    functionFormDisable(true);
+                    if (resp.status) {
+                        action = "saveNewFunction";
+                        setToggle("NewExist_toggle", "off");
+                        $('#main_alert')[0].hidden = false;
+                        form_handler.get_all_functions('save');
+                        Stage = "update";
+                        functionFormDisable(true);
+                    }
                 }
-            }
-        });
+            });
 
+        }
+        if (Stage === "update") {
+            $.ajax({
+                type: "POST",
+                url: "/api/OctopusFunction/update",
+                dataType: "json",
+                data: JSON.stringify(result.data),
+                contentType: 'application/json',
+                success: function(msg) {
+                    $('#main_dissmisable_alert_text')[0].innerHTML = msg;
+                    $('#main_alert')[0].hidden = false;
+                    // alert(msg)
+                    form_handler.get_all_functions('current');
+                    functionFormDisable(true);
+                    var temp = 1;
+                }
+            });
+        }
+    } else {
+        // $('#main_dissmisable_alert_text')[0].innerHTML = result.message;
+        // $('#main_alert')[0].hidden = false;
+        alert(result.message);
     }
-    if (Stage === "update") {
-        $.ajax({
-            type: "POST",
-            url: "/api/OctopusFunction/update",
-            dataType: "json",
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            success: function(msg) {
-                $('#main_dissmisable_alert_text')[0].innerHTML = msg;
-                $('#main_alert')[0].hidden = false;
-                // alert(msg)
-                form_handler.get_all_functions('current');
-                functionFormDisable(true);
-                var temp = 1;
-            }
-        });
-    }
-
 
 });
 
@@ -953,8 +1303,9 @@ $("input[name='callback']")[0].addEventListener("change", function() {
 });
 
 var AllGroups = getAllGroups("groups_datalist");
-form_handler.get_all_functions('onReset')
+form_handler.get_all_functions('onReset');
 setToggle("NewExist_toggle", "off");
 
+get_seperator();
 // getAllGroups("Group_Function_Name"); // modal
 // getAllGroups("some_datalist");  // modal

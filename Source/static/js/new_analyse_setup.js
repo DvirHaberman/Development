@@ -228,7 +228,7 @@ function update_setup(data) {
         contentType: 'application/json',
         success: (response) => {
             if (response.status) {
-                $('#dissmisable_main_alert_text')[0].innerHTML = "setup updated";
+                $('#main_dissmisable_alert_text')[0].innerHTML = "setup updated";
                 $('#main_alert')[0].hidden = false;
                 // alert('success');
             } else {

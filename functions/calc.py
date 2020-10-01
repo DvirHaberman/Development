@@ -10,3 +10,11 @@ class Calc:
     def multi_func(conn, run_id, a, b):
         data = pd.read_sql('select * from run_ids',con=conn)
         return {'result_status':4, 'result_arr':data, 'result_text':'just success'}
+
+class ReturnNums:
+    @staticmethod
+    def return_one():
+        return 1
+    
+    def return_zero():
+        return 0
