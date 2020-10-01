@@ -772,62 +772,64 @@ function Function_Definition_form_controls_handler() {
                 final_result.status = 0;
                 final_result.message = final_result.message ? final_result.message + '\n' + name_result.message : name_result.message;
             }
-
-            // owner - backend validation
-
-            // status - closed list does not need validation
-
-            // feature - future validation needed when TFS or other managment tool is integrated
-            // requirement - future validation needed when TFS or other managment tool is integrated
-            // tags - no need
-            //-----------------------------------------------------
-            // File Full Path
-            // in list
-            if (not_in_datalist($('#location_datalist')[0], $("input[name='Location']")[0].value)) {
-                final_result.status = 0;
-                let message = 'file not in given path';
-                final_result.message = final_result.message ? final_result.message + '\n' + message : message;
-            }
-            // description - no need 
-            // callback - 
-            //1. if matlab and sql-> not empty
-            //2. if python -> not empty in list
             let kind = $("select[name='kind']")[0].options[$("select[name='kind']")[0].selectedIndex].text;
-            let callback_result = validate_name($("input[name='callback']")[0].value, 'callback');
-            if (callback_result.status) {
-                callback = callback_result.data;
-            } else {
-                final_result.status = 0;
-                final_result.message = final_result.message ? final_result.message + '\n' + callback_result.message : callback_result.message;
-            }
-            if (kind.toLowerCase() == 'python') { // will be commented
-                if (not_in_datalist($('#callback_datalist')[0], callback_result.data)) {
-                    final_result.status = 0;
-                    let message = 'callback not found in given python file';
-                    final_result.message = final_result.message ? final_result.message + '\n' + message : message;
-                }
-            }
-            // is_class_method - no need
+            let status = $("select[name='meta_status']")[0].selectedIndex;
             let is_class_method = $("input[name='isOutputIsAClass']")[0].checked;
             let class_name = $("input[name='outputClassName']")[0].value;
-            if (is_class_method) {
-                // class_name - if class method is checked - check for this class in file
-                if (not_in_datalist($('#classname_datalist')[0], class_name)) {
+            if (kind !== 'Manual' && status !== 0) {
+                // owner - backend validation
+
+                // status - closed list does not need validation
+
+                // feature - future validation needed when TFS or other managment tool is integrated
+                // requirement - future validation needed when TFS or other managment tool is integrated
+                // tags - no need
+                //-----------------------------------------------------
+                // File Full Path
+                // in list
+                if (not_in_datalist($('#location_datalist')[0], $("input[name='Location']")[0].value)) {
                     final_result.status = 0;
-                    let message = 'class name not found in given python file';
+                    let message = 'file not in given path';
                     final_result.message = final_result.message ? final_result.message + '\n' + message : message;
                 }
+                // description - no need 
+                // callback - 
+                //1. if matlab and sql-> not empty
+                //2. if python -> not empty in list
+                let callback_result = validate_name($("input[name='callback']")[0].value, 'callback');
+                if (callback_result.status) {
+                    callback = callback_result.data;
+                } else {
+                    final_result.status = 0;
+                    final_result.message = final_result.message ? final_result.message + '\n' + callback_result.message : callback_result.message;
+                }
+                if (kind.toLowerCase() == 'python') { // will be commented
+                    if (not_in_datalist($('#callback_datalist')[0], callback_result.data)) {
+                        final_result.status = 0;
+                        let message = 'callback not found in given python file';
+                        final_result.message = final_result.message ? final_result.message + '\n' + message : message;
+                    }
+                }
+                // is_class_method - no need
+                if (is_class_method) {
+                    // class_name - if class method is checked - check for this class in file
+                    if (not_in_datalist($('#classname_datalist')[0], class_name)) {
+                        final_result.status = 0;
+                        let message = 'class name not found in given python file';
+                        final_result.message = final_result.message ? final_result.message + '\n' + message : message;
+                    }
+                }
+
+
+                // groups - backend validation
+                // function_parameters - no need
             }
-
-
-            // groups - backend validation
-            // function_parameters - no need
             if (final_result.status) {
                 let function_data = {
 
                     name: name,
                     owner: $('#meta_owner')[0].value,
-                    status: $("select[name='meta_status']")[0].selectedIndex,
+                    status: status,
                     // changed_date: $("input[name='changed_date']")[0],
 
                     feature: $("input[name='feature']")[0].value,
@@ -1023,6 +1025,7 @@ $('#NewExist_toggle').change(function() {
                 url: "/api/OctopusUtils/get_functions_basedir",
                 success: function(result) {
                     form_controls.location.value = result.dir;
+                    get_files_in_dir();
                 }
             });
 
