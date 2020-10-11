@@ -546,10 +546,10 @@ class Task:
         self.priority = priority
         self.status = status
 
-    def log(self):
+    def log(self, status=-3):
         task = AnalyseTask(mission_id=self.mission_id, mission_type=0, function_id=self.function_id,
                  run_id=self.run_id, run_status=self.run_status, scenario_name=self.scenario_name, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.name,
-                 priority=1, user_id=self.user_id, status=-3)
+                 priority=1, user_id=self.user_id, status=status)
         db.session.add(task)
         db.session.commit()
         self.id = task.id
@@ -4416,7 +4416,10 @@ class AnalyseSetup(db.Model):
         db.session.commit()
         # getting functions ids
         functions_ids = self.get_func_ids()
-        
+        functions = db.session.query(OctopusFunction).filter(
+                                OctopusFunction.id.in_(functions_ids)).all()
+        functions_data = {}
+        [functions_data.update({str(f.id):{"kind":f.kind, "status":f.status}}) for f in functions]
         # getting runs and connections
         functions_dict = {"run_id":list, "scenario_name":list}
         df=pd.DataFrame(self.get_dbs_and_runs()).groupby('db_name').aggregate(functions_dict)
@@ -4435,7 +4438,11 @@ class AnalyseSetup(db.Model):
                     if run_status > 0:
                         if run_id not in db_run_ids:
                             run_status = -2
-                    task = Task(mission.id, conn, run_id, run_status, scenario_name, func_id, user_id)
+                    if (functions_data[str(func_id)]['kind'] == 'Manual') or (functions_data[str(func_id)]['status'] == 0):
+                        status = -6
+                    else:
+                        status = -3
+                    task = Task(mission.id, conn, run_id, run_status, scenario_name, func_id, user_id, status=status)
                     tasks_queue.put_nowait(task)
 
         return {"status":1,"message":'task id is'+str(mission.id)}
