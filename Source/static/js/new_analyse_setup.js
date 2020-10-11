@@ -228,7 +228,7 @@ function update_setup(data) {
         contentType: 'application/json',
         success: (response) => {
             if (response.status) {
-                $('#dissmisable_main_alert_text')[0].innerHTML = "setup updated";
+                $('#main_dissmisable_alert_text')[0].innerHTML = "setup updated";
                 $('#main_alert')[0].hidden = false;
                 // alert('success');
             } else {
@@ -572,8 +572,18 @@ function assign_event_setup_listeners() {
                     // alert("running!");
                     get_mission_names();
                     load_mission(mission_names[0])
+                    $('#SetupContent')[0].classList.add('collapse');
+                    $('#SetupContent')[0].classList.remove('show');
+                    $('#AnalyseContent')[0].classList.remove('collapse');
+                    $('#AnalyseContent')[0].classList.add('show');
+                    $('#collapse_analyse_button i')[0].classList.remove('fa-plus-square');
+                    $('#collapse_analyse_button i')[0].classList.add('fa-minus-square');
+                    $('#collapse_analyse_button')[0].classList.remove('collapsed');
+                    $('#collapse_setup_button i')[0].classList.add('fa-plus-square');
+                    $('#collapse_setup_button i')[0].classList.remove('fa-minus-square');
                 }
             });
+            //collapse setup and open display
         } else {
             //save the setup as temp and run it
         }
@@ -630,10 +640,10 @@ function assign_event_setup_listeners() {
         $('#collapse_setup_button i').toggleClass("fa-plus-square");
     });
 
-    $('#collapse_analyse_button').click(() => {
-        $('#collapse_analyse_button i').toggleClass("fa-minus-square");
-        $('#collapse_analyse_button i').toggleClass("fa-plus-square");
-    });
+    // $('#collapse_analyse_button').click(() => {
+    //     $('#collapse_analyse_button i').toggleClass("fa-minus-square");
+    //     $('#collapse_analyse_button i').toggleClass("fa-plus-square");
+    // });
 
     runs_tab.addEventListener('click', () => {
         functions_tab.classList.remove('active')

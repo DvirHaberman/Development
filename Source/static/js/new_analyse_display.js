@@ -288,5 +288,5 @@ function s2ab(s) {
 $("#export_to_excel_button")[0].addEventListener('click', () => {
     var wb = XLSX.utils.table_to_book(document.getElementById('results_table'), { sheet: "Sheet JS" });
     var wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'binary' });
-    saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), 'test.xlsx');
+    saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), mission_name.value + '.xlsx');
 });

@@ -30,9 +30,8 @@
 
                 <div class="col-11">
                     <label for="meta_function_name"><h5>Function Name</h5></label>
-                    <input list="meta_name_datalist" type="text" class="form-control" id="meta_function_name">
+                    <input autocomplete="off" list="meta_name_datalist" type="text" class="form-control" id="meta_function_name">
                     <datalist id='meta_name_datalist'>
-                      <option value="global">kjsdhfskjdf</option>
                     </datalist>
                 </div>
 
@@ -133,7 +132,7 @@
             <label for="meta_tags"><h5>Tags</h5></label>
             <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
             <label for="meta_description"><h5>Description</h5></label> {% if session['current_window_name']=='Define Stage' %}
-            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="45" rows="4"></textarea> {%else%}
+            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="40" rows="4"></textarea> {%else%}
             <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="25" rows="2"></textarea> {% endif %}
             <h6><i id="meta_date"></i></h6> <br>
             <h6><i id="meta_changed_by"></i></h6>

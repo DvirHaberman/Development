@@ -4,7 +4,7 @@
 ### It is advised to have a firm knowledge of these relationships before committing any changes ###
 ##################################################################################################
 
-
+import ast
 import pandas as pd
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
@@ -100,10 +100,11 @@ def init_db():
 
 def create_process_app(db):
     process_app = Flask(__name__)
-    db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
     process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
     process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(process_app)
+    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
+    
     return process_app
 
 def create_app(db):
@@ -454,6 +455,10 @@ class OctopusUtils:
         return jsonify(names=[func.name for func in functions])
 
     @staticmethod
+    def get_seperator():
+        return jsonify(data=sep)
+
+    @staticmethod
     def get_sys_params(conn, run_id):
         return pd.read_sql('select * from sys_params',con=conn)
         # return pd.read_sql(f'select * from sys_params where run_id={run_id}',con=conn)
@@ -463,13 +468,57 @@ class OctopusUtils:
         return 'Tests Params'
 
     @staticmethod
+    def get_classes_from_file(json_data):
+        with open(json_data['path'], 'r') as python_file:
+            p=ast.parse(python_file.read())
+        classes = [node.name for node in p.body if isinstance(node, ast.ClassDef)]
+        return jsonify(status = 1, data=classes)
+
+    @staticmethod
+    def get_callbacks_from_file(json_data):
+        with open(json_data['path'], 'r') as python_file:
+            p=ast.parse(python_file.read())
+        callbacks = [node.name for node in p.body if isinstance(node, ast.FunctionDef)]
+        return jsonify(status = 1, data=callbacks)
+    @staticmethod
+    def get_callbacks_from_class(json_data):
+        with open(json_data['path'], 'r') as python_file:
+            p=ast.parse(python_file.read())
+        required_class = [node for node in p.body 
+                    if (isinstance(node, ast.ClassDef)) and (node.name == json_data['class_name'])][0]
+        callbacks = [node.name for node in required_class.body if isinstance(node, ast.FunctionDef)]
+        return jsonify(status = 1, data=callbacks)
+
+    @staticmethod
     def get_db_conn(db_name):
         return 'db_conn for'+ db_name
 
     @staticmethod
     def get_files_in_dir(json_data):
+        if "kind" in json_data:
+            kind = json_data['kind']
+            if kind == 'Python':
+                postfix = '.py'
+            if kind == 'Sql':
+                postfix = '.sql'
+            if kind == 'Matlab':
+                postfix = '.m'
+            if kind == 'Manual':
+                postfix = ''
+        else:
+            postfix = ''
         base_path = sep.join(json_data['path'].split(sep)[0:-1]+[''])
-        return jsonify(all=[join(base_path, f) for f in listdir(base_path)], files=[f for f in listdir(base_path) if isfile(join(base_path, f))])
+        def get_listdir_with_postfix(base_path ,postfix):
+            files = []
+            dirs = []
+            for f in listdir(base_path):
+                if not isfile(base_path+ sep + f):
+                    dirs.append(f+sep)
+                else:
+                    if f.endswith(postfix):
+                        files.append(f)
+            return files + dirs
+        return jsonify(status = 1, all=[join(base_path, f) for f in get_listdir_with_postfix(base_path ,postfix)], files=[f for f in listdir(base_path) if (isfile(join(base_path, f))) and (f.endswith(postfix))])
 
     @staticmethod
     def get_functions_basedir():
@@ -497,10 +546,10 @@ class Task:
         self.priority = priority
         self.status = status
 
-    def log(self):
+    def log(self, status=-3):
         task = AnalyseTask(mission_id=self.mission_id, mission_type=0, function_id=self.function_id,
                  run_id=self.run_id, run_status=self.run_status, scenario_name=self.scenario_name, scenario_id=None, ovr_file_location=None, db_conn_string=self.db_conn_obj.name,
-                 priority=1, user_id=self.user_id, status=-3)
+                 priority=1, user_id=self.user_id, status=status)
         db.session.add(task)
         db.session.commit()
         self.id = task.id
@@ -1163,7 +1212,7 @@ class OctopusFunction(db.Model):
     def save_function(data):
         try:
             if data['name'] in [func.name for func in OctopusFunction.query.all()]:
-                return jsonify(f"Couldn't save function - already exist")
+                return jsonify(status=0,message=f"Couldn't save function - already exist")
 
             if data['is_class_method']:
                 is_class_method=1
@@ -1196,9 +1245,9 @@ class OctopusFunction(db.Model):
                 if owner:
                     owner = owner.id
                 else:
-                    owner=User.query.filter_by(name=session['username']).first().id
+                    return jsonify(status= 0, message='Not saved! No user named ' + data['owner'])
             else:
-                owner=User.query.filter_by(name=session['username']).first().id
+                return jsonify(status= 0, message='Not saved! owner field missing from json')
 
             func = OctopusFunction(
                 name=data['name'],
@@ -1226,7 +1275,7 @@ class OctopusFunction(db.Model):
             db.session.add(func)
             db.session.commit()
         except Exception as error:
-            return jsonify("Not Saved! Something went wrong while saving the functions")
+            return jsonify(status=0, message="Not Saved! Something went wrong while saving the functions")
 
         try:
             function_id = func.id
@@ -1244,9 +1293,9 @@ class OctopusFunction(db.Model):
                 FunctionParameters.query.filter_by(function_id = func.id).delete()
                 db.session.delete(func)
                 db.session.commit()
-                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+                return jsonify(status=0, message=f"Not Saved! Something went wrong while saving the parameters")
             except:
-                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+                return jsonify(status=0, message=f"Not Saved! Something went wrong while saving the parameters")
         try:
             # function_id = func.id
             for group in groups:
@@ -1255,14 +1304,14 @@ class OctopusFunction(db.Model):
                     groupobj.functions.append(func)
                     db.session.add(groupobj)
                     db.session.commit()
-            return jsonify(f"function {func.name} was succefully saved")
+            return jsonify(status=1, message=f"function {func.name} was succefully saved")
         except Exception as error:
             try:
                 db.session.delete(func)
                 db.session.commit()
-                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+                return jsonify(status=0, message=f"Not Saved! Something went wrong while saving the parameters")
             except:
-                return jsonify(f"Not Saved! Something went wrong while saving the parameters")
+                return jsonify(status=0, message=f"Not Saved! Something went wrong while saving the parameters")
 
     @staticmethod
     def update(data):
@@ -1303,9 +1352,9 @@ class OctopusFunction(db.Model):
                     if owner:
                         owner = owner.id
                     else:
-                        owner = func.owner
+                        return jsonify(status= 0, message='Not saved! No user named ' + data['owner'])
                 else:
-                    owner = func.owner
+                    return jsonify(status= 0, message='Not saved! Missing onwer field in json')
                 func.name=data['name']
                 func.callback=data['callback']
                 func.location=data['location']
@@ -2866,12 +2915,48 @@ class Site(db.Model):
         finally:
             db.session.close()
 
-    def get_folder(self):
+    def get_folder(self, path):
+        def validate_path(paths, path_to_validate):
+            dir_parent_id = 0
+            for folder in broken_path:
+                dir_id = paths['dir_id'].where(
+                                                (paths['dir_name'] == folder) *
+                                                (paths['dir_parent_id'] == dir_parent_id)
+                                                 ).dropna()
+                if dir_id.empty:
+                    return (0, None)
+                dir_parent_id = dir_id.values[0]
+
+            return (1, dir_parent_id)
+        
         conn = DbConnector.load_conn_by_name(self.execrsice_conn)
         conn.set_schema(self.execrsice_db)
-        paths = conn.run_sql('select path, file from fake_paths')
-        if isinstance(paths,type("1")):
-            return paths
+        paths = conn.run_sql('select * from exercise_dir')
+        broken_path = path.split(sep)[0:-1]
+        #length is zero - just get root dirs and exercises
+        if len(broken_path) == 0:
+            dir_id = 0
+            status = 1
+        else:
+            status, dir_id = validate_path(paths, broken_path)
+        if status:
+            folders = list(paths['dir_name'].where(paths['dir_parent_id'] == dir_id).dropna().values)
+            folders = [sep.join(broken_path + [f]) for f in folders]
+            message = None
+            exercises = conn.run_sql('select exercise_name from exercise ' +
+                                      'where dir_id = '+str(dir_id))
+            exercises_names = list(exercises['exercise_name'].apply(lambda x:x.split('~')[-1]).values)
+            data = {"folders": folders, "exercises":exercises_names}
+        else:
+            message = 'Invalid path'
+            data = None
+        return (status, message, data)
+        
+
+        last_folder = path.split(sep)[-2]
+        if status:
+            message=None
+            
         return paths.groupby('path')['file'].apply(list).to_dict()
 
     @staticmethod
@@ -2888,14 +2973,13 @@ class Site(db.Model):
             db.session.close()
 
     @staticmethod
-    def get_scenario_folder(site_name):
+    def get_scenario_folder(site_name, json_data):
         try:
             project_id = session['current_project_id']
+            path = json_data['path']
             site = Site.query.filter_by(name=site_name, project_id=project_id).first()
-            scenario_folder = site.get_folder()
-            if isinstance(scenario_folder,type("1")):
-                return jsonify(status=0, message='something went wrong', data=None)
-            return jsonify(status=1, message=None, data=scenario_folder)
+            status, message, data = site.get_folder(path)
+            return jsonify(status=status, message=message, data=data)
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:
@@ -4332,7 +4416,10 @@ class AnalyseSetup(db.Model):
         db.session.commit()
         # getting functions ids
         functions_ids = self.get_func_ids()
-        
+        functions = db.session.query(OctopusFunction).filter(
+                                OctopusFunction.id.in_(functions_ids)).all()
+        functions_data = {}
+        [functions_data.update({str(f.id):{"kind":f.kind, "status":f.status}}) for f in functions]
         # getting runs and connections
         functions_dict = {"run_id":list, "scenario_name":list}
         df=pd.DataFrame(self.get_dbs_and_runs()).groupby('db_name').aggregate(functions_dict)
@@ -4351,7 +4438,11 @@ class AnalyseSetup(db.Model):
                     if run_status > 0:
                         if run_id not in db_run_ids:
                             run_status = -2
-                    task = Task(mission.id, conn, run_id, run_status, scenario_name, func_id, user_id)
+                    if (functions_data[str(func_id)]['kind'] == 'Manual') or (functions_data[str(func_id)]['status'] == 0):
+                        status = -6
+                    else:
+                        status = -3
+                    task = Task(mission.id, conn, run_id, run_status, scenario_name, func_id, user_id, status=status)
                     tasks_queue.put_nowait(task)
 
         return {"status":1,"message":'task id is'+str(mission.id)}
