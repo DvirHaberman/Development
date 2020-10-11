@@ -27,7 +27,7 @@
     border: 2px solid rgba(0, 0, 0, .125);
     border-radius: .25rem;
     margin: auto;
-    width: 120vh;
+    width: 180vh;
 }
 
 span.toggle-handle.btn.btn-default {

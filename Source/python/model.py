@@ -2915,12 +2915,48 @@ class Site(db.Model):
         finally:
             db.session.close()
 
-    def get_folder(self):
+    def get_folder(self, path):
+        def validate_path(paths, path_to_validate):
+            dir_parent_id = 0
+            for folder in broken_path:
+                dir_id = paths['dir_id'].where(
+                                                (paths['dir_name'] == folder) *
+                                                (paths['dir_parent_id'] == dir_parent_id)
+                                                 ).dropna()
+                if dir_id.empty:
+                    return (0, None)
+                dir_parent_id = dir_id.values[0]
+
+            return (1, dir_parent_id)
+        
         conn = DbConnector.load_conn_by_name(self.execrsice_conn)
         conn.set_schema(self.execrsice_db)
-        paths = conn.run_sql('select path, file from fake_paths')
-        if isinstance(paths,type("1")):
-            return paths
+        paths = conn.run_sql('select * from exercise_dir')
+        broken_path = path.split(sep)[0:-1]
+        #length is zero - just get root dirs and exercises
+        if len(broken_path) == 0:
+            dir_id = 0
+            status = 1
+        else:
+            status, dir_id = validate_path(paths, broken_path)
+        if status:
+            folders = list(paths['dir_name'].where(paths['dir_parent_id'] == dir_id).dropna().values)
+            folders = [sep.join(broken_path + [f]) for f in folders]
+            message = None
+            exercises = conn.run_sql('select exercise_name from exercise ' +
+                                      'where dir_id = '+str(dir_id))
+            exercises_names = list(exercises['exercise_name'].apply(lambda x:x.split('~')[-1]).values)
+            data = {"folders": folders, "exercises":exercises_names}
+        else:
+            message = 'Invalid path'
+            data = None
+        return (status, message, data)
+        
+
+        last_folder = path.split(sep)[-2]
+        if status:
+            message=None
+            
         return paths.groupby('path')['file'].apply(list).to_dict()
 
     @staticmethod
@@ -2937,14 +2973,13 @@ class Site(db.Model):
             db.session.close()
 
     @staticmethod
-    def get_scenario_folder(site_name):
+    def get_scenario_folder(site_name, json_data):
         try:
             project_id = session['current_project_id']
+            path = json_data['path']
             site = Site.query.filter_by(name=site_name, project_id=project_id).first()
-            scenario_folder = site.get_folder()
-            if isinstance(scenario_folder,type("1")):
-                return jsonify(status=0, message='something went wrong', data=None)
-            return jsonify(status=1, message=None, data=scenario_folder)
+            status, message, data = site.get_folder(path)
+            return jsonify(status=status, message=message, data=data)
         except:
             return jsonify(status=0, message='something went wrong', data=None)
         finally:

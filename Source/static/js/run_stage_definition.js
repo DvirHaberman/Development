@@ -1,7 +1,8 @@
 //-----------GLOBAL VARIABLES----------
 const toggle_button = document.getElementById('NewExist_toggle');
 var current_site = {};
-var scenario_paths = {};
+// var scenario_paths = {};
+var sep = null;
 var curr_stage = {};
 var stages = [];
 var state = null;
@@ -141,7 +142,13 @@ async function get_configs(site_name) {
 
 async function get_scenarios_folder(site_name) {
     let folders = [];
-    await fetch('api/Site/get_scenario_folder/' + site_name)
+    await fetch('api/Site/get_scenario_folder/' + site_name, {
+            method: 'POST',
+            body: JSON.stringify({ path: run_stage_controls.scenario_folder.value }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        })
         .then(resp => resp.json()).then(result => { folders = result.data; });
     // .catch(alert('error - could not get sites'));
     return folders;
@@ -157,7 +164,13 @@ async function get_ovr_files(site_name) {
 
 async function get_dps_folder(site_name) { // needs update! currently as same as get_scenarios_folder
     let folders = [];
-    await fetch('api/Site/get_scenario_folder/' + site_name)
+    await fetch('api/Site/get_scenario_folder/' + site_name, {
+            method: 'POST',
+            body: JSON.stringify({ path: run_stage_controls.dp_folder.value }),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        })
         .then(resp => resp.json()).then(result => { folders = result.data; });
     // .catch(alert('error - could not get sites'));
     return folders;
@@ -285,15 +298,15 @@ async function update_site(stage) {
 
     //---------------setting text controls and datalists------------------
     // getting scenario paths
-    scenario_paths = await get_scenarios_folder(site);
-    let scenario_folders = Object.keys(scenario_paths);
+    let scenario_paths = await get_scenarios_folder(site);
+    // let scenario_folders = Object.keys(scenario_paths);
 
-    result = validate_value(stage, 'scenario_folder', scenario_folders);
+    result = validate_value(stage, 'scenario_folder', scenario_paths['folders']);
     let scenario_folder = result.value;
     if (result.error.length > 0) {
         errors = errors + '\n' + result.error;
     }
-    result = validate_value(stage, 'scenario_file', scenario_paths[scenario_folder]);
+    result = validate_value(stage, 'scenario_file', scenario_paths['exercises']);
     if (stage) {
         scenario_file = result.value;
     } else {
@@ -305,49 +318,49 @@ async function update_site(stage) {
     //updating scenario folders
     update_datalist(
         run_stage_controls.scenario_folder_datalist,
-        scenario_folders,
+        scenario_paths['folders'],
         run_stage_controls.scenario_folder,
         scenario_folder
     );
     //updating scenario files
     update_datalist(
         run_stage_controls.scenario_file_datalist,
-        scenario_paths[scenario_folder],
+        scenario_paths['exercises'],
         run_stage_controls.scenario_file,
         scenario_file
     );
 
-    let dp_paths = await get_dps_folder(site);
-    let dp_folders = Object.keys(scenario_paths);
+    // let dp_paths = await get_dps_folder(site);
+    // // let dp_folders = Object.keys(scenario_paths);
 
-    result = validate_value(stage, 'dp_folder', dp_folders);
-    dp_folder = result.value;
-    if (result.error.length > 0) {
-        errors = errors + '\n' + result.error;
-    }
-    result = validate_value(stage, 'dp_file', dp_paths[dp_folder]);
-    if (stage) {
-        dp_file = result.value;
-    } else {
-        dp_file = '';
-    }
-    if (result.error.length > 0) {
-        errors = errors + '\n' + result.error;
-    }
-    //updating dp folders
-    update_datalist(
-        run_stage_controls.dp_folder_datalist,
-        dp_folders,
-        run_stage_controls.dp_folder,
-        dp_folder
-    );
-    //updating dp files
-    update_datalist(
-        run_stage_controls.dp_file_datalist,
-        scenario_paths[dp_folder],
-        run_stage_controls.dp_file,
-        dp_file
-    );
+    // result = validate_value(stage, 'dp_folder', dp_paths['folders']);
+    // dp_folder = result.value;
+    // if (result.error.length > 0) {
+    //     errors = errors + '\n' + result.error;
+    // }
+    // result = validate_value(stage, 'dp_file', dp_paths['exercises']);
+    // if (stage) {
+    //     dp_file = result.value;
+    // } else {
+    //     dp_file = '';
+    // }
+    // if (result.error.length > 0) {
+    //     errors = errors + '\n' + result.error;
+    // }
+    // //updating dp folders
+    // update_datalist(
+    //     run_stage_controls.dp_folder_datalist,
+    //     dp_paths['folders'],
+    //     run_stage_controls.dp_folder,
+    //     dp_folder
+    // );
+    // //updating dp files
+    // update_datalist(
+    //     run_stage_controls.dp_file_datalist,
+    //     dp_paths['exercises'],
+    //     run_stage_controls.dp_file,
+    //     dp_file
+    // );
 
 
     //update is run all secnarios
@@ -586,16 +599,16 @@ const validate_data = (data) => {
         result.status = 0;
         result.error = result.error + '\n' + `${data.scenario_file} is not a valid file name`;
     }
-    //dp folder
-    if (not_in_datalist(run_stage_controls.dp_folder_datalist, data.dp_folder)) {
-        result.status = 0;
-        result.error = result.error + '\n' + `${data.dp_folder} is not a valid folder name`;
-    }
-    //dp file
-    if (not_in_datalist(run_stage_controls.dp_file_datalist, data.dp_file)) {
-        result.status = 0;
-        result.error = result.error + '\n' + `${data.dp_file} is not a valid file name`;
-    }
+    // //dp folder
+    // if (not_in_datalist(run_stage_controls.dp_folder_datalist, data.dp_folder)) {
+    //     result.status = 0;
+    //     result.error = result.error + '\n' + `${data.dp_folder} is not a valid folder name`;
+    // }
+    // //dp file
+    // if (not_in_datalist(run_stage_controls.dp_file_datalist, data.dp_file)) {
+    //     result.status = 0;
+    //     result.error = result.error + '\n' + `${data.dp_file} is not a valid file name`;
+    // }
     // ovr file
     if (not_in_datalist(run_stage_controls.ovr_file_datalist, data.ovr_file)) {
         result.status = 0;
@@ -723,38 +736,64 @@ const addEventListeners = () => {
     });
 
     //scenario folder
-    run_stage_controls.scenario_folder.addEventListener('change', () => {
-        folders = Object.keys(scenario_paths);
-        chosen_folder = run_stage_controls.scenario_folder.value;
-        if (!folders.includes(chosen_folder)) {
-            return 0;
-        }
-        files = scenario_paths[chosen_folder];
+    run_stage_controls.scenario_folder.addEventListener('input', async() => {
+        // folders = Object.keys(scenario_paths);
+        // chosen_folder = run_stage_controls.scenario_folder.value;
+        // if (!folders.includes(chosen_folder)) {
+        //     return 0;
+        // }
+        // files = scenario_paths[chosen_folder];
+        // update_datalist(
+        //     run_stage_controls.scenario_file_datalist,
+        //     files,
+        //     run_stage_controls.scenario_file,
+        //     ''
+        // );
+        let site_obj = run_stage_controls.sites;
+        let site = site_obj.options[site_obj.selectedIndex].text;
+        let scenario_paths = await get_scenarios_folder(site);
+        scenario_paths['folders'] = scenario_paths['folders'].map(ele => ele + sep)
+            //updating scenario folders
+        update_datalist(
+            run_stage_controls.scenario_folder_datalist,
+            scenario_paths['folders'],
+            run_stage_controls.scenario_folder,
+            run_stage_controls.scenario_folder.value
+        );
+        //updating scenario files
         update_datalist(
             run_stage_controls.scenario_file_datalist,
-            files,
+            scenario_paths['exercises'],
             run_stage_controls.scenario_file,
-            ''
+            run_stage_controls.scenario_file.value
         );
 
     });
 
-    run_stage_controls.dp_folder.addEventListener('change', () => {
-        folders = Object.keys(scenario_paths);
-        chosen_folder = run_stage_controls.dp_folder.value;
-        if (!folders.includes(chosen_folder)) {
-            return 0;
+    // run_stage_controls.dp_folder.addEventListener('input', () => {
+    //     folders = Object.keys(scenario_paths);
+    //     chosen_folder = run_stage_controls.dp_folder.value;
+    //     if (!folders.includes(chosen_folder)) {
+    //         return 0;
+    //     }
+    //     files = scenario_paths[chosen_folder];
+    //     update_datalist(
+    //         run_stage_controls.dp_file_datalist,
+    //         files,
+    //         run_stage_controls.dp_file,
+    //         ''
+    //     );
+
+    // });
+
+    run_stage_controls.is_run_all.addEventListener('change', () => {
+        if (run_stage_controls.is_run_all.checked) {
+            run_stage_controls.scenario_file.value = '';
+            run_stage_controls.scenario_file.disabled = true;
+        } else {
+            run_stage_controls.scenario_file.disabled = false;
         }
-        files = scenario_paths[chosen_folder];
-        update_datalist(
-            run_stage_controls.dp_file_datalist,
-            files,
-            run_stage_controls.dp_file,
-            ''
-        );
-
-    });
-
+    })
 
 }
 
@@ -764,7 +803,15 @@ async function update_owners() {
     update_datalist(meta_controls.owner_datalist, owners, meta_controls.owner, user_name);
 }
 
+function get_seperator() {
+    // let seperator = null;
+    fetch('api/OctopusUtils/get_seperator')
+        .then(resp => resp.json()).then(result => { sep = result.data; })
+        // return seperator;
+}
+
 window.onload = () => {
+    get_seperator();
     update_owners();
     new_run_stage();
     addEventListeners();

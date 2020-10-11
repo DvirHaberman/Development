@@ -32,8 +32,8 @@
                   <option value="Site2"></option>
                   <option value="Site3"></option>
               </select>
-                <a href="" role="button" class="displayInline" data-toggle="tooltip" data-placement="top" title=""><i class="far fa-eye samll-margin"></i></a>
-                <a href="" role="button" class="displayInline"><i class="fas fa-network-wired samll-margin"></i></a>
+                <a hidden="hidden" href="" role="button" class="displayInline" data-toggle="tooltip" data-placement="top" title=""><i class="far fa-eye samll-margin"></i></a>
+                <a hidden="hidden" href="" role="button" class="displayInline"><i class="fas fa-network-wired samll-margin"></i></a>
             </div>
         </div>
 
@@ -76,7 +76,7 @@
             </div> -->
     </div>
 
-    <div class="row stage-def-inputs marginCard">
+    <div class="row stage-def-inputs marginCard" hidden="hidden">
 
         <div class="col-5">
             <label for="dp_folder"><h5>DP Folder</h5></label>
@@ -114,7 +114,7 @@
                       <option value="ovr_file3"></option>
                   </datalist>
 
-                <a href="" role="button" class="displayInline samll-margin"><i class="far fa-eye"></i></a>
+                <a hidden="hidden" href="" role="button" class="displayInline samll-margin"><i class="far fa-eye"></i></a>
             </div>
         </div>
         <!-- <div class="row stage-def-inputs"> -->
@@ -124,10 +124,12 @@
                 <input id="run_time" type="text" class="form-control">
                 <button class="btn btn-secondary btn-sm rightmost-control" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
                   <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
+                <button class="btn btn-success ml-3">Run</button>
             </div>
         </div>
 
     </div>
+
 </div>
 
 <div id="analyse_stage_div" hidden="hidden">
