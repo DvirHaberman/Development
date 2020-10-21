@@ -1,68 +1,70 @@
-.main-selectors-div{
+.main-selectors-div {
     margin-top: 30px;
     /* margin-bottom: 10px; */
     /* padding-bottom: 20px; */
 }
 
-.add{
-  display: inline-block;
+.add {
+    display: inline-block;
 }
-.stage-def-inputs{
+
+.stage-def-inputs {
     margin-left: 30px;
     margin-bottom: 30px;
 }
 
-.extra-margin{
-  margin-left: 26px;
+.extra-margin {
+    margin-left: 26px;
 }
 
-.medium-icon{
-  font-size: 3rem;
+.medium-icon {
+    font-size: 3rem;
 }
 
-.samll-margin{
-  margin-left: 16px;
+.samll-margin {
+    margin-left: 16px;
 }
 
-.medium-margin-right{
-  margin-right: 26px;
+.medium-margin-right {
+    margin-right: 26px;
 }
 
-.rightmost-control{
-  margin-left: auto;
+.rightmost-control {
+    margin-left: auto;
 }
 
-.green-control{
-  color: greenyellow;
+.green-control {
+    color: greenyellow;
 }
 
-.red-control{
-  color: red;
+.red-control {
+    color: red;
 }
 
-.stage-headline{
-  padding-top: 16px;
+.stage-headline {
+    padding-top: 16px;
 }
 
-.marginCard{
-  margin-top: 10px;
+.marginCard {
+    margin-top: 10px;
+    max-width: 95%;
 }
 
-.displayInline{
-  display: inline-block;
+.displayInline {
+    display: inline-block;
 }
 
-.align-form-label{
-  margin-top: 5px;
-  margin-right: 10px;
+.align-form-label {
+    margin-top: 5px;
+    margin-right: 10px;
 }
 
-.modal-body input{
-  margin-bottom: 10px;
+.modal-body input {
+    margin-bottom: 10px;
 }
 
-.seperator{
-  margin-top: 20px;
+.seperator {
+    margin-top: 20px;
     /* margin-bottom: 20px; */
     display: block;
     margin-left: auto;
@@ -70,83 +72,104 @@
     color: chocolate;
 }
 
+
 /* .seperators-div{
   margin-top: 100px;
   /* margin-bottom: auto; */
 
+
 /* } */
 
-.toggle.ios, .toggle-on.ios, .toggle-off.ios { 
-  border-radius: 20px; 
-  display: block;
-  margin-bottom: 15px;
-  margin-left: 25px;
-  margin-top: 20px;
+.toggle.ios,
+.toggle-on.ios,
+.toggle-off.ios {
+    border-radius: 20px;
+    display: block;
+    margin-bottom: 15px;
+    margin-left: 25px;
+    margin-top: 20px;
 }
 
-.toggle-off { 
-  background-color: gainsboro; 
-}
-.toggle.ios .toggle-handle { 
-  border-radius: 20px; 
-  display: block;
-  margin-bottom: 15px;
-  /* margin-top: 25px; */
-  /* margin-left: 15px; */
+.toggle-off {
+    background-color: gainsboro;
 }
 
-.display-block{
-  display: block;
+.toggle.ios .toggle-handle {
+    border-radius: 20px;
+    display: block;
+    margin-bottom: 15px;
+    /* margin-top: 25px; */
+    /* margin-left: 15px; */
 }
 
-.drag_to_remove{
-  font-size: 2rem;
-  margin-top: 25px;
-  margin-left: 30px;
-  color: black;
-  /* padding: 0 ; */
+.display-block {
+    display: block;
 }
 
-.drag_to_remove:hover{
-  scale: 1.1;
-  border: 1px dashed dark;
+.drag_to_remove {
+    font-size: 2rem;
+    margin-top: 25px;
+    margin-left: 30px;
+    color: black;
+    /* padding: 0 ; */
 }
 
-.draagable-ul-title{
-  margin-top: 25px;
+.flex-cb {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: left;
+    /* align-items: flex-start; */
 }
 
-.main-form-analyse{
-  height: 500px;
+.drag_to_remove:hover {
+    scale: 1.1;
+    border: 1px dashed dark;
 }
 
-.main-form-run{
-  height: 600px;
-  width: 900px;
+.draagable-ul-title {
+    margin-top: 25px;
 }
 
-.list-div{
-  overflow-y: scroll;
-  height: 300px;
+.main-form-analyse {
+    height: 500px;
 }
+
+.main-form-run {
+    height: 600px;
+    width: 900px;
+}
+
+.list-div {
+    overflow-y: scroll;
+    height: 300px;
+}
+
+
 /* 
 .modal-fix-width-label{
   width: 125px;
   text-align: right;
 } */
 
-.form-inline .modal-fix-width-label{
-  width: 125px;
-  display: inline-block;
-  text-align: right;
-  margin-right: 15px;
+.form-inline .modal-fix-width-label {
+    width: 125px;
+    display: inline-block;
+    text-align: right;
+    margin-right: 15px;
 }
 
-#Adnvaced_defintions_modal .form-inline{
-  margin-top: 15px;
+#Adnvaced_defintions_modal .form-inline {
+    margin-top: 15px;
 }
-.modal-content{
-  width: 600px; 
-  margin-left:auto; 
-  margin-right:auto;
+
+.modal-content {
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.generate_scenario_div {
+    border: 2px dashed blue;
+    padding: 10px 0;
 }
