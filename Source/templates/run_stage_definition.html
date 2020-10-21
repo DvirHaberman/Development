@@ -24,7 +24,7 @@
                 <option value="Site3"></option>
             </select>
         </div>
-        <div class="col-3">
+        <div class="col-5">
             <label for="site_config"><h5>Configuration</h5> </label>
             <div class="form-inline">
                 <select name="" id="site_config" class="form-control col-8">
@@ -34,6 +34,8 @@
               </select>
                 <a hidden="hidden" href="" role="button" class="displayInline" data-toggle="tooltip" data-placement="top" title=""><i class="far fa-eye samll-margin"></i></a>
                 <a hidden="hidden" href="" role="button" class="displayInline"><i class="fas fa-network-wired samll-margin"></i></a>
+                <button class="btn btn-secondary btn-sm rightmost-control" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
+                    <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
             </div>
         </div>
 
@@ -69,6 +71,7 @@
               </datalist>
         </div>
 
+
         <!-- <div class="col-3 form-check">
                 <label><h5></h5></label>
                 <input type="checkbox" class="form-check-input" id="run_all_cb">
@@ -76,6 +79,72 @@
             </div> -->
     </div>
 
+
+    <div class="row stage-def-inputs marginCard">
+        <div class="col-5">
+            <label for="ovr_file"><h5>ovr File</h5></label>
+            <div class="form-inline">
+                <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control col-10">
+                <datalist id="ovr_file_dl">
+                      <option value="ovr_file1"></option>
+                      <option value="ovr_file2"></option>
+                      <option value="ovr_file3"></option>
+                  </datalist>
+
+                <a hidden="hidden" href="" role="button" class="displayInline samll-margin"><i class="far fa-eye"></i></a>
+            </div>
+        </div>
+        <!-- <div class="row stage-def-inputs"> -->
+        <div class="col-7">
+            <label for=""><h5>Run time [min]</h5></label>
+            <div class="form-inline">
+                <input id="run_time" type="text" class="form-control">
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-check-inline extra-margin">
+        <input type="checkbox" class="form-check-input" id="generate_external">
+        <label class="form-check-label mt-1" for="generate_external"><h5>Generate Scenarios&nbsp;(</h5></label>
+        <input type="checkbox" name="" id="delete_secnario">
+        <label class="form-check-label mt-1" for="delete_secnario"><h5>Delete scenario after run?&nbsp;)</h5></label>
+    </div>
+
+    <div class="generate_scenario_div extra-margin">
+
+        <div class=" ml-3">
+            <label for="scenario_folder"><h5>Ext. events folder</h5></label>
+
+            <div class="row col-12">
+                <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control col-5">
+                <datalist id="scenario_folder_dl">
+                  <option value="scenarioFolder1"></option>
+                  <option value="scenarioFolder2"></option>
+                  <option value="scenarioFolder3"></option>
+              </datalist>
+                <h6 style="font-style: italic; color: gray;" class="ml-auto mt-2">Generated at: "root/Octopus_Scenario/"</h6>
+                <button class="btn btn-outline-primary ml-auto">Generate</button>
+
+            </div>
+
+        </div>
+
+        <datalist id="scenario_file_dl">
+          </datalist>
+        <div class="form-inline">
+            <!-- <input type="checkbox" name="" id="delete_secnario">
+                <label for="delete_secnario">Delete after run</label> -->
+            <div class="form-check-inline ml-3">
+                <input type="checkbox" name="" id="delete_secnario">
+                <label class="form-check-label mt-1" for="delete_secnario"><h5>Generate all sub folders?</h5></label>
+            </div>
+
+        </div>
+
+
+    </div>
     <div class="row stage-def-inputs marginCard" hidden="hidden">
 
         <div class="col-5">
@@ -102,32 +171,9 @@
         </div>
 
     </div>
+    <div class="marginCard extra-margin">
 
-    <div class="row stage-def-inputs marginCard">
-        <div class="col-5">
-            <label for="ovr_file"><h5>ovr File</h5></label>
-            <div class="form-inline">
-                <input list="ovr_file_dl" type="text" name="" id="ovr_file" class="form-control col-10">
-                <datalist id="ovr_file_dl">
-                      <option value="ovr_file1"></option>
-                      <option value="ovr_file2"></option>
-                      <option value="ovr_file3"></option>
-                  </datalist>
-
-                <a hidden="hidden" href="" role="button" class="displayInline samll-margin"><i class="far fa-eye"></i></a>
-            </div>
-        </div>
-        <!-- <div class="row stage-def-inputs"> -->
-        <div class="col-5">
-            <label for=""><h5>Run time [min]</h5></label>
-            <div class="form-inline">
-                <input id="run_time" type="text" class="form-control">
-                <button class="btn btn-secondary btn-sm rightmost-control" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
-                  <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
-                <button class="btn btn-success ml-3">Run</button>
-            </div>
-        </div>
-
+        <button class="btn btn-outline-success ml-auto" style="float: right;"><i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run</button>
     </div>
 
 </div>
