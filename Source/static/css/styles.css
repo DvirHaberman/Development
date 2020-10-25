@@ -43,7 +43,7 @@ button#newGroupButton {
 }
 
 .some_datalist {
-    width=80px;
+    width: 80px;
 }
 
 #fixed-menus {
@@ -197,6 +197,7 @@ input::-webkit-calendar-picker-indicator {
 
 .form-control {
     margin-bottom: 12px;
+    width: 100%;
 }
 
 .main-form-card-body {
