@@ -34,7 +34,7 @@ body {
 
 button#newGroupButton {
     background-color: whitesmoke;
-    border None;
+    border: None;
     background-color: #e8f9e9;
     border-style: none;
     font-size: 1.5rem;
