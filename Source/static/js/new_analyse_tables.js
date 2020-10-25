@@ -12,7 +12,8 @@ var status_icons = {
     "-2": '<div class="status" data-toggle="tooltip" data-placement="top" title="Run not in DB"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Run Not In DB</span></div>',
     "-3": "<div class='spinner-border center-spinner' role='status' data-toggle='tooltip' data-placement='top' title='In Process'><span class='sr-only'>Loading...</span><span hidden='hidden'>In Process</span>  </div>",
     "-4": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to push task"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Failed Logging Task</span></div>',
-    "-5": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to log results"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Failed Logging Results</span></div>'
+    "-5": '<div class="status" data-toggle="tooltip" data-placement="top" title="Failed to log results"><i class="fas fa-database text-secondary"></i><span hidden="hidden">Failed Logging Results</span></div>',
+    "-6": '<div class="status" data-toggle="tooltip" data-placement="top" title="Did not run"><i class="fas fa-not-equal"></i><span hidden="hidden">Did Not Run</span></div>'
 }
 
 function update_table(data) {
