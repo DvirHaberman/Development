@@ -17,7 +17,7 @@
         <!-- <div class="card bg-light mb-3 main-form-card"> -->
         <!-- <div class="row card-body main-form-card-body"> -->
         <div class="row ">
-            <div class="input-function-data col-9">
+            <div class="input-function-data col-8">
                 <div class="row marginTopLeft">
 
                     <div class="function-input-row col-3">
@@ -29,35 +29,24 @@
                         <input class="form-control" type="text" name="requirement" value="some_link">
                     </div>
 
-                    <div class="function-input-row col-5">
+                    <div class="function-input-row col-6">
                         <label>Tags</label>
                         <input class="form-control" type="text" name="tags"></input>
                     </div>
 
                 </div>
-
-
-                <div class="row marginTopLeft">
-                    <div class="function-input-row col-8">
-                        <label>Function Callback</label>
-                        <input class="form-control" type="text" id="functionCallback" name="callback"></input>
-                    </div>
-
-                    <div class="function-input-row col-3">
-                        <label>Kind</label>
-                        <select id = "function_kind" class="form-control" type="text" name="kind" >
-                            <option value="Python">Python</option>
-                            <option value="Matlab">Matlab</option>
-                            <option value="Sql">Sql</option>
-                            <option value="Undefine">Undefine</option>
-                          </select>
-                    </div>
+                <div class="function-input-row col-3 marginTopLeft">
+                    <label>Kind</label>
+                    <select id="function_kind" class="form-control" type="text" name="kind">
+                        <option value="Python">Python</option>
+                        <option value="Matlab">Matlab</option>
+                        <option value="Sql">Sql</option>
+                        <option value="Undefine">Manual</option>
+                      </select>
                 </div>
-
-
                 <div class="row marginTopLeft">
-                    <div class="function-input-row col-11">
-                        <label>Function Location</label>
+                    <div class="function-input-row col-12">
+                        <label>File Full Path</label>
                         <input list="location_datalist" class="form-control" type="text" id="functionLocation" name="Location"></input>
                         <datalist id=location_datalist></datalist>
 
@@ -65,33 +54,42 @@
                     </div>
                 </div>
 
+                <div class="flex_container marginTopLeft ">
+
+                    <div class="function-input-row col-3 mt-4">
+                        <input class="mr-3" list="class_datalist" type="checkbox" id="isOutputIsAClass" name="isOutputIsAClass" onclick="calc();">
+                        <datalist id="class_datalist"></datalist>
+                        <label for="isOutputIsAClass"> Function in class </label><br>
+                    </div>
+                    <div class="col-3">
+                        <label for="className" class="mr-3"> Class Name: </label>
+                        <input list="classname_datalist" class="form-control" type="text" id="className" name="outputClassName"></input>
+                        <datalist id="classname_datalist"></datalist>
+                    </div>
+                    <div class="function-input-row col-6">
+                        <label>Function Callback</label>
+                        <input list="callback_datalist" class="form-control" type="text" id="functionCallback" name="callback"></input>
+                        <datalist id="callback_datalist"></datalist>
+                    </div>
+                </div>
+
+
+
+
                 <div class="row marginTopLeft">
-                    <div class="function-input-row col-11">
+                    <div class="function-input-row col-12">
                         <label>Description</label>
                         <textarea class="form-control" name="description" id="function_description" cols="125" rows="4"></textarea>
                         <!-- <input class="form-control" type="text" name="description" cols="30" rows="5"></input> -->
                     </div>
                 </div>
 
-                <div class="row marginTopLeft col-11">
-                    <label> Output </label>
-                </div>
 
-                <div class="row marginTopLeft">
-                    <div class="function-input-row col-3">
-                        <input type="checkbox" id="isOutputIsAClass" name="isOutputIsAClass" onclick="calc();">
-                        <label for="isOutputIsAClass"> Is a class </label><br>
-                    </div>
-
-                    <label class="mr-3"> Class Name: </label>
-                    <input class="form-control col-4" type="text" id="className" name="outputClassName"></input>
-
-                </div>
 
             </div>
 
 
-            <div class="marginTopLeft input-groups-data col-2">
+            <div class="marginTopLeft input-groups-data col-3">
                 <div class="function-input-row col-12">
                     <label for="group_input">Groups Membership</label>
                     <button type="button" name="button" id="newGroupButton" data-toggle="modal" data-target="#defineGroupModal">   <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
@@ -155,7 +153,7 @@
             <div>
                 <label><strong>Function Oper Line:</strong></label>
                 <!-- <h5 class="mb-2">Function Oper Line:</h5> -->
-                <h5 class="oper_line" name="funcOperLine">your_function(param1, param2, ...., paramN)</h5>
+                <h5 id="oper_line" class="oper_line" name="funcOperLine">your_function(param1, param2, ...., paramN)</h5>
             </div>
         </div>
         <!-- </div> -->
@@ -186,7 +184,7 @@
                         <button id="Duplicate_Group"><i class="far fa-file-alt adapt-icon-size"></i></button>
                         <button id="Delete_Group"><i class="far fa-trash-alt adapt-icon-size"></i></button>
                         <button id="Edit_Group"><i class="fa fa-pencil-alt adapt-icon-size"></i></button>
-                        
+
                         <button id="Permission_Group"><span class="badge badge-success">open</span><i class="fas fa-unlock"></i></button>
 
 

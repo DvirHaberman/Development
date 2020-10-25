@@ -180,7 +180,7 @@ class Worker:
                             #db.session.expire_all()
                             task = tasks_queue.get_nowait()
                             try:
-                                task.log()
+                                task.log(task.status)
                                 print(f'done with logging task {task.id} in {datetime.utcnow()}')
                             except Exception as error:
                                 message='failed logging the task'
@@ -189,7 +189,8 @@ class Worker:
                                 error_log.push(error_queue)
                                 continue
                             try:
-                                to_do_queue.put_nowait(task)
+                                if(task.status == -3):
+                                    to_do_queue.put_nowait(task)
                                 # tasks_queue.task_done()
                             except Exception as error:
                                 status=-4

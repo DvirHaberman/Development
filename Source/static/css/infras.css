@@ -22,11 +22,12 @@
 .main_form {
     background-color: whitesmoke;
     /* width: 73%; */
-    margin-left: auto;
+    /* margin-left: auto; */
     background-clip: border-box;
     border: 2px solid rgba(0, 0, 0, .125);
     border-radius: .25rem;
-    margin-bottom: 40px;
+    margin: auto;
+    width: 180vh;
 }
 
 span.toggle-handle.btn.btn-default {
@@ -71,7 +72,7 @@ hr {
 }
 
 .seperators-div {
-    margin-top: 100px;
+    margin-top: 40px;
     width: 50px;
 }
 
@@ -80,13 +81,13 @@ hr {
 }
 
 .site-data-div .first-column h3 {
-    width: 140px;
+    width: 180px;
 }
 
 .site-data-div .first-column h5 {
     FONT-WEIGHT: 200;
     FONT-WEIGHT: 200;
-    width: 180px;
+    width: 200px;
     /* width: 140px; */
 }
 
@@ -102,7 +103,44 @@ hr {
     width: 120px;
 }
 
+.site-data-div {
+    margin-top: 20px;
+    margin-bottom: 50px;
+}
+
+.first-div .form-inline h5 {
+    width: 100px;
+}
+
+.second-div .form-inline h5 {
+    width: 180px;
+    margin-left: 50px;
+}
+
+strong {
+    font-weight: 500;
+}
+
+
+/* .right-align-container {
+    display: flex;
+    justify-content: flex-end;
+    text-align: end;
+} */
+
 button {
     background-color: whitesmoke;
     border: none;
 }
+
+.flex-container {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    /* padding-right: 100px; */
+}
+
+
+/* .flex-container .toend {
+    justify-self: flex-end;
+} */

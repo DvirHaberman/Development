@@ -30,9 +30,8 @@
 
                 <div class="col-11">
                     <label for="meta_function_name"><h5>Function Name</h5></label>
-                    <input list="meta_name_datalist" type="text" class="form-control" id="meta_function_name">
+                    <input autocomplete="off" list="meta_name_datalist" type="text" class="form-control" id="meta_function_name">
                     <datalist id='meta_name_datalist'>
-                      <option value="global">kjsdhfskjdf</option>
                     </datalist>
                 </div>
 
@@ -77,7 +76,7 @@
             {% else %} {% if session['current_window_name']=='Define Complex Net' %}
             <div class="row margins-bottom-medium">
                 <div class="col-8">
-                    <label for="net_versions"><h5>Version</h5></label>
+                    <label for="net_versions"><h5>Setup Ver</h5></label>
                     <input list="net_versions_datalist" id="net_versions" type="text" class="form-control" id="meta_name">
                     <datalist id='net_versions_datalist'>
                 </datalist>
@@ -90,7 +89,9 @@
                     <label for="meta_name"><h5>Name</h5></label>
                     <div class="row">
                         <input type="text" class="form-control ml-3" id="meta_name"> {% if session['current_window_name']=='Define Complex Net' %}
-                        <h2 id='selected_net' class="ml-3 mb-0"></h2>
+                        <h4 id='selected_net' class="ml-3 mb-0"></h4>
+                        {%endif%} {% if session['current_window_name']=='Define Stage' %}
+                        <h4 id='selected_stage' class="ml-3 mb-0"></h4>
                         {%endif%}
                     </div>
                     <datalist id='meta_name_datalist'>
@@ -130,8 +131,9 @@
               </datalist>
             <label for="meta_tags"><h5>Tags</h5></label>
             <input type="text" class="form-control margins-bottom-medium" id="meta_tags">
-            <label for="meta_description"><h5>Description</h5></label>
-            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="25" rows="2"></textarea>
+            <label for="meta_description"><h5>Description</h5></label> {% if session['current_window_name']=='Define Stage' %}
+            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="40" rows="4"></textarea> {%else%}
+            <textarea class="form-control margins-bottom-medium" name="" id="meta_description" cols="25" rows="2"></textarea> {% endif %}
             <h6><i id="meta_date"></i></h6> <br>
             <h6><i id="meta_changed_by"></i></h6>
             {% endif %}
