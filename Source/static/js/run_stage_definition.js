@@ -38,8 +38,26 @@ const run_stage_controls = {
     ovr_file: document.querySelector('#ovr_file'),
     ovr_file_datalist: document.querySelector('#ovr_file_dl'),
     is_run_all: document.querySelector('#run_all_cb'),
-    run_time: document.querySelector('#run_time')
+    run_time: document.querySelector('#run_time'),
+    btn_run_stage: document.querySelector('#run_stage')
 
+};
+
+const generate_stage_controls = {
+    is_generate_scenario: document.querySelector('#generate_external'),
+    is_2_delete_scenario_after_run: document.querySelector('#delete_secnario'),
+    is_generate_all_sub_folder: document.querySelector('#generate_all_sub_folders'),
+    generate_scenario_folder: document.querySelector('#generate_scenario_folder'),
+    btn_generate: document.querySelector('#btn_generate'),
+};
+
+const generate_stage_labels = {
+
+    generate_scenario_folder_label: document.querySelector('#generate_scenario_folder_label'),
+    scenario_generated_label: document.querySelector('#scenario_generated_at'),
+    delete_secnario_label_1: document.querySelector('#delete_secnario_label_1'),
+    delete_secnario_label: document.querySelector('#delete_secnario_label'),
+    generate_all_sub_folders_label: document.querySelector('#generate_all_sub_folders_label')
 };
 
 const analyse_stage_controls = {
@@ -221,6 +239,13 @@ const clear_run_stage_controls = () => {
     run_stage_controls.ovr_file.value = '';
     // run_stage_controls.ovr_file.setAttribute('list', null);
     run_stage_controls.run_time.value = '20';
+
+    generate_stage_controls.is_generate_scenario.checked = false;
+    generate_stage_controls.is_2_delete_scenario_after_run.checked = false;
+    generate_stage_controls.is_generate_all_sub_folder.checked = false;
+    generate_stage_controls.generate_scenario_folder.value = '';
+    generate_stage_labels.scenario_generated_label.innerHTML = "Generated at: &nbsp root/Octopus_Scenario/";
+
 }
 
 const clear_meta_controls = () => {
@@ -785,7 +810,6 @@ const addEventListeners = () => {
     //     );
 
     // });
-
     run_stage_controls.is_run_all.addEventListener('change', () => {
         if (run_stage_controls.is_run_all.checked) {
             run_stage_controls.scenario_file.value = '';
@@ -795,7 +819,110 @@ const addEventListeners = () => {
         }
     })
 
+
+
+    generate_stage_controls.is_generate_scenario.addEventListener('change', () => {
+        if (generate_stage_controls.is_generate_scenario.checked) {
+            run_stage_controls.btn_run_stage.innerHTML = "Generate & Run";
+            // <i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run
+
+            generate_stage_controls.is_2_delete_scenario_after_run.disabled = false;
+            generate_stage_controls.is_generate_all_sub_folder.disabled = false;
+
+            generate_stage_controls.generate_scenario_folder.disabled = false;
+            generate_stage_controls.btn_generate.disabled = false;
+
+            generate_stage_labels.generate_scenario_folder_label.classList.remove("color-gray");
+            generate_stage_labels.scenario_generated_label.classList.remove("color-gray");
+
+            generate_stage_labels.delete_secnario_label_1.classList.remove("color-gray");
+            generate_stage_labels.delete_secnario_label.classList.remove("color-gray");
+            generate_stage_labels.generate_all_sub_folders_label.classList.remove("color-gray");
+
+
+        } else {
+            run_stage_controls.btn_run_stage.innerHTML = "Run";
+            // <i class="fas fa-chevron-circle-right"></i> &nbsp; Run
+
+            generate_stage_controls.is_2_delete_scenario_after_run.checked = false;
+            generate_stage_controls.is_2_delete_scenario_after_run.disabled = true;
+
+            generate_stage_controls.is_generate_all_sub_folder.checked = false;
+            generate_stage_controls.is_generate_all_sub_folder.disabled = true;
+
+            generate_stage_controls.generate_scenario_folder.disabled = true;
+            generate_stage_controls.generate_scenario_folder.value = '';
+            generate_stage_controls.btn_generate.disabled = true;
+
+            generate_stage_labels.generate_scenario_folder_label.classList.add("color-gray");
+            generate_stage_labels.scenario_generated_label.classList.add("color-gray");
+
+            generate_stage_labels.delete_secnario_label_1.classList.add("color-gray");
+            generate_stage_labels.delete_secnario_label.classList.add("color-gray");
+            generate_stage_labels.generate_all_sub_folders_label.classList.add("color-gray");
+
+
+        }
+    })
+
+    generate_stage_controls.generate_scenario_folder.addEventListener('change', () => {
+        generate_stage_labels.scenario_generated_label.innerHTML = "Generated at: &nbsp root/Octopus_Scenario/" + generate_stage_controls.generate_scenario_folder.value
+
+    })
+
 }
+
+// --------------BUTTONS -------------------
+$('#btn_generate').click(() => {
+
+    flagGenerateAllSubFolder = generate_stage_controls.is_generate_all_sub_folder.checked;
+    folder2Generate = generate_stage_labels.scenario_generated_label.innerHTML;
+
+    if (flagGenerateAllSubFolder) { //Generate all Sub Folder
+
+        $.ajax({
+            url: 'api/run_stage/' + curr_setup_name,
+            success: (response) => {
+
+            }
+
+        });
+
+    } else { //Generate Selected Folder
+
+        $.ajax({
+            url: 'api/run_stage/' + curr_setup_name,
+            success: (response) => {
+
+            }
+
+        });
+    }
+
+});
+
+$('#run_stage').click(() => {
+    // if "new" - > save first.   
+    if (generate_stage_controls.is_generate_scenario.checked) { // Generate & Run 
+        // execute Generate ... 
+        // Run:
+        $.ajax({
+            url: 'api/run_stage/' + curr_setup_name,
+            success: (response) => {
+
+            }
+        });
+    } else { // Run Stage
+        $.ajax({
+            url: 'api/run_stage/' + curr_setup_name,
+            success: (response) => {
+
+            }
+        });
+    }
+});
+
+
 
 async function update_owners() {
     let owners = await get_owners();
