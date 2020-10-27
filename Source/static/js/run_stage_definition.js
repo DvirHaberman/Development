@@ -64,8 +64,51 @@ const analyse_stage_controls = {
 
 };
 
+const set_generate_state = is_checked => {
+        // generate_stage_controls.is_generate_scenario.checked = is_checked;
+        if (is_checked) {
+            run_stage_controls.btn_run_stage.innerHTML = '<i class="fas fa-chevron-circle-right"></i>  Generate & Run';
+            // <i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run
 
-//---------UPDATE FUNCTIONS--------------
+            generate_stage_controls.is_2_delete_scenario_after_run.disabled = false;
+            generate_stage_controls.is_generate_all_sub_folder.disabled = false;
+
+            generate_stage_controls.generate_scenario_folder.disabled = false;
+            generate_stage_controls.btn_generate.disabled = false;
+
+            generate_stage_labels.generate_scenario_folder_label.classList.remove("color-gray");
+            generate_stage_labels.scenario_generated_label.classList.remove("color-gray");
+
+            generate_stage_labels.delete_secnario_label_1.classList.remove("color-gray");
+            generate_stage_labels.delete_secnario_label.classList.remove("color-gray");
+            generate_stage_labels.generate_all_sub_folders_label.classList.remove("color-gray");
+
+
+        } else {
+            run_stage_controls.btn_run_stage.innerHTML = '<i class="fas fa-chevron-circle-right"></i>  Run';
+            // <i class="fas fa-chevron-circle-right"></i> &nbsp; Run
+
+            generate_stage_controls.is_2_delete_scenario_after_run.checked = false;
+            generate_stage_controls.is_2_delete_scenario_after_run.disabled = true;
+
+            generate_stage_controls.is_generate_all_sub_folder.checked = false;
+            generate_stage_controls.is_generate_all_sub_folder.disabled = true;
+
+            generate_stage_controls.generate_scenario_folder.disabled = true;
+            generate_stage_controls.generate_scenario_folder.value = '';
+            generate_stage_controls.btn_generate.disabled = true;
+
+            generate_stage_labels.generate_scenario_folder_label.classList.add("color-gray");
+            generate_stage_labels.scenario_generated_label.classList.add("color-gray");
+
+            generate_stage_labels.delete_secnario_label_1.classList.add("color-gray");
+            generate_stage_labels.delete_secnario_label.classList.add("color-gray");
+            generate_stage_labels.generate_all_sub_folders_label.classList.add("color-gray");
+
+
+        }
+    }
+    //---------UPDATE FUNCTIONS--------------
 function update_datalist(datalist, values_array, input, selected_value) {
     // const input = document.querySelector('#' + input_id);
     input.value = selected_value;
@@ -436,6 +479,9 @@ async function update_paths(path) {
 }
 
 async function new_run_stage() {
+    // disable generate scenario panel
+    set_generate_state(false);
+
     // run div hidden to false
     document.querySelector('#run_stage_div').hidden = false;
 
@@ -681,9 +727,11 @@ const addEventListeners = () => {
     // name - only in exisiting stage load stage by name
     $('#NewExist_toggle').change(async() => {
         if (toggle_button.checked) { // new
+
             if (state !== 'duplicate') {
                 new_run_stage()
             } else {
+                set_generate_state(false);
                 meta_controls.meta_name.setAttribute('list', null);
                 meta_controls.meta_name.value = '';
                 meta_controls.selected_stage.innerHTML = '';
@@ -694,6 +742,7 @@ const addEventListeners = () => {
             }
             state = null;
         } else { // exist
+            run_stage_controls.btn_run_stage.disabled = false;
             stages = await get_stage_names();
             let stage_name;
             if (state == 'save' || state == 'update') {
@@ -820,50 +869,7 @@ const addEventListeners = () => {
     })
 
 
-
-    generate_stage_controls.is_generate_scenario.addEventListener('change', () => {
-        if (generate_stage_controls.is_generate_scenario.checked) {
-            run_stage_controls.btn_run_stage.innerHTML = "Generate & Run";
-            // <i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run
-
-            generate_stage_controls.is_2_delete_scenario_after_run.disabled = false;
-            generate_stage_controls.is_generate_all_sub_folder.disabled = false;
-
-            generate_stage_controls.generate_scenario_folder.disabled = false;
-            generate_stage_controls.btn_generate.disabled = false;
-
-            generate_stage_labels.generate_scenario_folder_label.classList.remove("color-gray");
-            generate_stage_labels.scenario_generated_label.classList.remove("color-gray");
-
-            generate_stage_labels.delete_secnario_label_1.classList.remove("color-gray");
-            generate_stage_labels.delete_secnario_label.classList.remove("color-gray");
-            generate_stage_labels.generate_all_sub_folders_label.classList.remove("color-gray");
-
-
-        } else {
-            run_stage_controls.btn_run_stage.innerHTML = "Run";
-            // <i class="fas fa-chevron-circle-right"></i> &nbsp; Run
-
-            generate_stage_controls.is_2_delete_scenario_after_run.checked = false;
-            generate_stage_controls.is_2_delete_scenario_after_run.disabled = true;
-
-            generate_stage_controls.is_generate_all_sub_folder.checked = false;
-            generate_stage_controls.is_generate_all_sub_folder.disabled = true;
-
-            generate_stage_controls.generate_scenario_folder.disabled = true;
-            generate_stage_controls.generate_scenario_folder.value = '';
-            generate_stage_controls.btn_generate.disabled = true;
-
-            generate_stage_labels.generate_scenario_folder_label.classList.add("color-gray");
-            generate_stage_labels.scenario_generated_label.classList.add("color-gray");
-
-            generate_stage_labels.delete_secnario_label_1.classList.add("color-gray");
-            generate_stage_labels.delete_secnario_label.classList.add("color-gray");
-            generate_stage_labels.generate_all_sub_folders_label.classList.add("color-gray");
-
-
-        }
-    })
+    generate_stage_controls.is_generate_scenario.addEventListener('change', () => { set_generate_state(generate_stage_controls.is_generate_scenario.checked); });
 
     generate_stage_controls.generate_scenario_folder.addEventListener('change', () => {
         generate_stage_labels.scenario_generated_label.innerHTML = "Generated at: &nbsp root/Octopus_Scenario/" + generate_stage_controls.generate_scenario_folder.value
