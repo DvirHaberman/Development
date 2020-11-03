@@ -1,0 +1,7 @@
+{
+    "id": 1,
+    "validation": { "status": 3, "amount": 10, "total": 10 },
+    "db_updates": { "status": 3, "amount": 10, "total": 10 },
+    "generation": { "status": 3, "amount": 10, "total": 10 },
+    "is_done": true
+}
