@@ -1,0 +1,6 @@
+{
+    "general_status": 1,
+    "generate_mission": null,
+    "run_status": { "status": 3, "amount": 10, "total": 10 },
+    "is_done": true
+}

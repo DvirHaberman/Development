@@ -1,0 +1,12 @@
+{
+    "general_status": 1,
+    "generate_mission": {
+        "id": 4,
+        "validation": { "status": 2, "amount": 7, "total": 10 },
+        "db_updates": { "status": 2, "amount": 6, "total": 10 },
+        "generation": { "status": 2, "amount": 4, "total": 10 },
+        "is_done": true
+    },
+    "run_status": { "status": 4, "amount": 2, "total": 10 },
+    "is_done": true
+}

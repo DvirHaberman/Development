@@ -5,11 +5,14 @@ from multiprocessing import Queue, Event, freeze_support
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
 import os
 from flask_migrate import Migrate
+from blueprints.dummyapi import dummy
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.register_blueprint(dummy)
 # app.permanent_session_lifetime = timedelta(minutes=int(os.environ.get('SESSION_LIFETIME')))
 Migrate(app,db)
 
