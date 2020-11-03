@@ -943,6 +943,23 @@ function get_seperator() {
         // return seperator;
 }
 
+// ---------- Web Workers
+function RunGenerationMission(mission_name) {
+    // hidden true
+
+    // myWorker = init_worker(mission_name);
+    init_worker()
+        // post_data
+    $('#drill_down_div')[0].hidden = true;
+    post_data = { "origin": window.location.origin, "analyse_mission_name": mission_name }
+    myWorker.postMessage(post_data)
+    myWorker.onmessage() = e => {
+
+    }
+}
+
+// ----
+
 window.onload = () => {
     get_seperator();
     update_owners();
