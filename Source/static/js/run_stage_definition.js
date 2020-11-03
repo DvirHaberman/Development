@@ -1,7 +1,7 @@
 //-----------GLOBAL VARIABLES----------
 const toggle_button = document.getElementById('NewExist_toggle');
 var current_site = {};
-// var scenario_paths = {};
+var scenario_paths = {};
 var sep = null;
 var curr_stage = {};
 var stages = [];
@@ -366,13 +366,19 @@ async function update_site(stage) {
 
     //---------------setting text controls and datalists------------------
     // getting scenario paths
-    let scenario_paths = await get_scenarios_folder(site);
+    // let scenario_paths = {};
     // let scenario_folders = Object.keys(scenario_paths);
-
-    result = validate_value(stage, 'scenario_folder', scenario_paths['folders']);
-    let scenario_folder = result.value;
-    if (result.error.length > 0) {
-        errors = errors + '\n' + result.error;
+    if (!stage) {
+        scenario_paths = await get_scenarios_folder(site);
+        scenario_folder = '';
+    } else {
+        run_stage_controls.scenario_folder.value = stage.scenario_folder;
+        scenario_paths = await get_scenarios_folder(site);
+        result = validate_value(stage, 'scenario_folder', [scenario_paths['current_folder']]);
+        scenario_folder = result.value;
+        if (result.error.length > 0) {
+            errors = errors + '\n' + result.error;
+        }
     }
     result = validate_value(stage, 'scenario_file', scenario_paths['exercises']);
     if (stage) {
@@ -386,7 +392,7 @@ async function update_site(stage) {
     //updating scenario folders
     update_datalist(
         run_stage_controls.scenario_folder_datalist,
-        scenario_paths['folders'],
+        scenario_paths['folders'].map(ele => ele + sep),
         run_stage_controls.scenario_folder,
         scenario_folder
     );
@@ -661,7 +667,7 @@ const validate_data = (data) => {
     };
 
     //scenario folder
-    if (not_in_datalist(run_stage_controls.scenario_folder_datalist, data.scenario_folder)) {
+    if (scenario_paths['current_folder'] !== data.scenario_folder) {
         result.status = 0;
         result.error = `${data.scenario_folder} is not a valid folder name`;
     }
@@ -825,7 +831,7 @@ const addEventListeners = () => {
         // );
         let site_obj = run_stage_controls.sites;
         let site = site_obj.options[site_obj.selectedIndex].text;
-        let scenario_paths = await get_scenarios_folder(site);
+        scenario_paths = await get_scenarios_folder(site);
         scenario_paths['folders'] = scenario_paths['folders'].map(ele => ele + sep)
             //updating scenario folders
         update_datalist(
