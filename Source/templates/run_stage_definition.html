@@ -1,6 +1,8 @@
 {% extends "metadata_layout.html" %} {% block main_form_css %}
 <link rel="stylesheet" href="../static/css/run_stage_definition.css">
 <link rel="stylesheet" href="../static/css/draggable_list.css"> {% endblock %} {% block main_form %}
+<link rel="stylesheet" href="../static/css/progressBar.css">
+
 <div id="run_stage_div">
     <div class="form-inline">
         <h2 class="mx-auto stage-headline displayInline"> Run System Stage</h2>
@@ -34,7 +36,7 @@
               </select>
                 <a hidden="hidden" href="" role="button" class="displayInline" data-toggle="tooltip" data-placement="top" title=""><i class="far fa-eye samll-margin"></i></a>
                 <a hidden="hidden" href="" role="button" class="displayInline"><i class="fas fa-network-wired samll-margin"></i></a>
-                <button class="btn btn-secondary btn-sm rightmost-control" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
+                <button class="btn btn-secondary btn-sm rightmost-control small-margin" data-toggle="modal" data-target="#Adnvaced_defintions_modal">
                     <i class="fas fa-arrow-right"></i><h6>&NonBreakingSpace; Advanced</h6></button>
             </div>
         </div>
@@ -107,25 +109,26 @@
 
     <div class="form-check-inline extra-margin">
         <input type="checkbox" class="form-check-input" id="generate_external">
-        <label class="form-check-label mt-1" for="generate_external"><h5>Generate Scenarios&nbsp;(</h5></label>
+        <label class="form-check-label mt-1" for="generate_external"><h5>Generate Scenarios </h5></label>
+        <label class="form-check-label mt-1" id="delete_secnario_label_1"><h5>&nbsp;(</h5></label>
         <input type="checkbox" name="" id="delete_secnario">
-        <label class="form-check-label mt-1" for="delete_secnario"><h5>Delete scenario after run?&nbsp;)</h5></label>
+        <label class="form-check-label mt-1" for="delete_secnario" id="delete_secnario_label"><h5>Delete scenario after run?&nbsp;)</h5></label>
     </div>
 
     <div class="generate_scenario_div extra-margin">
 
         <div class=" ml-3">
-            <label for="scenario_folder"><h5>Ext. events folder</h5></label>
+            <label for="generate_scenario_folder" id="generate_scenario_folder_label"><h5>Ext. events folder</h5></label>
 
             <div class="row col-12">
-                <input list="scenario_folder_dl" type="text" name="" id="scenario_folder" class="form-control col-5">
+                <input list="scenario_folder_dl" type="text" name="" id="generate_scenario_folder" class="form-control col-5">
                 <datalist id="scenario_folder_dl">
                   <option value="scenarioFolder1"></option>
                   <option value="scenarioFolder2"></option>
                   <option value="scenarioFolder3"></option>
               </datalist>
-                <h6 style="font-style: italic; color: gray;" class="ml-auto mt-2">Generated at: "root/Octopus_Scenario/"</h6>
-                <button class="btn btn-outline-primary ml-auto">Generate</button>
+                <h6 style="font-style: italic; color: gray;" id="scenario_generated_at" class="ml-auto mt-2">Generated at: "root/Octopus_Scenario/" </h6>
+                <button class="btn btn-outline-primary ml-auto" id="btn_generate">Generate</button>
 
             </div>
 
@@ -136,11 +139,20 @@
         <div class="form-inline">
             <!-- <input type="checkbox" name="" id="delete_secnario">
                 <label for="delete_secnario">Delete after run</label> -->
-            <div class="form-check-inline ml-3">
-                <input type="checkbox" name="" id="delete_secnario">
-                <label class="form-check-label mt-1" for="delete_secnario"><h5>Generate all sub folders?</h5></label>
+            <div class="form-inline  col-11">
+                <div class="form-check-inline ml-3">
+                    <input type="checkbox" name="" id="generate_all_sub_folders">
+                    <label class="form-check-label mt-1" for="generate_all_sub_folders" id="generate_all_sub_folders_label"><h5>Generate all sub folders?</h5></label>
+                </div>
+                <div id="msform" class="ml-auto col-7">
+                    <ul id="progressbar">
+                        <li id="InDB" class="active"><strong>inDB</strong></li>
+                        <li id="Generate" class="active"><strong>Generating</strong></li>
+                        <li id="Running"><strong>Running</strong></li>
+                        <li id="Finish"><strong>Finish</strong></li>
+                    </ul>
+                </div>
             </div>
-
         </div>
 
 
@@ -171,9 +183,9 @@
         </div>
 
     </div>
-    <div class="marginCard extra-margin">
+    <div class="marginCard extra-margin ">
 
-        <button class="btn btn-outline-success ml-auto" style="float: right;"><i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run</button>
+        <button id="run_stage" class="btn btn-outline-success ml-auto" style="float: right;"><i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run</button>
     </div>
 
 </div>

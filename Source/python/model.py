@@ -2946,7 +2946,8 @@ class Site(db.Model):
             exercises = conn.run_sql('select exercise_name from exercise ' +
                                       'where dir_id = '+str(dir_id))
             exercises_names = list(exercises['exercise_name'].apply(lambda x:x.split('~')[-1]).values)
-            data = {"folders": folders, "exercises":exercises_names}
+            current_folder = sep.join(broken_path)+sep if len(broken_path) > 0 else ""
+            data = {"folders": folders, "exercises":exercises_names, "current_folder":current_folder}
         else:
             message = 'Invalid path'
             data = None
