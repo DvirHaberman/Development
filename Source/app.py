@@ -1,5 +1,5 @@
 from python.DataCollector import DataCollector
-from python.model import *
+from python.Interfaces import *
 from threading import Thread
 from multiprocessing import Queue, Event, freeze_support
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
@@ -56,16 +56,16 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
-sleep(3)
+# processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+#             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+# sleep(3)
 
-if sys.platform.startswith('win'):
-    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
-else:
-    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+# if sys.platform.startswith('win'):
+#     tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+# else:
+#     tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
 
-send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+# send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 @app.route('/api/create_all')
 def create_tables():

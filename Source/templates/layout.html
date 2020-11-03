@@ -56,35 +56,35 @@
           </button>
                 <div class="collapse navbar-collapse col-4" id="navbarTogglerDemo2">
                     <ul class="navbar-nav ml-auto">
-                        {% if session['current_window_name']=='Define Functions' %}
-                        <li class="nav-item active">
-                            {% else %}
-                            <li class="nav-item">
-                                {%endif%}
-                                <a class="nav-link" href="define_function">Define</a>
-                            </li>
-                            {% if session['current_window_name']=='Run Functions' %}
-                            <li class="nav-item active">
-                                {% else %}
-                                <li class="nav-item">
-                                    {%endif%}
-                                    <a class="nav-link" href="run_function">Test</a>
-                                </li>
-                                {% if session['userrole'] =='Admin' %} {% if session['current_window_name']=='Define Users' %}
-                                <li class="nav-item active">
-                                    {% else %}
-                                    <li class="nav-item">
-                                        {%endif%}
-                                        <a class="nav-link" href="user_wizard">Users</a>
-                                    </li>
-                                    {% if session['current_window_name']=='Define Connections' %}
-                                    <li class="nav-item active">
-                                        {% else %}
-                                        <li class="nav-item">
-                                            {%endif%}
-                                            <a class="nav-link" href="db_conn_wizard">Connections</a>
-                                        </li>
-                                        {%endif%}
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" href="#" id="DefineDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Define
+                              </a>
+                            <div class="dropdown-menu bg-dark border-light" aria-labelledby="DefineDropdownMenuLink">
+                                <a class="nav-link" href="define_function">Functions</a>
+                                <a class="nav-link" href="define_complex_net">Complex Nets</a>
+                                <a class="nav-link" href="db_conn_wizard">Connections</a>
+                                <!-- <div class="dropdown-divider bg-light"></div> -->
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" href="#" id="DefineDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Run
+                              </a>
+                            <div class="dropdown-menu bg-dark border-light" aria-labelledby="DefineDropdownMenuLink">
+                                <a class="nav-link" href="run_function">Functions</a>
+                                <a class="nav-link" href="run_stage_define">System</a>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" href="#" id="DefineDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Manage
+                              </a>
+                            <div class="dropdown-menu bg-dark border-light" aria-labelledby="DefineDropdownMenuLink">
+                                <a class="nav-link" href="user_wizard">Users</a>
+                                <a class="nav-link" href="infras">Projects & Sites</a>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </nav>

@@ -4471,74 +4471,56 @@ class SetupRuns(db.Model):
 class RunMission(db.Model):
     __tablename__ = 'runmission'
     id = db.Column(db.Integer, primary_key=True)
-    mission_id = db.Column(db.Integer)
-    user_id = db.Column(db.Integer)
-    stage_id = db.Column(db.Integer)
-    site_version = db.Column(db.Text)
+    name = db.Column(db.Text)
+    created_by = db.Column(db.Integer)
+    created_time = db.Column(db.DateTime)
+    project_id = db.Column(db.Integer)
+    run_stages = db.relationship('RunMissionStatus', backref='RunMission', lazy='dynamic', uselist=True)
     priority = db.Column(db.Integer)
 
-    def __init__(self, mission_id, user_id, stage_id, site_version, priority = 10):
-        self.mission_id = mission_id
-        self.user_id = user_id
-        self.stage_id = stage_id
-        self.site_version = site_version
+    def __init__(
+                self, 
+                name,
+                created_by,
+                project_id,
+                run_stages,
+                priority,
+                created_time
+                ):
+        self.name = name
+        self.created_by = created_by
+        self.created_date = created_date
+        self.project_id = project_id
+        self.run_stages = run_stages
         self.priority = priority
 
-    # @staticmethod
-    # def create_mission(json_data):
-    #     project_id = project=session['current_project_id']
-
-    #     project = Project.query.get(project_id).name
-    #     user_name = session['username']
-    #     stage_name = json_data['stage_name']
-    #     site_version = json_data['site_version']
-    #     priority = json_data['priority']
-    #     user = User.query.filter_by(name=user_name).first()
-    #     if user:
-    #         user_id = user.id
-    #     else:
-    #         return jsonify(status = 0, message="no user with this name")
-
-    #     stage = StageRunMani.query.filter_by(name=stage_name, project_id=project_id ).first()
-    #     if stage:
-    #         stage_id = stage.id
-    #         site = Site.query.get(stage_id.site_id)
-    #         site_version = site.version
-    #     else:
-    #         return jsonify(status = 0, message="no stage with this name")
-
         
-    #     mission = Mission(stage_name + '_' + user_name, project=project, mission_type=1)
-    #     db.session.add(mission)
-    #     db.session.commit()
+class RunMissionStatus(db.Model):
+    __tablename__ = 'runmissionstatus'
+    id = db.Column(db.Integer, primary_key=True)
+    stage_id = db.Column(db.Integer)
+    is_validated = db.Column(db.Integer)
+    is_db_updated = db.Column(db.Integer)
+    is_generated = db.Column(db.Integer)
+    delete_after = db.Column(db.Boolean)
+    updated_time = db.Column(db.DateTime)
+    run_mission = db.Column(db.Integer, db.ForeignKey('runmission.id'))
 
 
-    #     run_mission = RunMission(
-    #         mission_id = mission.id,
-    #         user_id = user_id,
-    #         stage_id = stage_id,
-    #         site_version = site_version,
-    #         priority = priority
-    #         )
-    #     if stage.net == "any":
-    #         net_to_run = int(site.nets.split(',')[0])
-    #     else:
-    #         net_to_run = int(stage.net)
-    #     try:
-    #         net_comp_net_name = ComplexNet.query.get(stage.complex_net_id).name
-    #     except:
-
-    #     auto_run = AutoRunData(
-    #                             mission_id = run_mission.id, 
-    #                             excercise_name= site.scenario_file,
-    #                             project=project,   
-    #                             net_comp_net_name = stage.,
-    #                             net_to_run = net_to_run,            
-    #                             ovr_file = stage.ovr_file,
-    #                             site = run_mission.site_id,
-    #                             user_id = run_mission.user_id,
-    #                             stage_id = stage_id,
-    #                             seconds_to_run = 900,
-    #                             priority = run_mission.priority,
-    #     )
-        
+    def __init__(
+                self,
+                stage_id,
+                is_validated,
+                is_db_updated,
+                is_generated,
+                delete_after,
+                updated_time,
+                run_mission
+                ):
+        self.stage_id = stage_id
+        self.is_validated = is_validated
+        self.is_db_updated = is_db_updated
+        self.is_generated = is_generated
+        self.delete_after = delete_after
+        self.updated_time = updated_time
+        self.run_mission = run_mission
