@@ -10,10 +10,16 @@
 
 #progressbar li {
     list-style-type: none;
-    font-size: 12px;
-    width: 25%;
+    font-size: 13px;
+    width: 20%;
     float: left;
-    position: relative
+    position: relative;
+}
+
+#progressbar #Validate:before {
+    font-family: "Font Awesome 5 Free";
+    content: "\f46c";
+    font-weight: 900;
 }
 
 #progressbar #InDB:before {
