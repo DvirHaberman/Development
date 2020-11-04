@@ -69,6 +69,9 @@ const set_generate_state = is_checked => {
         // generate_stage_controls.is_generate_scenario.checked = is_checked;
         if (is_checked) {
             run_stage_controls.btn_run_stage.innerHTML = '<i class="fas fa-chevron-circle-right"></i>  Generate & Run';
+            run_stage_controls.btn_run_stage.classList.remove("mr-5");
+            run_stage_controls.btn_run_stage.classList.add("mr-3");
+
             // <i class="fas fa-chevron-circle-right"></i> &nbsp;Generate & Run
 
             generate_stage_controls.is_2_delete_scenario_after_run.disabled = false;
@@ -87,6 +90,8 @@ const set_generate_state = is_checked => {
 
         } else {
             run_stage_controls.btn_run_stage.innerHTML = '<i class="fas fa-chevron-circle-right"></i>  Run';
+            run_stage_controls.btn_run_stage.classList.remove("mr-3");
+            run_stage_controls.btn_run_stage.classList.add("mr-5");
             // <i class="fas fa-chevron-circle-right"></i> &nbsp; Run
 
             generate_stage_controls.is_2_delete_scenario_after_run.checked = false;
