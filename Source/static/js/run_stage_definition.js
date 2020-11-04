@@ -6,6 +6,7 @@ var sep = null;
 var curr_stage = {};
 var stages = [];
 var state = null;
+var myWorker = null;
 //-----------GLOBAL CONTROLS----------
 const meta_controls = {
     meta_save: document.getElementById('meta_save'),
@@ -886,6 +887,13 @@ const addEventListeners = () => {
 
 // --------------BUTTONS -------------------
 $('#btn_generate').click(() => {
+    // Create Worker 
+    init_worker();
+    // Show Flow
+    // Kill Worker
+    // if is_done_flag==1 kill worker
+
+
 
     flagGenerateAllSubFolder = generate_stage_controls.is_generate_all_sub_folder.checked;
     folder2Generate = generate_stage_labels.scenario_generated_label.innerHTML;
@@ -949,18 +957,17 @@ function get_seperator() {
         // return seperator;
 }
 
+
 // ---------- Web Workers
-function RunGenerationMission(mission_name) {
+function RunGenerationMission(mission_id) {
     // hidden true
-
     // myWorker = init_worker(mission_name);
-    init_worker()
-        // post_data
-    $('#drill_down_div')[0].hidden = true;
-    post_data = { "origin": window.location.origin, "analyse_mission_name": mission_name }
-    myWorker.postMessage(post_data)
-    myWorker.onmessage() = e => {
-
+    init_worker();
+    // post_data
+    post_data = { "origin": window.location.origin, "mission_id": mission_id };
+    myWorker.postMessage(post_data);
+    myWorker.onmessage = e => {
+        console.log(e.data);
     }
 }
 

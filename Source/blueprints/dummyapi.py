@@ -12,5 +12,6 @@ def RunMission(mission_id):
 
 @dummy.route('/dummyapi/GenerateMission/get_by_id/<int:mission_id>')
 def GenerateMission(mission_id):
-    json_data = json.load(open(f"dummy_generate_mission_{mission_id}.json",'r'))
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    json_data = json.load(open(basedir+f"\\dummy_generate_mission_{mission_id}.json",'r'))
     return json_data, 200
