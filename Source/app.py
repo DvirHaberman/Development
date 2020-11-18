@@ -37,6 +37,9 @@ error_queue = Queue()
 updates_queue = Queue()
 to_do_queue = Queue()
 done_queue = Queue()
+generate_requests_queue = Queue()
+run_requests_queue = Queue()
+generated_queue = Queue()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -59,16 +62,17 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-# processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-#             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict)
+processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, 
+            generate_requests_queue, run_requests_queue, generated_queue ,pipes_dict)
 # sleep(3)
 
-# if sys.platform.startswith('win'):
-#     tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
-# else:
-#     tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+if sys.platform.startswith('win'):
+    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+else:
+    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
 
-# send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 @app.route('/api/create_all')
 def create_tables():
@@ -511,7 +515,18 @@ def api_methods_no_args(class_name,class_method):
     finally:
         db.session.close()
 
-
+@app.route('/api2/request_run_mission')
+def handle_mission_request():
+    try:
+        json_data = request.get_json()
+        if request.cookies['current_project_id']:
+            session['current_project_id'] = int(request.cookies['current_project_id'])
+        if request.cookies['username']:
+            session['username'] = request.cookies['username']
+    except:
+        return {"message": "no json payload", "data":None}, 400
+    result = RunMissionInterface.handle_mission_request(json_data, generate_requests_queue, run_requests_queue)
+    return {"message":result.message, "data":result.data}, result.status
 
 if __name__ == "__main__":
     # freeze_support()

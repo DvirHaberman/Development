@@ -1,12 +1,8 @@
 from threading import Thread
 from multiprocessing import Process, Pipe
-# from multiprocessing import Process, Queue
-# from multiprocessing import Queue as process_queue
 from queue import Queue
-from python.model import *
+from .Interfaces import *
 from datetime import datetime
-# from DataCollector import get_tests_params
-# from model import ErrorLog, Task, AnalyseTask, AnalyseResult
 
 
 def send_data_to_workers(data, pipes_dict, num_of_analyser_workers):
@@ -36,16 +32,13 @@ def check_tests_params_update(pipe_conn):
 
 
 def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
-                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, pipes_dict):
-    # global num_of_analyser_workers
-    # global processes_dict
-    # global run_or_stop_flag
-    # global error_queue
+                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue,
+                 generate_requests_queue, run_requests_queue, generated_queue ,pipes_dict):
+
     error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
     error_logger.start()
     processes_dict['error_logger'] = error_logger
 
-    # processes_dict['analyser_workers'] = []
     for num in range(num_of_analyser_workers):
         p = Process(target=Worker.analyser_worker, args=([tasks_queue,error_queue,
                                                         updates_queue,to_do_queue,
@@ -62,58 +55,51 @@ def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
     results_logger_worker.start()
     processes_dict['results_logger_worker'] = results_logger_worker
 
+    # system_runner_worker = Process(target=Worker.system_runner_worker, args=([error_queue,run_or_stop_flag, run_requests_queue]))
+    # system_runner_worker.start()
+    # processes_dict['system_runner_worker'] = system_runner_worker
+
+    # scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, generate_requests_queue, generated_queue]))
+    # system_runner_worker.start()
+    # processes_dict['scenario_generator_worker'] = scenario_generator_worker
+
+    error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
+    error_logger.start()
+    processes_dict['error_logger'] = error_logger
+
     return processes_dict
 
 class Worker:
 
-    # def __init__(self, worker_type='analyser'):
-    #     self.worker_type = worker_type
-    #     if worker_type == 'analyser':
-    #         self.thread = Thread(target=Worker.analyser_worker)
-    #         self.thread.start()
-
     @staticmethod
     def error_logger_worker(error_queue, run_or_stop_flag):
-        # global error_queue
-        # global run_or_stop_flag
         process_app = create_process_app(db)
-        # scoped_session = db.create_scoped_session()
         with process_app.app_context():
             while run_or_stop_flag.is_set():
                 if not error_queue.empty():
                     try:
-                        #db.session.expire_all()
                         error_log = error_queue.get_nowait()
                         error_log.log()
                     except:
                         print('error logger failure')
                     finally:
                         db.session.close()
-                    # error_queue.task_done()
 
 
     @staticmethod
     def analyser_worker(tasks_queue,error_queue,updates_queue,
                         to_do_queue,done_queue,run_or_stop_flag,pipe_conn):
-        # global to_do_queue
-        # global done_queue
-        # global run_or_stop_flag
-        # global updates_queue
         process_app = create_process_app(db)
-        # scoped_session = db.create_scoped_session()
         tests_params = None
         with process_app.app_context():
             while run_or_stop_flag.is_set():
                 try:
-                    #db.session.expire_all()
                     try:
                         update_flag, new_tests_params = check_tests_params_update(pipe_conn)
                         if update_flag:
                             tests_params = new_tests_params
                     except:
                         message='failed reading Tests_Params from pipe'
-                        # updates_queue.put_nowait((task.id,status,message))
-                        # to_do_queue.task_done()
                         error_log = ErrorLog(task_id = 0, stage='reading Tests_Params from pipe', error_string=message)
                         error_log.push(error_queue)
                         sleep(5)
@@ -141,19 +127,16 @@ class Worker:
                             message='technical error with running the function'
                             results = None
                             updates_queue.put_nowait((task.id,status,message))
-                            # to_do_queue.task_done()
                             error_log = ErrorLog(task_id = task.id, stage='performing the task', error_string=message)
                             error_log.push(error_queue)
                             continue
                         try:
                             done_queue.put_nowait((task,results,status,message))
                             print(f'done with pushing result for task {task.id} in {datetime.utcnow()}')
-                            # to_do_queue.task_done()
                         except Exception as error:
                             status=5
                             message='failed pushing to done_queue'
                             updates_queue.put_nowait((task.id,status,message))
-                            # to_do_queue.task_done()
                             error_log = ErrorLog(task_id = task.id, stage='pushing the task to done_queue', error_string=message)
                             error_log.push(error_queue)
                             continue
@@ -162,10 +145,7 @@ class Worker:
                 finally:
                     db.session.close()
 
-    def task_logger_worker(tasks_queue,error_queue,updates_queue,to_do_queue,run_or_stop_flag):
-        # global tasks_queue
-        # global to_do_queue
-        # global updates_queue
+    def task_logger_worker(tasks_queue, error_queue,updates_queue,to_do_queue,run_or_stop_flag):
 
         process_app = create_process_app(db)
         flag = True
@@ -177,26 +157,22 @@ class Worker:
                     flag = False
                     if not tasks_queue.empty():
                         try:
-                            #db.session.expire_all()
                             task = tasks_queue.get_nowait()
                             try:
                                 task.log(task.status)
                                 print(f'done with logging task {task.id} in {datetime.utcnow()}')
                             except Exception as error:
                                 message='failed logging the task'
-                                # tasks_queue.task_done()
                                 error_log = ErrorLog(task_id = task.id, stage='logging the task', error_string=message)
                                 error_log.push(error_queue)
                                 continue
                             try:
                                 if(task.status == -3):
                                     to_do_queue.put_nowait(task)
-                                # tasks_queue.task_done()
                             except Exception as error:
                                 status=-4
                                 message='failed pushing to tasks queue'
                                 updates_queue.put_nowait((task.id, status, message))
-                                # tasks_queue.task_done()
                                 error_log = ErrorLog(task_id = task.id, stage='pushing to tasks queue', error_string=message)
                                 error_log.push(error_queue)
                         except:
@@ -207,7 +183,6 @@ class Worker:
                     flag = True
                     if not updates_queue.empty():
                         try:
-                            #db.session.expire_all()
                             task_id, status, time_elapsed,message = updates_queue.get_nowait()
                             try:
                                 task = AnalyseTask.query.filter_by(id=task_id).first()
@@ -217,10 +192,8 @@ class Worker:
                                 db.session.add(task)
                                 db.session.commit()
                                 print(f'done with updating task {task.id} in {datetime.utcnow()}')
-                                # updates_queue.task_done()
                             except Exception as error:
                                 message='failed updating the task'
-                                # updates_queue.task_done()
                                 error_log = ErrorLog(task_id = task.id, stage='updating the task', error_string=message)
                                 error_log.push(error_queue)
                         except:
@@ -229,19 +202,14 @@ class Worker:
                             db.session.close()
     @staticmethod
     def results_logger_worker(done_queue,updates_queue,error_queue,run_or_stop_flag):
-        # global done_queue
-        # global run_or_stop_flag
-        # global updates_queue
 
         process_app = create_process_app(db)
         with process_app.app_context():
             while run_or_stop_flag.is_set():
                 if not done_queue.empty():
                     try:
-                        #db.session.expire_all()
                         task, results, status, message = done_queue.get_nowait()
                         try:
-                            # results = task.function_obj.run(task.db_conn_obj, task.run_id)
                             sleep(0.1)
                             if status > -1:
                                 keys = ['run_id', 'result_status', 'result_text', 'time_elapsed', 'results_arr']
@@ -258,15 +226,6 @@ class Worker:
                             else:
                                 final_result = {'run_id':task.run_id, 'result_status':status, 'result_text':'Missing', 'time_elapsed':0, 'results_arr':None}
 
-                            # analyse_result = AnalyseResult(mission_id=task.mission_id,
-                            #                     task_id=task.id,
-                            #                     run_id=final_result['run_id'],
-                            #                     function_id = task.function_id,
-                            #                     db_conn_string=task.db_conn_obj.name,
-                            #                     result_status=final_result['result_status'],
-                            #                     result_text=final_result['result_text'],
-                            #                     time_elapsed = final_result['time_elapsed'])
-
                             analyse_result = AnalyseResult(mission_id=task.mission_id,
                                                 task_id=task.id, 
                                                 run_id=final_result['run_id'],
@@ -277,9 +236,6 @@ class Worker:
                                                 result_status=final_result['result_status'],
                                                 result_text=final_result['result_text'],
                                                 time_elapsed = final_result['time_elapsed'])
-                            # db.session.add(analyse_result)
-                            # db.session.commit()
-                            # done_queue.task_done()
 
                             message = analyse_result.log(final_result['results_arr'], error_queue)
                             updates_queue.put_nowait((task.id,status,final_result['time_elapsed'],message))
@@ -288,10 +244,38 @@ class Worker:
                             status=-5
                             message='error logging results'
                             updates_queue.put_nowait((task.id,status,message))
-                            # done_queue.task_done()
                             error_log = ErrorLog(task_id = task.id, stage='logging results', error_string=message)
                             error_log.push(error_queue)
                     except:
                             print("result logger failure")
                     finally:
                         db.session.close()
+
+    # @staticmethod
+    # def system_runner_worker(error_queue, run_or_stop_flag, run_requests_queue):
+    #     process_app = create_process_app(db)
+    #     with process_app.app_context():
+    #         while run_or_stop_flag.is_set():
+    #             if not run_requests_queue.empty():
+    #                 try:
+    #                     run_request = error_queue.get_nowait()
+    #                     # create a run mission row in octopus db
+    #                     result = RunMissionInterface.create_run_mission(run_request=run_request)
+    #                     # log error if somthing failed
+    #                     if result.status >= 300:
+    #                         error = ErrorLog(
+    #                                          error_string=result.message,
+    #                                          stage='making a run request'
+    #                                         )
+    #                         error.log()
+    #                         continue
+    #                     # if run mission row was created - create the mission for run script 
+    #                     # AutoRunData, ComplexNet etc.
+    #                 except:
+    #                     print('exeption in system runner failure')
+    #                     try:
+    #                         pass
+    #                     except expression as identifier:
+    #                         pass
+    #                 finally:
+    #                     db.session.close()
