@@ -4473,7 +4473,6 @@ class RunMission(db.Model):
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
     run_stages = db.relationship('RunMissionStatus', backref='RunMission', lazy='dynamic', uselist=True)
-    priority = db.Column(db.Integer)
 
     def __init__(
                 self, 
@@ -4481,7 +4480,6 @@ class RunMission(db.Model):
                 created_by,
                 project_id,
                 run_stages,
-                priority,
                 created_time
                 ):
         self.name = name
@@ -4489,7 +4487,7 @@ class RunMission(db.Model):
         self.created_time = created_time
         self.project_id = project_id
         self.run_stages = run_stages
-        self.priority = priority
+        
 
         
 class RunMissionStatus(db.Model):
@@ -4501,6 +4499,7 @@ class RunMissionStatus(db.Model):
     updated_time = db.Column(db.DateTime)
     run_mission = db.Column(db.Integer, db.ForeignKey('runmission.id'))
     run_id = db.Column(db.Integer)
+    priority = db.Column(db.Integer)
 
     def __init__(
                 self,
@@ -4508,73 +4507,102 @@ class RunMissionStatus(db.Model):
                 generate_mission,
                 delete_after,
                 updated_time,
-                run_mission
+                run_mission,
+                priority
                 ):
         self.stage_id = stage_id
         self.generate_mission = generate_mission
         self.delete_after = delete_after
         self.updated_time = updated_time
         self.run_mission = run_mission
+        self.priority = priority
 
 class GenerateMission(db.Model):
     __tablename__ = "generatemission"
     id = db.Column(db.Integer, primary_key=True)
-    source_scenario = db.Column(db.Text)
-    ext_events_folder = db.Column(db.Text)
-    is_generate_subfolders = db.Column(db.Boolean)
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
-    run_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', lazy='dynamic', uselist=True)
+    gen_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', lazy='dynamic', uselist=True)
 
     def __init__(
                 self,
-                source_scenario,
-                ext_events_folder,
-                is_generate_subfolders,
                 created_by,
                 created_time,
                 project_id,
-                run_stages
+                gen_stages
                 ):
 
-        self.source_scenario = source_scenario
-        self.ext_events_folder = ext_events_folder
-        self.is_generate_subfolders = is_generate_subfolders
         self.created_by = created_by
         self.created_time = created_time
         self.project_id = project_id
-        self.run_stages = run_stages
+        self.gen_stages = gen_stages
 
 
 class GenerateMissionStatus(db.Model):
     __tablename__ = 'generatemissionstatus'
     id = db.Column(db.Integer, primary_key=True)
     stage_id = db.Column(db.Integer)
-    generate_id = db.Column(db.Integer)
+    ext_events_folder = db.Column(db.Text)
+    is_generate_subfolders = db.Column(db.Boolean)
+    generate_mission_id = db.Column(db.Integer, db.ForeignKey('generatemission.id'))
+    run_mission_id = db.Column(db.Integer)
     is_validated = db.Column(db.Integer)
     is_in_db = db.Column(db.Integer)
     is_generated = db.Column(db.Integer)
     delete_after = db.Column(db.Boolean)
     updated_time = db.Column(db.DateTime)
-    generate_mission = db.Column(db.Integer, db.ForeignKey('generatemission.id'))
+    priority = db.Column(db.Integer)
 
     def __init__(
                 self,
                 stage_id,
-                generate_id,
+                ext_events_folder,
+                is_generate_subfolders,
+                generate_mission_id,
+                run_mission_id,
                 is_validated,
                 is_in_db,
                 is_generated,
                 delete_after,
                 updated_time,
-                generate_mission
+                priority
                 ):
         self.stage_id = stage_id
-        self.generate_id = generate_id
+        self.ext_events_folder = ext_events_folder
+        self.is_generate_subfolders = is_generate_subfolders
+        self.generate_mission_id = generate_mission_id
+        self.run_mission_id = run_mission_id
         self.is_validated = is_validated
         self.is_in_db = is_in_db
         self.is_generated = is_generated
         self.delete_after = delete_after
         self.updated_time = updated_time
-        self.generate_mission = generate_mission
+        self.priority = priority
+
+class GenerateStatistics(db.Model):
+    __tablename__ = 'generatestatistics'
+    id = db.Column(db.Integer, primary_key=True)
+    generate_status_id = db.Column(db.Integer)
+    generate_mission_id = db.Column(db.Integer)
+    succeeded = db.Column(db.Integer)
+    failed = db.Column(db.Integer)
+    total = db.Column(db.Integer)
+    stage_type = db.Column(db.Text)
+
+    def __init__(
+                self,
+                generate_status_id,
+                generate_mission_id,
+                succeeded,
+                failed,
+                total,
+                stage_type
+                ):
+
+        self.generate_status_id = generate_status_id
+        self.generate_mission_id = generate_mission_id
+        self.succeeded = succeeded
+        self.failed = failed
+        self.total = total
+        self.stage_type = stage_type

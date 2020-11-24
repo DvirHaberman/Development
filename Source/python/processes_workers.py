@@ -59,9 +59,9 @@ def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
     # system_runner_worker.start()
     # processes_dict['system_runner_worker'] = system_runner_worker
 
-    # scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, generate_requests_queue, generated_queue]))
-    # system_runner_worker.start()
-    # processes_dict['scenario_generator_worker'] = scenario_generator_worker
+    scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, generate_requests_queue, generated_queue, run_requests_queue]))
+    scenario_generator_worker.start()
+    processes_dict['scenario_generator_worker'] = scenario_generator_worker
 
     error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
     error_logger.start()
@@ -144,7 +144,8 @@ class Worker:
                     print('analyse worker failure')
                 finally:
                     db.session.close()
-
+                    
+    @staticmethod
     def task_logger_worker(tasks_queue, error_queue,updates_queue,to_do_queue,run_or_stop_flag):
 
         process_app = create_process_app(db)
@@ -258,24 +259,99 @@ class Worker:
     #         while run_or_stop_flag.is_set():
     #             if not run_requests_queue.empty():
     #                 try:
-    #                     run_request = error_queue.get_nowait()
-    #                     # create a run mission row in octopus db
-    #                     result = RunMissionInterface.create_run_mission(run_request=run_request)
+    #                     run_request = run_requests_queue.get_nowait()
+    #                     # execute the run request
+    #                     result = RunMissionInterface.execute_request(run_request=run_request)
     #                     # log error if somthing failed
     #                     if result.status >= 300:
     #                         error = ErrorLog(
     #                                          error_string=result.message,
-    #                                          stage='making a run request'
+    #                                          stage='executing a run request'
     #                                         )
     #                         error.log()
     #                         continue
     #                     # if run mission row was created - create the mission for run script 
     #                     # AutoRunData, ComplexNet etc.
     #                 except:
-    #                     print('exeption in system runner failure')
+    #                     print('exeption in system runner')
     #                     try:
     #                         pass
     #                     except expression as identifier:
     #                         pass
     #                 finally:
     #                     db.session.close()
+
+    @staticmethod
+    def scenario_generator_worker(error_queue,run_or_stop_flag, generate_requests_queue, generated_queue, run_requests_queue):
+        process_app = create_process_app(db)
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
+                if not generate_requests_queue.empty():
+                    try:
+                        gen_request = generate_requests_queue.get_nowait()
+                        #getting task_id for the error log
+                        if "gen_mission_id" in gen_request:
+                            task_id = int(gen_request['gen_mission_id'])
+                        else:
+                            task_id = None
+                        # execute the generate request
+                        result = GenerateMissionInterface.log_request(gen_request=gen_request)
+                        # log error if somthing failed
+                        if result.status >= 300:
+                            db.session.rollback()
+                            error = ErrorLog(
+                                             task_id = task_id,
+                                             error_string=result.message,
+                                             stage='logging a generate requests'
+                                            )
+                            error.log()
+                            continue
+                        else:
+                            # log the statistics
+                            gen_statistics = result.data['statistics']
+                            gen_statistics = GenerateStatistics(
+                                                generate_status_id=None,
+                                                generate_mission_id=gen_request['gen_mission_id'],
+                                                succeeded=gen_statistics['succeeded'],
+                                                failed=gen_statistics['failed'],
+                                                total=gen_statistics['total'],
+                                                stage_type='logging request'
+                                                               )
+                            db.session.add(gen_statistics)
+
+                            #complete the db trasaction
+                            db.session.commit()
+
+                            # loop requests logging results
+                            results = result.data['results']
+                            for res in results:
+                                if res.status < 300:
+                                    gen_result = GenerateMissionInterface.execute_request(res.data)
+                                    if gen_result.status < 300:
+                                        pass
+                                    else:
+                                        error = ErrorLog(
+                                             task_id=task_id,
+                                             error_string=res.message,
+                                             stage='executing a generate request'
+                                            )
+                                        error.log()
+                                else:
+                                    error = ErrorLog(
+                                             task_id=task_id,
+                                             error_string=res.message,
+                                             stage='logging a generate request'
+                                            )
+                                    error.log()
+                        # if run mission row was created - create the mission for run script 
+                        # AutoRunData, ComplexNet etc.
+                    except:
+                        db.session.rollback()
+                        print('exeption in scenario generator')
+                        try:
+                            pass
+                        except expression as identifier:
+                            pass
+                    finally:
+                        db.session.close()
+    
