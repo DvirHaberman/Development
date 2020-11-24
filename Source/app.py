@@ -30,7 +30,6 @@ run_or_stop_flag = Event()
 
 run_or_stop_flag.set()
 
-processes_dict = {}
 queue_dict = {}
 tasks_queue = Queue()
 error_queue = Queue()
@@ -38,8 +37,8 @@ updates_queue = Queue()
 to_do_queue = Queue()
 done_queue = Queue()
 generate_requests_queue = Queue()
+to_generate_queue = Queue()
 run_requests_queue = Queue()
-generated_queue = Queue()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -62,9 +61,9 @@ else:
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
     sys.path.append(basedir[:-7] + r'/Infras/Utils')
 
-processes_dict = init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+processes_dict = init_processes(num_of_analyser_workers,run_or_stop_flag,
             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, 
-            generate_requests_queue, run_requests_queue, generated_queue ,pipes_dict)
+            generate_requests_queue, run_requests_queue, to_generate_queue ,pipes_dict)
 # sleep(3)
 
 if sys.platform.startswith('win'):

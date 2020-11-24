@@ -31,9 +31,11 @@ def check_tests_params_update(pipe_conn):
 
 
 
-def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
+def init_processes(num_of_analyser_workers,run_or_stop_flag,
                  tasks_queue,error_queue,updates_queue,to_do_queue,done_queue,
-                 generate_requests_queue, run_requests_queue, generated_queue ,pipes_dict):
+                 generate_requests_queue, to_generate_queue, run_requests_queue ,pipes_dict):
+
+    processes_dict = {}
 
     error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
     error_logger.start()
@@ -59,9 +61,13 @@ def init_processes(processes_dict,num_of_analyser_workers,run_or_stop_flag,
     # system_runner_worker.start()
     # processes_dict['system_runner_worker'] = system_runner_worker
 
-    scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, generate_requests_queue, generated_queue, run_requests_queue]))
+    scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, to_generate_queue, run_requests_queue]))
     scenario_generator_worker.start()
     processes_dict['scenario_generator_worker'] = scenario_generator_worker
+
+    generate_requests_logger = Process(target=Worker.generate_requests_logger, args=([error_queue,run_or_stop_flag, generate_requests_queue, to_generate_queue]))
+    generate_requests_logger.start()
+    processes_dict['generate_requests_logger'] = generate_requests_logger
 
     error_logger = Process(target=Worker.error_logger_worker, args=([error_queue,run_or_stop_flag]))
     error_logger.start()
@@ -282,7 +288,7 @@ class Worker:
     #                     db.session.close()
 
     @staticmethod
-    def scenario_generator_worker(error_queue,run_or_stop_flag, generate_requests_queue, generated_queue, run_requests_queue):
+    def generate_requests_logger(error_queue,run_or_stop_flag, generate_requests_queue, to_generate_queue):
         process_app = create_process_app(db)
         with process_app.app_context():
             while run_or_stop_flag.is_set():
@@ -306,51 +312,128 @@ class Worker:
                                             )
                             error.log()
                             continue
-                        else:
-                            # log the statistics
-                            gen_statistics = result.data['statistics']
-                            gen_statistics = GenerateStatistics(
-                                                generate_status_id=None,
-                                                generate_mission_id=gen_request['gen_mission_id'],
-                                                succeeded=gen_statistics['succeeded'],
-                                                failed=gen_statistics['failed'],
-                                                total=gen_statistics['total'],
-                                                stage_type='logging request'
-                                                               )
-                            db.session.add(gen_statistics)
+                        
+                        # log the statistics
+                        statistics = result.data['statistics']
+                        gen_statistics = GenerateStatistics(
+                                            generate_status_id=None,
+                                            generate_mission_id=gen_request['gen_mission_id'],
+                                            succeeded=statistics['succeeded'],
+                                            failed=statistics['failed'],
+                                            total=statistics['failed']+statistics['succeeded'],
+                                            stage_type='logging request'
+                                                            )
+                        db.session.add(gen_statistics)
 
-                            #complete the db trasaction
-                            db.session.commit()
-
-                            # loop requests logging results
-                            results = result.data['results']
-                            for res in results:
-                                if res.status < 300:
-                                    gen_result = GenerateMissionInterface.execute_request(res.data)
-                                    if gen_result.status < 300:
-                                        pass
-                                    else:
-                                        error = ErrorLog(
-                                             task_id=task_id,
-                                             error_string=res.message,
-                                             stage='executing a generate request'
-                                            )
-                                        error.log()
-                                else:
-                                    error = ErrorLog(
-                                             task_id=task_id,
-                                             error_string=res.message,
-                                             stage='logging a generate request'
-                                            )
-                                    error.log()
-                        # if run mission row was created - create the mission for run script 
-                        # AutoRunData, ComplexNet etc.
+                        #complete the db trasaction
+                        db.session.commit()
+                        # loop requests logging results
+                        results = result.data['results']
+                        for res in results:
+                            if res.status < 300:
+                                gen_status = res.data
+                                # if gen_request['to_run']:
+                                #     run_request = {
+                                #             "stage_id":gen_request['stage_id'],
+                                #             "generate_mission_id":gen_request['gen_mission_id'],
+                                #             "generate_status_id":gen_status.id,
+                                #             "delete_after":gen_request['run_delete_after'],
+                                #             "run_mission_id":gen_request['run_mission_id'],
+                                #             "priority":gen_request['priority']
+                                #         }
+                                to_generate_queue.put_nowait((gen_status.id, gen_request))
+                                # gen_result = GenerateMissionInterface.execute_request(gen_status)
+                                # if gen_result.status < 300:
+                                #     statistics = gen_result.data['gen_process']
+                                #     generate_status_id = gen_result.data['generate_status_id']
+                                #     for key, stat in statistics.items():
+                                #         gen_statistics = GenerateStatistics(
+                                #             generate_status_id=generate_status_id,
+                                #             generate_mission_id=gen_request['gen_mission_id'],
+                                #             succeeded=stat['succeeded'],
+                                #             failed=stat['failed'],
+                                #             total=stat['total'],
+                                #             stage_type=stat['stage_type']
+                                #                             )
+                                #         db.session.add(gen_statistics)
+                                #     db.session.commit()
+                                    
+                                # else:
+                                #     error = ErrorLog(
+                                #             task_id=task_id,
+                                #             error_string=res.message,
+                                #             stage='executing a generate request'
+                                #         )
+                                #     error.log()
+                            else:
+                                error = ErrorLog(
+                                            task_id=task_id,
+                                            error_string=res.message,
+                                            stage='logging a generate request'
+                                        )
+                                error.log()
                     except:
                         db.session.rollback()
-                        print('exeption in scenario generator')
+                        print('exception in generate requests logger')
                         try:
                             pass
-                        except expression as identifier:
+                        except Exception as e:
+                            pass
+                    finally:
+                        db.session.close()    
+
+    @staticmethod
+    def scenario_generator_worker(error_queue,run_or_stop_flag, to_generate_queue, run_requests_queue):
+        process_app = create_process_app(db)
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
+                if not to_generate_queue.empty():
+                    try:
+                        gen_status_id, gen_request = to_generate_queue.get_nowait()
+                        gen_status = GenerateMissionStatus.query.get(gen_status_id)
+                        gen_result = GenerateMissionInterface.execute_request(gen_status=gen_status)
+                        if gen_result.status < 300:
+                            statistics = gen_result.data['gen_process']
+
+                            for key, stat in statistics.items():
+                                gen_statistics = GenerateStatistics(
+                                    generate_status_id=gen_status_id,
+                                    generate_mission_id=gen_status.generate_mission_id,
+                                    succeeded=stat['succeeded'],
+                                    failed=stat['failed'],
+                                    total=stat['total'],
+                                    stage_type=stat['stage_type']
+                                                    )
+                                db.session.add(gen_statistics)
+                                db.session.commit()
+                                setattr(gen_status, key, gen_statistics.id)
+                                db.session.commit()
+                            if gen_request['to_run']:
+                                run_request = {
+                                            "stage_id":gen_request['stage_id'],
+                                            "generate_mission_id":gen_request['gen_mission_id'],
+                                            "generate_status_id":gen_status_id,
+                                            "delete_after":gen_request['run_delete_after'],
+                                            "run_mission_id":gen_request['run_mission_id'],
+                                            "priority":gen_request['priority']
+                                        }
+                                run_requests_queue.put_nowait(run_request)
+                                
+                        else:
+                            error = ErrorLog(
+                                    task_id=gen_status,
+                                    error_string=res.message,
+                                    stage='executing a generate request'
+                                )
+                            error.log()
+                        
+                        
+                    except:
+                        db.session.rollback()
+                        print('exception in scenario generator')
+                        try:
+                            pass
+                        except Exception as e:
                             pass
                     finally:
                         db.session.close()

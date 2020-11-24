@@ -16,8 +16,7 @@ class RunMissionInterface():
         def validate_request_data(json_data):
             try:
                 #check that all fields exist in the recieved data
-                expected_keys = ['request_type', 'is_generated', 'request_content']
-                content_keys  = ['stage_name', 'ext_events_folder', 'is_generate_subfolders', 'priority']
+                expected_keys = ['run_needed', 'generate_needed', 'request_content']
                 missing_keys = list(filter(lambda x: x not in json_data.keys(), expected_keys))
                 if missing_keys:
                     return Result(
@@ -25,19 +24,10 @@ class RunMissionInterface():
                                 "The keys: "+','.join(missing_keys) + " are missing",
                                 None
                                 )
-                #check that the request type is valid
-                request_type = json_data['request_type']
-                if request_type not in ['RUN', 'GENERATE']:
-                    return Result(
-                                412,
-                                "request type must be 'RUN' or 'GENERATE'",
-                                None
-                                )
-
                 #return 200 if all is validated
                 return Result(
                             200,
-                            None,
+                            "valid",
                             None
                             )
             except Exception as error:
@@ -55,7 +45,7 @@ class RunMissionInterface():
 
         #check if generation of scenario is needed
         gen_mission = None
-        result = create_generate_mission(json_data) if int(json_data['is_generated']) == 1 else None
+        result = create_generate_mission(json_data) if int(json_data['generate_needed']) == 1 else None
         if result:
             if result.status >=300:
                 return result
@@ -63,7 +53,7 @@ class RunMissionInterface():
 
         #check if run mission is needed
         run_mission = None
-        result = create_run_mission(json_data) if json_data['request_type'] == ReuqestTypes.RUN else None
+        result = create_run_mission(json_data) if int(json_data['run_needed']) == 1 else None
         if result:
             if result.status >=300:
                 return result
@@ -72,48 +62,37 @@ class RunMissionInterface():
         #create request
         gen_mission_id = gen_mission.id if gen_mission else None
         run_mission_id = run_mission.id if run_mission else None
-        if int(json_data['is_generated']) == 1:
-            result = create_gen_request(json_data, gen_mission_id, run_mission_id)
-            if result.status >=300:
-                return result
-            gen_request = result.data
-            generate_requests_queue.put_nowait(gen_request)
-        else:
-            result = create_run_request(json_data, gen_mission_id, run_mission_id)
-            if result.status >=300:
-                return result
-            run_request = result.data
-            run_requests_queue.put_nowait(run_request)
+        requests = json_data['request_content']
+        for request in requests:
+            request.update({"gen_mission_id":gen_mission_id, "run_mission_id":run_mission_id})
+            if int(request['to_generate']) == 1:
+                generate_requests_queue.put_nowait(request)
+            else:
+                run_requests_queue.put_nowait(request)
         return Result(200,'Mission created', {"gen_mission_id":gen_mission_id,"run_mission_id":run_mission_id})
-def create_gen_request(json_data, gen_mission_id, run_mission_id):
-    try:
-        
-        gen_request = {
-                        "gen_mission_id":gen_mission_id,
-                        "run_mission_id":run_mission_id,
-                        "request_type":json_data['request_type'],
-                        'request_content': json_data['request_content'],
-                        "project_id": session['current_project_id'],
-                        "user_name": session['username']
-                      }
-        return Result(200, None, gen_request)
-    except:
-        return Result(500, 'error creating the generation request', None)
 
-def create_run_request(json_data, gen_mission_id, run_mission_id, project_id, user_name):
-    try:
-      
-        run_request = {
-                        "gen_mission_id":gen_mission_id,
-                        "run_mission_id":run_mission_id,
-                        "request_type":json_data['request_type'],
-                        'request_content': json_data['request_content'],
-                        "project_id": project_id,
-                        "user_name": user_name
-                      }
-        return Result(200, None, run_request)
-    except:
-        return Result(500, 'error creating the run request', None)
+    @staticmethod
+    def create_run_request(
+                        stage_id,
+                        generate_mission_id,
+                        generate_status_id,
+                        delete_after,
+                        run_mission_id,
+                        priority
+                        ):
+        try:
+        
+            gen_request = {
+                            "stage_id":gen_request['stage_id'],
+                            "generate_mission_id":gen_request['generate_mission_id'],
+                            "generate_status_id":gen_request['generate_status_id'],
+                            "delete_after":gen_request['delete_after'],
+                            "run_mission_id":gen_request['run_mission_id'],
+                            "priority":gen_request['priority']
+                        }
+            return Result(200, None, run_request)
+        except:
+            return Result(500, 'error creating the run request', None)
             
 def create_generate_mission(json_data):
     project_id = session['current_project_id']
@@ -160,78 +139,58 @@ class GenerateMissionInterface():
     
     @staticmethod
     def log_request(gen_request):
-        def validate_request_data(json_data):
-            try:
-                #check that all fields exist in the recieved data
-                expected_keys = ['run_mission_id', 'gen_mission_id', 'request_content']
-                missing_keys = list(filter(lambda x: x not in json_data.keys(), expected_keys))
-                if missing_keys:
-                    return Result(
-                                412,
-                                "The keys: "+','.join(missing_keys) + " are missing",
-                                None
-                                )
 
-                
-                #return 200 if all is validated
-                return Result(
-                            200,
-                            None,
-                            None
-                            )
-            except Exception as error:
-                return Result(
-                            500, 
-                            'Server error while validating request data',
-                            None
-                            )
         # validating the data             
-        result = validate_request_data(gen_request)
+        result = GenerateMissionInterface.validate_gen_request(gen_request)
         if result.status >=300:
             return result
         
+        # initialize variables
         run_mission_id = int(gen_request['run_mission_id'])
-        
         gen_mission_id = int(gen_request['gen_mission_id'])
-
-        #get the gen mission from the db
-        gen_mission = GenerateMission.query.get(gen_mission_id)
+        stage_name = gen_request['stage_name']
+        ext_events_folder = gen_request['ext_events_folder']
         
+        results = []
+        statistics = {"failed": 0, "succeeded": 0}
+
+        #get the gen project_id from the gen mission
+        gen_mission = GenerateMission.query.get(gen_mission_id)
         if not gen_mission:
             return Result(404, 'No gen mission was found with id:' + str(gen_mission_id), None)
         project_id = gen_mission.project_id
-        results = []
-        statistics = {"failed": 0, "succeeded": 0}
-        for request in gen_request['request_content']:
-            stage_name = request['stage_name']
-            stage = StageRunMani.query.filter_by(name=stage_name,project_id=project_id).first()
-            if not stage:
-                result=Result(
-                            404, 
-                            "stage with name " + stage_name + " was not found",
-                            None
-                            )
-                statistics['failed'] += 1
-                results.append(result)
-                continue
-            request.update({"stage_id":stage.id})
-            if Path(request['ext_events_folder']).exists():
-                if int(request['is_generate_subfolders']) > 0:
-                    folders = list(set(get_subfolders(request['ext_events_folder'],'').split(',')))
-                else:
-                    folders = [gen_mission.ext_events_folder]
-                for folder in folders:
-                    result = GenerateMissionInterface.generate_mission_status(request, gen_mission_id, run_mission_id, project_id, folder)
-                    results.append(result)
-                    if result.status >= 300:
-                        statistics['failed'] += 1
-                    else:
-                        statistics['succeeded'] += 1
+
+        # check that the stage exists - if not then return error
+        stage = StageRunMani.query.filter_by(name=stage_name,project_id=project_id).first()
+        if not stage:
+            result=Result(
+                        404, 
+                        "stage with name " + stage_name + " was not found",
+                        None
+                        )
+        
+        #update the request with the stage id
+        gen_request.update({"stage_id":stage.id})
+
+        #if path ext_events_folder exists, generate the mission status
+        if Path(ext_events_folder).exists():
+            #get all sub-folders if request asks for all of them
+            if int(gen_request['is_generate_subfolders']) > 0:
+                folders = list(set(get_subfolders(ext_events_folder,'').split(',')))
             else:
-                result = Result(416, f'external events folder: {request["ext_events_folder"]} was not found',None)
-                statistics['failed'] += 1
+                folders = [ext_events_folder]
+            #for every folder requests, create the mission status row
+            for folder in folders:
+                result = GenerateMissionInterface.generate_mission_status(gen_request)
                 results.append(result)
-        statistics.update({"total": statistics['failed']+statistics['succeeded']})
+                if result.status >= 300:
+                    statistics['failed'] += 1
+                else:
+                    statistics['succeeded'] += 1
+        else:
+            result = Result(416, f'external events folder: {ext_events_folder} was not found',None)
+            statistics['failed'] += 1
+            results.append(result)
         return Result(200,None,{"results":results, "statistics":statistics})
     
     @staticmethod
@@ -241,30 +200,31 @@ class GenerateMissionInterface():
         if not stage:
             return Result(
                         404, 
-                        "stage with name " + stage_name + " was not found",
+                        "stage with name " + stage.name + " was not found",
                         None
                         )
-        return Result(200, None, {
-                                "is_validated":{"failed":1, "succeeded":2, "total":3},
-                                "is_in_db":{"failed":1, "succeeded":2, "total":3},
-                                "is_generated":{"failed":1, "succeeded":2, "total":3}
-                                }
+        return Result(200, None, {"generate_status_id" : gen_status.id,
+                                  "gen_process":{
+                                        "is_validated":{"failed":1, "succeeded":2, "total":3, "stage_type": "validating gen files"},
+                                        "is_in_db":{"failed":1, "succeeded":2, "total":3, "stage_type": "inserting gen rows to db"},
+                                        "is_generated":{"failed":1, "succeeded":1, "total":1, "stage_type": "generating scenario"},
+                                        }
+                                 }
                     )
     @staticmethod
-    def generate_mission_status(request, gen_mission_id, run_mission_id, project_id, ext_events_folder):
+    def generate_mission_status(gen_request):
         try:
-            stage_id = request['stage_id']
-            run_mission_id = run_mission_id
-            priority = int(request['priority'])
-            ext_events_folder = ext_events_folder
-            is_generate_subfolders = int(request['is_generate_subfolders'])
-            generate_id = gen_mission_id
+            stage_id = gen_request['stage_id']
+            run_mission_id = gen_request['run_mission_id']
+            priority = int(gen_request['priority'])
+            ext_events_folder = gen_request['ext_events_folder']
+            is_generate_subfolders = int(gen_request['is_generate_subfolders'])
+            generate_mission_id = gen_request['gen_mission_id']
             is_validated = None
             is_in_db = None
             is_generated = None
-            delete_after = int(request['gen_delete_after'])
+            delete_after = int(gen_request['gen_delete_after'])
             updated_time = datetime.utcnow()
-            generate_mission_id = gen_mission_id
 
             gen_status = GenerateMissionStatus(
                                         stage_id=stage_id,
@@ -287,6 +247,37 @@ class GenerateMissionInterface():
                         'Server error while creating gen mission status for mission id:' + str(gen_mission_id),
                         None
                         )
+    @staticmethod
+    def validate_gen_request(gen_request):
+        try:
+            
+            expected_keys = [
+                        "number",
+                        "to_run",
+                        "to_generate",
+                        "stage_name",
+                        "ext_events_folder",
+                        "gen_delete_after",
+                        "run_delete_after",
+                        "is_generate_subfolders",
+                        "priority"
+                        ]
+            missing_keys = list(filter(lambda x: x not in gen_request.keys(), expected_keys))
+            if missing_keys:
+                error_string = f'The keys: {",".join(missing_keys)} are missing in gen_request{str(gen_request["number"])}' \
+                        if "number" in gen_request else \
+                        f'The keys: {",".join(missing_keys)} are missing'
+                return Result(
+                            412,
+                            error_string,
+                            None
+                            )
+            return Result(200, "valid", None)
+        except:
+            error_string = f'error while validating gen_request{str(gen_request["number"])}' \
+                        if "number" in gen_request else \
+                        f'error while validating gen_request'
+            return Result(500, error_string, None)
 
 def get_subfolders(basedir,folders):
     folders += ',' + basedir if len(folders) > 0 else basedir

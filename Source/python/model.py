@@ -4494,27 +4494,30 @@ class RunMissionStatus(db.Model):
     __tablename__ = 'runmissionstatus'
     id = db.Column(db.Integer, primary_key=True)
     stage_id = db.Column(db.Integer)
-    generate_mission = db.Column(db.Integer)
+    generate_mission_id = db.Column(db.Integer)
+    generate_status_id = db.Column(db.Integer)
     delete_after = db.Column(db.Boolean)
     updated_time = db.Column(db.DateTime)
-    run_mission = db.Column(db.Integer, db.ForeignKey('runmission.id'))
+    run_mission_id = db.Column(db.Integer, db.ForeignKey('runmission.id'))
     run_id = db.Column(db.Integer)
     priority = db.Column(db.Integer)
 
     def __init__(
                 self,
                 stage_id,
-                generate_mission,
+                generate_mission_id,
+                generate_status_id,
                 delete_after,
                 updated_time,
-                run_mission,
+                run_mission_id,
                 priority
                 ):
         self.stage_id = stage_id
-        self.generate_mission = generate_mission
+        self.generate_mission_id = generate_mission_id
+        self.generate_status_id = generate_status_id
         self.delete_after = delete_after
         self.updated_time = updated_time
-        self.run_mission = run_mission
+        self.run_mission_id = run_mission_id
         self.priority = priority
 
 class GenerateMission(db.Model):
