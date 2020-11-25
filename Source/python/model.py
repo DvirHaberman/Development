@@ -4526,7 +4526,8 @@ class GenerateMission(db.Model):
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
-    gen_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', lazy='dynamic', uselist=True)
+    gen_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', 
+                                cascade="all,delete", lazy='dynamic', uselist=True)
 
     def __init__(
                 self,
@@ -4553,6 +4554,8 @@ class GenerateMissionStatus(db.Model):
     is_validated = db.Column(db.Integer)
     is_in_db = db.Column(db.Integer)
     is_generated = db.Column(db.Integer)
+    statistics = db.relationship('GenerateStatistics', backref='GenerateMissionStatus', 
+                                  cascade="all,delete", lazy=True, uselist=True)
     delete_after = db.Column(db.Boolean)
     updated_time = db.Column(db.DateTime)
     priority = db.Column(db.Integer)
@@ -4567,6 +4570,7 @@ class GenerateMissionStatus(db.Model):
                 is_validated,
                 is_in_db,
                 is_generated,
+                statistics,
                 delete_after,
                 updated_time,
                 priority
@@ -4579,6 +4583,7 @@ class GenerateMissionStatus(db.Model):
         self.is_validated = is_validated
         self.is_in_db = is_in_db
         self.is_generated = is_generated
+        self.statistics = statistics
         self.delete_after = delete_after
         self.updated_time = updated_time
         self.priority = priority
@@ -4586,12 +4591,12 @@ class GenerateMissionStatus(db.Model):
 class GenerateStatistics(db.Model):
     __tablename__ = 'generatestatistics'
     id = db.Column(db.Integer, primary_key=True)
-    generate_status_id = db.Column(db.Integer)
+    generate_status_id = db.Column(db.Integer, db.ForeignKey('generatemissionstatus.id'))
     generate_mission_id = db.Column(db.Integer)
     succeeded = db.Column(db.Integer)
     failed = db.Column(db.Integer)
     total = db.Column(db.Integer)
-    stage_type = db.Column(db.Text)
+    stage_type = db.Column(db.Integer)
 
     def __init__(
                 self,

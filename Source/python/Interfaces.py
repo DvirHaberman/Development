@@ -1,8 +1,6 @@
 from .model import *
-# from .Enums import RunTypes
-class ReuqestTypes:
-    RUN = 'RUN'
-    generate = 'GENERATE'
+from .Enums import GenerateStageTypes, GenerateStatus
+
 class Result():
     def __init__(self, status, message, data):
         self.status = status
@@ -45,6 +43,7 @@ class RunMissionInterface():
 
         #check if generation of scenario is needed
         gen_mission = None
+        project_id = session['current_project_id']
         result = create_generate_mission(json_data) if int(json_data['generate_needed']) == 1 else None
         if result:
             if result.status >=300:
@@ -63,34 +62,60 @@ class RunMissionInterface():
         gen_mission_id = gen_mission.id if gen_mission else None
         run_mission_id = run_mission.id if run_mission else None
         requests = json_data['request_content']
+        i=0
+        k=0
         for request in requests:
-            request.update({"gen_mission_id":gen_mission_id, "run_mission_id":run_mission_id})
+            request.update({"gen_mission_id":gen_mission_id, "run_mission_id":run_mission_id,
+                            "project_id":project_id})
             if int(request['to_generate']) == 1:
+                i=i+1
+                print(f"pushed gen request {i}")
+                if request['to_run'] == 0:
+                    request['run_mission_id'] = None
                 generate_requests_queue.put_nowait(request)
             else:
+                k=k+1
+                print(f"pushed run request {k}")
+                request.update({"generate_status_id":None, "gen_mission_id":None})
                 run_requests_queue.put_nowait(request)
         return Result(200,'Mission created', {"gen_mission_id":gen_mission_id,"run_mission_id":run_mission_id})
 
     @staticmethod
-    def create_run_request(
-                        stage_id,
-                        generate_mission_id,
-                        generate_status_id,
-                        delete_after,
-                        run_mission_id,
-                        priority
-                        ):
+    def log_request(run_request):
         try:
-        
-            gen_request = {
-                            "stage_id":gen_request['stage_id'],
-                            "generate_mission_id":gen_request['generate_mission_id'],
-                            "generate_status_id":gen_request['generate_status_id'],
-                            "delete_after":gen_request['delete_after'],
-                            "run_mission_id":gen_request['run_mission_id'],
-                            "priority":gen_request['priority']
-                        }
-            return Result(200, None, run_request)
+            if "stage_id" in run_request:
+                stage_id = run_request['stage_id']
+            else:
+                stage = StageRunMani.query.filter_by(name=run_request['stage_name'],
+                                                project_id=run_request['project_id']).first()
+                if not stage:
+                    return Result(
+                                404, 
+                                "stage with name " + stage_name + " was not found",
+                                None
+                                )
+                stage_id = stage.id
+            run_status = RunMissionStatus(
+                stage_id=stage_id,
+                generate_mission_id=run_request['gen_mission_id'],
+                generate_status_id=run_request['generate_status_id'],
+                delete_after=run_request['run_delete_after'],
+                updated_time=datetime.utcnow(),
+                run_mission_id=run_request['run_mission_id'],
+                priority=run_request['priority']
+            )
+            return Result(200, None, run_status)
+        except:
+            return Result(500, 'error creating the run request', None)
+
+    @staticmethod
+    def execute_request(run_status):
+        try:
+            # run_status = RunMissionStatus(
+                
+            # )
+            print(f'run mission status: {run_status.id} executed!')
+            return Result(200, None, "blaaa")
         except:
             return Result(500, 'error creating the run request', None)
             
@@ -205,9 +230,18 @@ class GenerateMissionInterface():
                         )
         return Result(200, None, {"generate_status_id" : gen_status.id,
                                   "gen_process":{
-                                        "is_validated":{"failed":1, "succeeded":2, "total":3, "stage_type": "validating gen files"},
-                                        "is_in_db":{"failed":1, "succeeded":2, "total":3, "stage_type": "inserting gen rows to db"},
-                                        "is_generated":{"failed":1, "succeeded":1, "total":1, "stage_type": "generating scenario"},
+                                        "is_validated":{
+                                                "failed":1, "succeeded":2, "total":3,
+                                                "stage_type": GenerateStageTypes.VALIDATING, "status": GenerateStatus.PARTIAL_SUCCESS
+                                                },
+                                        "is_in_db":{
+                                                "failed":1, "succeeded":2, "total":3, 
+                                                "stage_type": GenerateStageTypes.DB_INSERT, "status": GenerateStatus.PARTIAL_SUCCESS
+                                                },
+                                        "is_generated":{
+                                                "failed":1, "succeeded":1, "total":1,
+                                                "stage_type": GenerateStageTypes.GENERATE, "status": GenerateStatus.SUCCESS
+                                                },
                                         }
                                  }
                     )
@@ -223,6 +257,7 @@ class GenerateMissionInterface():
             is_validated = None
             is_in_db = None
             is_generated = None
+            statistics = []
             delete_after = int(gen_request['gen_delete_after'])
             updated_time = datetime.utcnow()
 
@@ -235,6 +270,7 @@ class GenerateMissionInterface():
                                         is_validated=is_validated,
                                         is_in_db=is_in_db,
                                         is_generated=is_generated,
+                                        statistics=statistics,
                                         delete_after=delete_after,
                                         updated_time=updated_time,
                                         priority=priority

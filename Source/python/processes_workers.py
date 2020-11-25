@@ -32,8 +32,8 @@ def check_tests_params_update(pipe_conn):
 
 
 def init_processes(num_of_analyser_workers,run_or_stop_flag,
-                 tasks_queue,error_queue,updates_queue,to_do_queue,done_queue,
-                 generate_requests_queue, to_generate_queue, run_requests_queue ,pipes_dict):
+            tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, 
+            generate_requests_queue, run_requests_queue, to_generate_queue ,pipes_dict):
 
     processes_dict = {}
 
@@ -57,9 +57,9 @@ def init_processes(num_of_analyser_workers,run_or_stop_flag,
     results_logger_worker.start()
     processes_dict['results_logger_worker'] = results_logger_worker
 
-    # system_runner_worker = Process(target=Worker.system_runner_worker, args=([error_queue,run_or_stop_flag, run_requests_queue]))
-    # system_runner_worker.start()
-    # processes_dict['system_runner_worker'] = system_runner_worker
+    system_runner_worker = Process(target=Worker.system_runner_worker, args=([error_queue,run_or_stop_flag, run_requests_queue]))
+    system_runner_worker.start()
+    processes_dict['system_runner_worker'] = system_runner_worker
 
     scenario_generator_worker = Process(target=Worker.scenario_generator_worker, args=([error_queue,run_or_stop_flag, to_generate_queue, run_requests_queue]))
     scenario_generator_worker.start()
@@ -258,34 +258,45 @@ class Worker:
                     finally:
                         db.session.close()
 
-    # @staticmethod
-    # def system_runner_worker(error_queue, run_or_stop_flag, run_requests_queue):
-    #     process_app = create_process_app(db)
-    #     with process_app.app_context():
-    #         while run_or_stop_flag.is_set():
-    #             if not run_requests_queue.empty():
-    #                 try:
-    #                     run_request = run_requests_queue.get_nowait()
-    #                     # execute the run request
-    #                     result = RunMissionInterface.execute_request(run_request=run_request)
-    #                     # log error if somthing failed
-    #                     if result.status >= 300:
-    #                         error = ErrorLog(
-    #                                          error_string=result.message,
-    #                                          stage='executing a run request'
-    #                                         )
-    #                         error.log()
-    #                         continue
-    #                     # if run mission row was created - create the mission for run script 
-    #                     # AutoRunData, ComplexNet etc.
-    #                 except:
-    #                     print('exeption in system runner')
-    #                     try:
-    #                         pass
-    #                     except expression as identifier:
-    #                         pass
-    #                 finally:
-    #                     db.session.close()
+    @staticmethod
+    def system_runner_worker(error_queue,run_or_stop_flag, run_requests_queue):
+        process_app = create_process_app(db)
+        with process_app.app_context():
+            while run_or_stop_flag.is_set():
+                if not run_requests_queue.empty():
+                    try:
+                        run_request = run_requests_queue.get_nowait()
+                        #logging the request
+                        result = RunMissionInterface.log_request(run_request=run_request)
+                        # log error if somthing failed
+                        if result.status >= 300:
+                            error = ErrorLog(
+                                             task_id = run_request['run_mission_id'],
+                                             error_string=result.message,
+                                             stage='logging a run request'
+                                            )
+                            error.log()
+                            continue
+                        run_status = result.data
+                        db.session.add(run_status)
+                        db.session.commit()
+                        # execute the run request
+                        result = RunMissionInterface.execute_request(run_status=run_status)
+                        # log error if somthing failed
+                        if result.status >= 300:
+                            error = ErrorLog(
+                                             task_id = run_request['run_mission_id'],
+                                             error_string=result.message,
+                                             stage='executing a run request'
+                                            )
+                            error.log()
+                            continue
+                        # if run mission row was created - create the mission for run script 
+                        # AutoRunData, ComplexNet etc.
+                    except:
+                        print('exception in system runner')
+                    finally:
+                        db.session.close()
 
     @staticmethod
     def generate_requests_logger(error_queue,run_or_stop_flag, generate_requests_queue, to_generate_queue):
@@ -321,12 +332,13 @@ class Worker:
                                             succeeded=statistics['succeeded'],
                                             failed=statistics['failed'],
                                             total=statistics['failed']+statistics['succeeded'],
-                                            stage_type='logging request'
+                                            stage_type=GenerateStageTypes.LOGGING
                                                             )
                         db.session.add(gen_statistics)
 
                         #complete the db trasaction
                         db.session.commit()
+
                         # loop requests logging results
                         results = result.data['results']
                         for res in results:
@@ -341,6 +353,7 @@ class Worker:
                                 #             "run_mission_id":gen_request['run_mission_id'],
                                 #             "priority":gen_request['priority']
                                 #         }
+                                print(f"logged and pushed gen status id {gen_status.id}")
                                 to_generate_queue.put_nowait((gen_status.id, gen_request))
                                 # gen_result = GenerateMissionInterface.execute_request(gen_status)
                                 # if gen_result.status < 300:
@@ -405,18 +418,21 @@ class Worker:
                                     stage_type=stat['stage_type']
                                                     )
                                 db.session.add(gen_statistics)
-                                db.session.commit()
-                                setattr(gen_status, key, gen_statistics.id)
-                                db.session.commit()
+                                setattr(gen_status, key, stat['status'])
+                            
+                            db.session.commit()
+                            print(f"generated gen status id {gen_status_id}")
                             if gen_request['to_run']:
                                 run_request = {
                                             "stage_id":gen_request['stage_id'],
-                                            "generate_mission_id":gen_request['gen_mission_id'],
+                                            "gen_mission_id":gen_request['gen_mission_id'],
                                             "generate_status_id":gen_status_id,
-                                            "delete_after":gen_request['run_delete_after'],
+                                            "run_delete_after":gen_request['run_delete_after'],
+                                            "gen_delete_after":gen_request['gen_delete_after'],
                                             "run_mission_id":gen_request['run_mission_id'],
                                             "priority":gen_request['priority']
                                         }
+                                print(f"pushed run request with gen status id {gen_status_id}")
                                 run_requests_queue.put_nowait(run_request)
                                 
                         else:
@@ -428,7 +444,7 @@ class Worker:
                             error.log()
                         
                         
-                    except:
+                    except Exception as error:
                         db.session.rollback()
                         print('exception in scenario generator')
                         try:
