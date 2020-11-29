@@ -83,10 +83,11 @@ class RunMissionInterface():
     @staticmethod
     def log_request(run_request):
         try:
+            stage_name = run_request['stage_name']
             if "stage_id" in run_request:
                 stage_id = run_request['stage_id']
             else:
-                stage = StageRunMani.query.filter_by(name=run_request['stage_name'],
+                stage = StageRunMani.query.filter_by(name=stage_name,
                                                 project_id=run_request['project_id']).first()
                 if not stage:
                     return Result(
