@@ -8,10 +8,10 @@ function generate_worker_function() {
     }
     onmessage = async function(e) {
         origin = e.data.origin;
-        mission_name = e.data.mission_name;
+        mission_id = e.data.mission_id;
         while (true) {
             await wait(1000)
-            await fetch(origin + "/api/AnalyseTask/get_mission_results/" + mission_name).then(response => response.json())
+            await fetch(origin + "/dummyapi/GenerateMission/get_by_id/" + mission_id).then(response => response.json())
                 .then((data) => postMessage(data));
         }
     }
