@@ -514,14 +514,16 @@ def api_methods_no_args(class_name,class_method):
     finally:
         db.session.close()
 
-@app.route('/api2/request_run_mission')
+@app.route('/api2/request_run_mission', methods=["POST","GET"])
 def handle_mission_request():
     try:
         json_data = request.get_json()
-        if request.cookies['current_project_id']:
-            session['current_project_id'] = int(request.cookies['current_project_id'])
-        if request.cookies['username']:
-            session['username'] = request.cookies['username']
+        # if request.cookies['current_project_id']:
+        #     session['current_project_id'] = int(request.cookies['current_project_id'])
+        session['current_project_id']=1
+        # if request.cookies['username']:
+        #     session['username'] = request.cookies['username']
+        session['username'] = 'ilans'
     except:
         return {"message": "no json payload", "data":None}, 400
     result = RunMissionInterface.handle_mission_request(json_data, generate_requests_queue, run_requests_queue)

@@ -83,10 +83,11 @@ class RunMissionInterface():
     @staticmethod
     def log_request(run_request):
         try:
-            stage_name = run_request['stage_name']
+            
             if "stage_id" in run_request:
                 stage_id = run_request['stage_id']
             else:
+                stage_name = run_request['stage_name']
                 stage = StageRunMani.query.filter_by(name=stage_name,
                                                 project_id=run_request['project_id']).first()
                 if not stage:
@@ -172,7 +173,7 @@ class GenerateMissionInterface():
             return result
         
         # initialize variables
-        run_mission_id = int(gen_request['run_mission_id'])
+        run_mission_id = int(gen_request['run_mission_id']) if gen_request['run_mission_id'] else None
         gen_mission_id = int(gen_request['gen_mission_id'])
         stage_name = gen_request['stage_name']
         ext_events_folder = gen_request['ext_events_folder']
