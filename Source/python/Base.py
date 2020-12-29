@@ -1,6 +1,15 @@
-import sqlalchemy
+import sqlalchemy, os, sys
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, inspect
+print('imported!!!')
+basedir = os.path.abspath(os.path.dirname(__file__))
+if sys.platform.startswith('win'):
+    sep = '\\'
+else:
+    sep = '/'
+
+sys.path.append(basedir + sep + 'Model')
 
 def init_db():
     db = SQLAlchemy()
@@ -20,4 +29,5 @@ def create_app(db):
     db.init_app(app)
     return app
 
-db = init_db()
+db = SQLAlchemy()
+# db = init_db()

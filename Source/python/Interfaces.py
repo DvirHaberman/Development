@@ -1,5 +1,6 @@
-from .model import *
+# from .model import *
 from .Enums import GenerateStageTypes, GenerateStatus
+from Source.python.Model.GenerateMission import *
 
 class Result():
     def __init__(self, status, message, data):
@@ -72,6 +73,7 @@ class RunMissionInterface():
                 print(f"pushed gen request {i}")
                 if request['to_run'] == 0:
                     request['run_mission_id'] = None
+                db.session.close()
                 generate_requests_queue.put_nowait(request)
             else:
                 k=k+1
