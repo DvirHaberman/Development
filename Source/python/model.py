@@ -6,11 +6,9 @@
 
 import ast
 import pandas as pd
-import sqlalchemy
-from flask_sqlalchemy import SQLAlchemy
+from .Base import *
 from flask import Flask, redirect, request, jsonify, render_template, session, flash
 import json
-from sqlalchemy import create_engine, inspect
 from datetime import datetime, timedelta
 from time import time, sleep
 import importlib
@@ -94,25 +92,7 @@ def run_matlab(conn, run_id, params):
         'results_arr' : None
     }
 
-def init_db():
-    db = SQLAlchemy()
-    return db
 
-def create_process_app(db):
-    process_app = Flask(__name__)
-    process_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
-    process_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.init_app(process_app)
-    # process_app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://dvirh:dvirh@localhost:3306/octopusdb4"
-    
-    return process_app
-
-def create_app(db):
-    app = Flask(__name__)
-    db.init_app(app)
-    return app
-
-db = init_db()
 
 FunctionsAndGroups = db.Table('functionsandgroups',
                               db.Column('function_id', db.Integer,
