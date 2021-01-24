@@ -773,6 +773,7 @@ class User(db.Model):
         except:
             names = []
             status = 0
+        db.session.close()
         return jsonify(status=status, data=names)
 
     @staticmethod
@@ -786,6 +787,7 @@ class User(db.Model):
         except:
             names = []
             status = 0
+        db.session.close()
         return jsonify(status=status, data=names)
 
     @staticmethod
