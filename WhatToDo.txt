@@ -1,0 +1,46 @@
+#############################REMOTE WORK##############################################
+
+----------Generator and Runner processes---------------------------------------------
+1. new table - SystemMission 
+2. add parent mission to generate and run mission - parent mission is SystemMission
+3. add mission time (created, started, ended)
+4. add main generate dummy
+5. transform request to contain site data and scenario folder and file
+
+----------Mission Monitor Window----------------------------------------------------
+1. display all SystemMissions
+2. pressing a SystemMission will display it's generate and run missions statuses
+3. for run mission statuses will show:
+	* stage details
+	* run status - in db? in process? is finished? is rejected? run id?
+4. for generate mission statuses will show:
+	* ref scenario
+	* selected site details
+	* selected files/events
+	* generate status - is validated? is in db? is generated?
+	* generate statistics - pooper? collapsed?
+5. options for run mission will be - request again. pause/resume current mission. kill. 
+6. options for generate mission will be - request again. pause/resume current mission. kill.
+ 
+#################################ELBIT###############################################
+
+----------Generator and Runner processes---------------------------------------------
+1.insert changes in Generator and Runner processes from REMOTE WORK
+2. add option to save in sub directory
+3. handle problematic .src kinds generation
+
+
+----------mission monitor-------------------------------------------------------
+
+1. validate .src files path
+2. validate and show .txt files data from selected events folders
+3. combine run function with Runner process
+4. insert Mission Monitor Window from REMOTE WORK
+5. add ovr files selection in run system window
+6. enable scenario deletion
+
+----------tables window--------------------------------------------------------
+
+1. add Octopus db as default for admins
+2. extract and show tables data
+3. enable table edit
