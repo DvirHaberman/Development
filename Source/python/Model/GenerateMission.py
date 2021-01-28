@@ -1,4 +1,4 @@
-from Source.python.model import *
+from ..model import *
 
 class GenerateMission(db.Model):
     __tablename__ = "generatemission"
@@ -6,6 +6,7 @@ class GenerateMission(db.Model):
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
+    parent_mission = db.Column(db.Integer)
     gen_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', 
                                 cascade="all,delete", lazy='dynamic', uselist=True)
 
@@ -14,13 +15,15 @@ class GenerateMission(db.Model):
                 created_by,
                 created_time,
                 project_id,
-                gen_stages
+                gen_stages,
+                parent_mission
                 ):
 
         self.created_by = created_by
         self.created_time = created_time
         self.project_id = project_id
         self.gen_stages = gen_stages
+        self.parent_mission = parent_mission
 
 
 class GenerateMissionStatus(db.Model):
@@ -94,3 +97,83 @@ class GenerateStatistics(db.Model):
         self.failed = failed
         self.total = total
         self.stage_type = stage_type
+
+
+class RunMission(db.Model):
+    __tablename__ = 'runmission'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    created_by = db.Column(db.Integer)
+    created_time = db.Column(db.DateTime)
+    project_id = db.Column(db.Integer)
+    parent_mission = db.Column(db.Integer)
+    run_stages = db.relationship('RunMissionStatus', backref='RunMission', lazy='dynamic', uselist=True)
+
+    def __init__(
+                self, 
+                name,
+                created_by,
+                project_id,
+                run_stages,
+                created_time,
+                parent_mission
+                ):
+        self.name = name
+        self.created_by = created_by
+        self.created_time = created_time
+        self.project_id = project_id
+        self.run_stages = run_stages
+        self.parent_mission = parent_mission
+
+        
+class RunMissionStatus(db.Model):
+    __tablename__ = 'runmissionstatus'
+    id = db.Column(db.Integer, primary_key=True)
+    stage_id = db.Column(db.Integer)
+    generate_mission_id = db.Column(db.Integer)
+    generate_status_id = db.Column(db.Integer)
+    delete_after = db.Column(db.Boolean)
+    updated_time = db.Column(db.DateTime)
+    run_mission_id = db.Column(db.Integer, db.ForeignKey('runmission.id'))
+    run_id = db.Column(db.Integer)
+    priority = db.Column(db.Integer)
+
+    def __init__(
+                self,
+                stage_id,
+                generate_mission_id,
+                generate_status_id,
+                delete_after,
+                updated_time,
+                run_mission_id,
+                priority
+                ):
+        self.stage_id = stage_id
+        self.generate_mission_id = generate_mission_id
+        self.generate_status_id = generate_status_id
+        self.delete_after = delete_after
+        self.updated_time = updated_time
+        self.run_mission_id = run_mission_id
+        self.priority = priority
+
+
+class SystemMission(db.Model):
+    __tablename__ = 'systemmission'
+    id = db.Column(db.Integer, primary_key=True)
+    gen_mission = db.relationship('GenetareMission', backref='SystemMission', lazy='dynamic', uselist=False)
+    run_mission = db.relationship('RunMission', backref='SystemMission', lazy='dynamic', uselist=False)
+    created_by = db.Column(db.Integer)
+    created_time = db.Column(db.DateTime)
+
+    def __init__(
+                self, 
+                gen_mission_id,
+                run_mission_id,
+                created_by,
+                created_time
+                ):
+
+        self.gen_mission_id = gen_mission_id
+        self.run_mission_id = run_mission_id
+        self.created_by = created_by
+        self.created_time = created_time

@@ -1,6 +1,6 @@
 # from .model import *
 from .Enums import GenerateStageTypes, GenerateStatus
-from Source.python.Model.GenerateMission import *
+from .Model.GenerateMission import *
 
 class Result():
     def __init__(self, status, message, data):
