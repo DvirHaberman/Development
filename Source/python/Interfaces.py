@@ -1,6 +1,6 @@
 # from .model import *
 from .Enums import GenerateStageTypes, GenerateStatus
-from Source.python.Model.GenerateMission import *
+from .Model.GenerateMission import *
 
 class Result():
     def __init__(self, status, message, data):
@@ -41,7 +41,13 @@ class RunMissionInterface():
         result = validate_request_data(json_data)
         if result.status >= 300:
             return result
-
+        # create system mission
+        user_id = User.query.filter_by(name=session['username']).first().id
+        project_id = session['current_project_id']
+        sys_mission = SystemMission(created_by=user_id, project_id=project_id)
+        db.session.add(sys_mission)
+        db.session.commit()
+        json_data['sys_mission_id'] = sys_mission.id
         #check if generation of scenario is needed
         gen_mission = None
         project_id = session['current_project_id']
@@ -67,7 +73,7 @@ class RunMissionInterface():
         k=0
         for request in requests:
             request.update({"gen_mission_id":gen_mission_id, "run_mission_id":run_mission_id,
-                            "project_id":project_id})
+                            "project_id":project_id, "sys_mission_id": sys_mission.id})
             if int(request['to_generate']) == 1:
                 i=i+1
                 print(f"pushed gen request {i}")
@@ -80,7 +86,13 @@ class RunMissionInterface():
                 print(f"pushed run request {k}")
                 request.update({"generate_status_id":None, "gen_mission_id":None})
                 run_requests_queue.put_nowait(request)
-        return Result(200,'Mission created', {"gen_mission_id":gen_mission_id,"run_mission_id":run_mission_id})
+        return Result(200,
+                    'Mission created!\n Your mission id is: '+ str(sys_mission.id), 
+                    {
+                        "sys_mission_id":sys_mission.id,
+                        "gen_mission_id":gen_mission_id,
+                        "run_mission_id":run_mission_id
+                    })
 
     @staticmethod
     def log_request(run_request):
@@ -126,12 +138,14 @@ class RunMissionInterface():
 def create_generate_mission(json_data):
     project_id = session['current_project_id']
     user_id = User.query.filter_by(name=session['username']).first().id
+    parent_mission = json_data['sys_mission_id']
     try:
         #log a generate_mission in OctopusDb
         gen_mission = GenerateMission(
                                     created_by=user_id,
                                     created_time=datetime.utcnow(),
                                     project_id=project_id,
+                                    parent_mission = parent_mission,
                                     gen_stages=[]
                                     )
         db.session.add(gen_mission)
@@ -145,7 +159,7 @@ def create_run_mission(json_data):
     #check that the requested stage exists
     project_id = session['current_project_id']
     user_id = User.query.filter_by(name=session['username']).first().id
-
+    parent_mission = json_data['sys_mission_id']
     try:
         #log a generate_mission in OctopusDb
         run_mission = RunMission(
@@ -153,6 +167,7 @@ def create_run_mission(json_data):
                     created_by=user_id,
                     project_id=project_id,
                     run_stages = [],
+                    parent_mission = parent_mission,
                     created_time = datetime.utcnow()
                     )
         db.session.add(run_mission)
