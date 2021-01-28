@@ -6,7 +6,7 @@ class GenerateMission(db.Model):
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
-    parent_mission = db.Column(db.Integer)
+    parent_mission = db.Column(db.Integer, db.ForeignKey('systemmission.id'))
     gen_stages = db.relationship('GenerateMissionStatus', backref='GenerateMission', 
                                 cascade="all,delete", lazy='dynamic', uselist=True)
 
@@ -106,7 +106,7 @@ class RunMission(db.Model):
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
     project_id = db.Column(db.Integer)
-    parent_mission = db.Column(db.Integer)
+    parent_mission = db.Column(db.Integer, db.ForeignKey('systemmission.id'))
     run_stages = db.relationship('RunMissionStatus', backref='RunMission', lazy='dynamic', uselist=True)
 
     def __init__(
@@ -160,20 +160,25 @@ class RunMissionStatus(db.Model):
 class SystemMission(db.Model):
     __tablename__ = 'systemmission'
     id = db.Column(db.Integer, primary_key=True)
-    gen_mission = db.relationship('GenetareMission', backref='SystemMission', lazy='dynamic', uselist=False)
-    run_mission = db.relationship('RunMission', backref='SystemMission', lazy='dynamic', uselist=False)
+    gen_mission = db.relationship('GenerateMission', backref='SystemMission',  cascade="all,delete",
+                                  lazy=True, uselist=False)
+    run_mission = db.relationship('RunMission', backref='SystemMission', cascade="all,delete",
+                                  lazy=True, uselist=False)
     created_by = db.Column(db.Integer)
     created_time = db.Column(db.DateTime)
+    project_id = db.Column(db.Integer)
 
     def __init__(
                 self, 
-                gen_mission_id,
-                run_mission_id,
                 created_by,
-                created_time
+                project_id,
+                created_time=datetime.utcnow(),
+                gen_mission_id = None,
+                run_mission_id = None,
                 ):
 
         self.gen_mission_id = gen_mission_id
         self.run_mission_id = run_mission_id
         self.created_by = created_by
         self.created_time = created_time
+        self.project_id = project_id
