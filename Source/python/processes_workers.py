@@ -326,6 +326,7 @@ class Worker:
                         
                         # log the statistics
                         statistics = result.data['statistics']
+
                         gen_statistics = GenerateStatistics(
                                             generate_status_id=None,
                                             generate_mission_id=gen_request['gen_mission_id'],
@@ -419,7 +420,7 @@ class Worker:
                                                     )
                                 db.session.add(gen_statistics)
                                 setattr(gen_status, key, stat['status'])
-                            
+                                sleep(4)
                             db.session.commit()
                             print(f"generated gen status id {gen_status_id}")
                             if gen_request['to_run']:

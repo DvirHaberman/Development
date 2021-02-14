@@ -5,14 +5,18 @@ from multiprocessing import Queue, Event, freeze_support
 from python.processes_workers import Worker, init_processes, create_pipes, send_data_to_workers
 import os
 from flask_migrate import Migrate
-from blueprints.dummyapi import dummy
+from flask_cors import CORS, cross_origin
+from api2.blueprints import api2
 
 app = Flask(__name__)
+cors = CORS(app)
 app.secret_key = os.environ.get('PYTHON_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['CORS_HEADERS'] = '*'
 
-app.register_blueprint(dummy)
+app.register_blueprint(api2)
+CORS(api2)
 Migrate(app,db)
 
 db.init_app(app)
@@ -37,12 +41,12 @@ run_requests_queue = Queue()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-if sys.platform.startswith('win'):
-    tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
-else:
-    tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
+# if sys.platform.startswith('win'):
+#     tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
+# else:
+#     tests_params = DataCollector.get_tests_params(basedir + r"/../Data/Tests_Params.xlsx")
 
-send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
+# send_data_to_workers(tests_params, pipes_dict, num_of_analyser_workers)
 
 if sys.platform.startswith('win'):
     sys.path.append('C' + basedir[1:-7] + '\\Functions')
@@ -51,6 +55,7 @@ if sys.platform.startswith('win'):
     sys.path.append(basedir[:-7] + '\\Functions')
     sys.path.append(basedir[:-7] + '\\Infras\\Fetches')
     sys.path.append(basedir[:-7] + '\\Infras\\Utils')
+    sys.path.append(basedir+'\\python\\Model')
 else:
     sys.path.append(basedir[:-7] + r'/Functions')
     sys.path.append(basedir[:-7] + r'/Infras/Fetches')
@@ -59,7 +64,7 @@ else:
 processes_dict = init_processes(num_of_analyser_workers,run_or_stop_flag,
             tasks_queue,error_queue,updates_queue,to_do_queue,done_queue, 
             generate_requests_queue, run_requests_queue, to_generate_queue ,pipes_dict)
-# sleep(3)
+sleep(3)
 
 if sys.platform.startswith('win'):
     tests_params = DataCollector.get_tests_params(basedir + r"\..\Data\Tests_Params.xlsx")
@@ -523,6 +528,14 @@ def handle_mission_request():
         return {"message": "no json payload", "data":None}, 400
     result = RunMissionInterface.handle_mission_request(json_data, generate_requests_queue, run_requests_queue)
     return {"message":result.message, "data":result.data}, result.status
+
+@app.route('/mission_monitor')
+def monitor():
+    if session.get('username', None) is None:
+        return redirect('/login_first')
+    else:
+        session['current_window_name'] = 'Mission Monitor'
+        return redirect('http://127.0.0.1:3000/')
 
 if __name__ == "__main__":
     # freeze_support()

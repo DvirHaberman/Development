@@ -2,7 +2,7 @@ import sqlalchemy, os, sys
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, inspect
-print('imported!!!')
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 if sys.platform.startswith('win'):
     sep = '\\'

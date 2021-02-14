@@ -160,6 +160,7 @@ class RunMissionStatus(db.Model):
 class SystemMission(db.Model):
     __tablename__ = 'systemmission'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
     gen_mission = db.relationship('GenerateMission', backref='SystemMission',  cascade="all,delete",
                                   lazy=True, uselist=False)
     run_mission = db.relationship('RunMission', backref='SystemMission', cascade="all,delete",
@@ -169,14 +170,15 @@ class SystemMission(db.Model):
     project_id = db.Column(db.Integer)
 
     def __init__(
-                self, 
+                self,
+                name,
                 created_by,
                 project_id,
                 created_time=datetime.utcnow(),
                 gen_mission_id = None,
                 run_mission_id = None,
                 ):
-
+        self.name = name
         self.gen_mission_id = gen_mission_id
         self.run_mission_id = run_mission_id
         self.created_by = created_by

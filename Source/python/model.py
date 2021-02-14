@@ -7,7 +7,7 @@
 import ast
 import pandas as pd
 from .Base import *
-from flask import redirect, request, jsonify, render_template, session, flash
+from flask import redirect, request, jsonify, render_template, session, flash, g
 import json
 from datetime import datetime, timedelta
 from time import time, sleep

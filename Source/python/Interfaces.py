@@ -1,7 +1,7 @@
 # from .model import *
 from .Enums import GenerateStageTypes, GenerateStatus
 from .Model.GenerateMission import *
-
+from numpy import random
 class Result():
     def __init__(self, status, message, data):
         self.status = status
@@ -42,10 +42,14 @@ class RunMissionInterface():
         if result.status >= 300:
             return result
         # create system mission
-        user_id = User.query.filter_by(name=session['username']).first().id
+        user = User.query.filter_by(name=session['username']).first()
+        user_id = user.id
+        user_name = user.name
         project_id = session['current_project_id']
-        sys_mission = SystemMission(created_by=user_id, project_id=project_id)
+        sys_mission = SystemMission(name="mission_"+user_name,created_by=user_id, project_id=project_id)
         db.session.add(sys_mission)
+        db.session.commit()
+        sys_mission.name = sys_mission.name + '_'+str(sys_mission.id)
         db.session.commit()
         json_data['sys_mission_id'] = sys_mission.id
         #check if generation of scenario is needed
@@ -87,7 +91,7 @@ class RunMissionInterface():
                 request.update({"generate_status_id":None, "gen_mission_id":None})
                 run_requests_queue.put_nowait(request)
         return Result(200,
-                    'Mission created!\n Your mission id is: '+ str(sys_mission.id), 
+                    'Mission created!\n Your mission name is: '+ sys_mission.name, 
                     {
                         "sys_mission_id":sys_mission.id,
                         "gen_mission_id":gen_mission_id,
@@ -247,18 +251,41 @@ class GenerateMissionInterface():
                         "stage with name " + stage.name + " was not found",
                         None
                         )
+        def get_randoms(max_int):
+            randoms = random.randint(1, max_int, size=2)
+            randoms_total = randoms[0] + randoms[1]
+            randoms_succeeded = randoms[0]
+            randoms_failed = randoms[1]
+            return int(randoms_succeeded), int(randoms_failed), int(randoms_total)
+        
+        def get_gen_status_type(failed, succeeded, total):
+            if failed == total:
+                status = GenerateStatus.FAILED
+            if succeeded == total:
+                status = GenerateStatus.SUCCESS
+            if (succeeded > 0) and (succeeded < total):
+                status = GenerateStatus.PARTIAL_SUCCESS
+            return status
+        validated_succeeded, validated_failed, validated_total = get_randoms(10)
+        validation_status = get_gen_status_type(validated_failed, validated_succeeded, validated_total)
+
+        in_db_succeeded, in_db_failed, in_db_total = get_randoms(max(validated_succeeded,validated_failed))
+        in_db_status = get_gen_status_type(in_db_failed, in_db_succeeded, in_db_total)
+        gen_succeeded = random.randint(2)
+        gen_failed = 0 if gen_succeeded == 1 else 1
+
         return Result(200, None, {"generate_status_id" : gen_status.id,
                                   "gen_process":{
                                         "is_validated":{
-                                                "failed":1, "succeeded":2, "total":3,
+                                                "failed":validated_failed, "succeeded":validated_succeeded, "total":validated_total,
                                                 "stage_type": GenerateStageTypes.VALIDATING, "status": GenerateStatus.PARTIAL_SUCCESS
                                                 },
                                         "is_in_db":{
-                                                "failed":1, "succeeded":2, "total":3, 
+                                                "failed":in_db_failed, "succeeded":in_db_succeeded, "total":in_db_total, 
                                                 "stage_type": GenerateStageTypes.DB_INSERT, "status": GenerateStatus.PARTIAL_SUCCESS
                                                 },
                                         "is_generated":{
-                                                "failed":1, "succeeded":1, "total":1,
+                                                "failed":gen_failed, "succeeded":gen_succeeded, "total":1,
                                                 "stage_type": GenerateStageTypes.GENERATE, "status": GenerateStatus.SUCCESS
                                                 },
                                         }
